@@ -110,8 +110,8 @@ private:
     QAction* actionSensMed;
     QAction* actionSensHigh;
 
-    QAction* actionWorkspaceSim;
-    QAction* actionWorkspaceAnalytics;
+    QPushButton* btnWorkspaceSim;
+    QPushButton* btnWorkspaceAnalytics;
 
     QAction* actionExit;
     QAction* actionFullscreen;

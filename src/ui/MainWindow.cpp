@@ -9,6 +9,8 @@
 #include <QStyle>
 #include <QProcess>
 #include <QWidgetAction>
+#include <QToolButton>
+#include <QButtonGroup>
 #include <iostream>
 
 namespace MapUI {
@@ -226,36 +228,37 @@ void MainWindow::setupMenuBar() {
     appMenuBar->setStyleSheet(R"(
         QMenuBar {
             background-color: #1F1F1F;
-            color: #D4D4D8;
             border-bottom: 1px solid #141414;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 2px 4px;
+            min-height: 30px;
         }
-        QMenuBar::item {
-            background: transparent;
-            padding: 4px 10px;
-            border-radius: 3px;
+        QToolButton {
+            background-color: transparent;
             color: #D4D4D8;
+            border: none;
+            border-radius: 3px;
             font-family: 'Segoe UI', Arial, sans-serif;
             font-size: 11px;
             font-weight: 600;
+            padding: 4px 8px;
         }
-        QMenuBar::item:selected {
+        QToolButton:hover {
             background-color: #383838;
             color: #FFFFFF;
         }
-        QMenuBar::item:pressed {
+        QToolButton:pressed, QToolButton:checked {
             background-color: #4772B3;
             color: #FFFFFF;
+        }
+        QToolButton::menu-indicator {
+            image: none;
+            width: 0px;
         }
         QMenu {
             background-color: #242424;
             color: #E6E6E6;
-            border: 1px solid #181818;
-            border-radius: 4px;
-            padding: 3px 0px;
+            border: 1px solid #383838;
+            border-radius: 8px;
+            padding: 4px;
             font-family: 'Segoe UI', Arial, sans-serif;
             font-size: 11px;
         }
@@ -264,16 +267,17 @@ void MainWindow::setupMenuBar() {
             color: #E6E6E6;
             font-size: 11px;
             font-weight: 500;
+            border-radius: 4px;
+            margin: 1px 2px;
         }
         QMenu::item:selected {
             background-color: #4772B3;
             color: #FFFFFF;
-            border-radius: 2px;
         }
         QMenu::separator {
             height: 1px;
-            background-color: #333333;
-            margin: 3px 6px;
+            background-color: #383838;
+            margin: 4px 6px;
         }
         QMenu::indicator {
             width: 12px;
@@ -290,24 +294,44 @@ void MainWindow::setupMenuBar() {
             border: 1px solid #444444;
             border-radius: 2px;
         }
+        QPushButton#workspaceBtn {
+            background-color: transparent;
+            color: #D4D4D8;
+            border: none;
+            border-radius: 3px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+        }
+        QPushButton#workspaceBtn:hover {
+            background-color: #383838;
+            color: #FFFFFF;
+        }
+        QPushButton#workspaceBtn:checked {
+            background-color: #38465C;
+            color: #8AB4F8;
+            border: 1px solid #4772B3;
+        }
     )");
 
-    // ---- 0. App Logo (Static Monochromatic Icon, Left of File) ----
-    auto* logoLabel = new QLabel(appMenuBar);
-    logoLabel->setPixmap(IconHelper::getPixmap("logo", QColor(212, 212, 216), 18));
-    logoLabel->setStyleSheet("padding: 2px 4px 2px 8px; background: transparent; border: none;");
-    logoLabel->setAttribute(Qt::WA_TransparentForMouseEvents, true);
-    appMenuBar->setCornerWidget(logoLabel, Qt::TopLeftCorner);
+    auto configureMenu = [](QMenu* m) {
+        if (!m) return;
+        m->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
+        m->setAttribute(Qt::WA_TranslucentBackground, true);
+    };
 
     // ---- 1. File Menu ----
-    fileMenu = appMenuBar->addMenu("&File");
+    fileMenu = new QMenu("File", this);
+    configureMenu(fileMenu);
 
     actionExit = fileMenu->addAction("Exit");
     actionExit->setShortcut(QKeySequence("Ctrl+Q"));
     connect(actionExit, &QAction::triggered, this, &QMainWindow::close);
 
     // ---- 2. View Menu ----
-    viewMenu = appMenuBar->addMenu("&View");
+    viewMenu = new QMenu("View", this);
+    configureMenu(viewMenu);
 
     // Online / Offline radio group
     auto* mapModeGroup = new QActionGroup(this);
@@ -329,6 +353,7 @@ void MainWindow::setupMenuBar() {
 
     // Theme Submenu
     themeMenu = viewMenu->addMenu(IconHelper::system(QColor(167, 139, 250), 16), "Theme");
+    configureMenu(themeMenu);
     auto* themeGroup = new QActionGroup(this);
     themeGroup->setExclusive(true);
 
@@ -356,6 +381,7 @@ void MainWindow::setupMenuBar() {
 
     // Online Map Style Submenu
     onlineStylesMenu = viewMenu->addMenu(IconHelper::map(QColor(138, 180, 248), 16), "Tile Style Presets");
+    configureMenu(onlineStylesMenu);
     auto* styleGroup = new QActionGroup(this);
     styleGroup->setExclusive(true);
 
@@ -415,7 +441,8 @@ void MainWindow::setupMenuBar() {
     });
 
     // ---- 3. Settings Menu ----
-    settingsMenu = appMenuBar->addMenu("&Settings");
+    settingsMenu = new QMenu("Settings", this);
+    configureMenu(settingsMenu);
 
     actionOpenSettings = settingsMenu->addAction(IconHelper::radar(QColor(138, 180, 248), 16), "Configure Settings...");
     actionOpenSettings->setShortcut(QKeySequence("Ctrl+,"));
@@ -425,6 +452,7 @@ void MainWindow::setupMenuBar() {
 
     // Quick Zoom Sensitivity Presets
     auto* sensSubMenu = settingsMenu->addMenu(IconHelper::zoomIn(QColor(138, 180, 248), 16), "Zoom Sensitivity");
+    configureMenu(sensSubMenu);
     auto* sensGroup = new QActionGroup(this);
     sensGroup->setExclusive(true);
 
@@ -459,29 +487,78 @@ void MainWindow::setupMenuBar() {
         applyAppSettings(s);
     });
 
-    // ---- 4. Vertical Separator at Right of Settings ----
-    auto* sepWidget = new QWidget(appMenuBar);
+    // ---- 4. Top Bar Unified Widget (Set as Left Corner Widget of QMenuBar) ----
+    auto* topBarWidget = new QWidget(appMenuBar);
+    auto* topBarLayout = new QHBoxLayout(topBarWidget);
+    topBarLayout->setContentsMargins(4, 2, 4, 2);
+    topBarLayout->setSpacing(2);
+
+    // 0. App Logo (Static Monochromatic Icon, Left of File)
+    auto* logoLabel = new QLabel(topBarWidget);
+    logoLabel->setPixmap(IconHelper::getPixmap("logo", QColor(212, 212, 216), 18));
+    logoLabel->setStyleSheet("padding: 2px 6px 2px 6px; background: transparent; border: none;");
+    logoLabel->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+    topBarLayout->addWidget(logoLabel);
+
+    // 1. File Menu Button
+    auto* btnFile = new QToolButton(topBarWidget);
+    btnFile->setText("File");
+    btnFile->setMenu(fileMenu);
+    btnFile->setPopupMode(QToolButton::InstantPopup);
+    topBarLayout->addWidget(btnFile);
+
+    // 2. View Menu Button
+    auto* btnView = new QToolButton(topBarWidget);
+    btnView->setText("View");
+    btnView->setMenu(viewMenu);
+    btnView->setPopupMode(QToolButton::InstantPopup);
+    topBarLayout->addWidget(btnView);
+
+    // 3. Settings Menu Button
+    auto* btnSettings = new QToolButton(topBarWidget);
+    btnSettings->setText("Settings");
+    btnSettings->setMenu(settingsMenu);
+    btnSettings->setPopupMode(QToolButton::InstantPopup);
+    topBarLayout->addWidget(btnSettings);
+
+    // 4. Gray Vertical Separator
+    topBarLayout->addSpacing(4);
+    auto* sepWidget = new QWidget(topBarWidget);
     sepWidget->setFixedSize(1, 16);
-    sepWidget->setStyleSheet("background-color: #383838; margin: 4px 6px;");
-    auto* sepAction = new QWidgetAction(appMenuBar);
-    sepAction->setDefaultWidget(sepWidget);
-    appMenuBar->addAction(sepAction);
+    sepWidget->setStyleSheet("background-color: #666666;");
+    topBarLayout->addWidget(sepWidget);
+    topBarLayout->addSpacing(8);
 
-    // ---- 5. Workspace Switchers (Simulation / Analytics) ----
-    auto* workspaceGroup = new QActionGroup(this);
-    workspaceGroup->setExclusive(true);
+    // 5. Workspace Buttons (Exclusive Button Group)
+    auto* wsButtonGroup = new QButtonGroup(this);
+    wsButtonGroup->setExclusive(true);
 
-    actionWorkspaceSim = appMenuBar->addAction(IconHelper::map(QColor(138, 180, 248), 16), "Simulation");
-    actionWorkspaceSim->setCheckable(true);
-    actionWorkspaceSim->setChecked(true);
-    actionWorkspaceSim->setActionGroup(workspaceGroup);
-    connect(actionWorkspaceSim, &QAction::triggered, this, &MainWindow::showSimulationScreen);
+    // Simulation Workspace Button (Icon + Title "Simulation")
+    btnWorkspaceSim = new QPushButton(" Simulation", topBarWidget);
+    btnWorkspaceSim->setObjectName("workspaceBtn");
+    btnWorkspaceSim->setIcon(IconHelper::map(QColor(138, 180, 248), 16));
+    btnWorkspaceSim->setIconSize(QSize(16, 16));
+    btnWorkspaceSim->setCheckable(true);
+    btnWorkspaceSim->setChecked(true);
+    btnWorkspaceSim->setToolTip("Simulation Workspace (Map & Controls)");
+    wsButtonGroup->addButton(btnWorkspaceSim, 0);
+    topBarLayout->addWidget(btnWorkspaceSim);
 
-    actionWorkspaceAnalytics = appMenuBar->addAction(IconHelper::graph(QColor(167, 139, 250), 16), "Analytics");
-    actionWorkspaceAnalytics->setCheckable(true);
-    actionWorkspaceAnalytics->setChecked(false);
-    actionWorkspaceAnalytics->setActionGroup(workspaceGroup);
-    connect(actionWorkspaceAnalytics, &QAction::triggered, this, &MainWindow::showAnalyticsScreen);
+    // Analytics Workspace Button (Icon + Title "Analytics")
+    btnWorkspaceAnalytics = new QPushButton(" Analytics", topBarWidget);
+    btnWorkspaceAnalytics->setObjectName("workspaceBtn");
+    btnWorkspaceAnalytics->setIcon(IconHelper::graph(QColor(167, 139, 250), 16));
+    btnWorkspaceAnalytics->setIconSize(QSize(16, 16));
+    btnWorkspaceAnalytics->setCheckable(true);
+    btnWorkspaceAnalytics->setChecked(false);
+    btnWorkspaceAnalytics->setToolTip("Analytics Workspace");
+    wsButtonGroup->addButton(btnWorkspaceAnalytics, 1);
+    topBarLayout->addWidget(btnWorkspaceAnalytics);
+
+    connect(btnWorkspaceSim, &QPushButton::clicked, this, &MainWindow::showSimulationScreen);
+    connect(btnWorkspaceAnalytics, &QPushButton::clicked, this, &MainWindow::showAnalyticsScreen);
+
+    appMenuBar->setCornerWidget(topBarWidget, Qt::TopLeftCorner);
 }
 
 void MainWindow::setupUi() {
@@ -981,8 +1058,8 @@ void MainWindow::showSimulationScreen() {
     if (rootStack) {
         rootStack->setCurrentIndex(0);
     }
-    if (actionWorkspaceSim) {
-        actionWorkspaceSim->setChecked(true);
+    if (btnWorkspaceSim) {
+        btnWorkspaceSim->setChecked(true);
     }
     updateFloatingPositions();
 }
@@ -991,8 +1068,8 @@ void MainWindow::showAnalyticsScreen() {
     if (rootStack) {
         rootStack->setCurrentIndex(1);
     }
-    if (actionWorkspaceAnalytics) {
-        actionWorkspaceAnalytics->setChecked(true);
+    if (btnWorkspaceAnalytics) {
+        btnWorkspaceAnalytics->setChecked(true);
     }
 }
 
