@@ -55,6 +55,10 @@ private:
     MapMode currentMapMode = MapMode::Online;
     AppTheme currentTheme = AppTheme::SystemDefault;
 
+    // Multi-Screen Root Workspace Stack (0: Simulation Map, 1: Analytics)
+    QStackedWidget* rootStack;
+    QWidget* analyticsScreen;
+
     // Resizable Splitter Layout
     QSplitter* mainSplitter;    // Horizontal: [ Left: vSplitter | Right: PropertiesPanel ]
     QSplitter* vSplitter;       // Vertical:   [ Top: MapContainer | Bottom: TimelineWidget ]
@@ -106,6 +110,9 @@ private:
     QAction* actionSensMed;
     QAction* actionSensHigh;
 
+    QAction* actionWorkspaceSim;
+    QAction* actionWorkspaceAnalytics;
+
     QAction* actionExit;
     QAction* actionFullscreen;
 
@@ -134,6 +141,8 @@ public slots:
     void openSettingsDialog();
     void togglePropertiesPanel();
     void toggleTimeline();
+    void showSimulationScreen();
+    void showAnalyticsScreen();
 
 protected:
     void resizeEvent(QResizeEvent* event) override;

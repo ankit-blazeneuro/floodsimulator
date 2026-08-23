@@ -8,6 +8,7 @@
 #include <QApplication>
 #include <QStyle>
 #include <QProcess>
+#include <QWidgetAction>
 #include <iostream>
 
 namespace MapUI {
@@ -457,6 +458,30 @@ void MainWindow::setupMenuBar() {
         settingsDialog->saveSettings();
         applyAppSettings(s);
     });
+
+    // ---- 4. Vertical Separator at Right of Settings ----
+    auto* sepWidget = new QWidget(appMenuBar);
+    sepWidget->setFixedSize(1, 16);
+    sepWidget->setStyleSheet("background-color: #383838; margin: 4px 6px;");
+    auto* sepAction = new QWidgetAction(appMenuBar);
+    sepAction->setDefaultWidget(sepWidget);
+    appMenuBar->addAction(sepAction);
+
+    // ---- 5. Workspace Switchers (Simulation / Analytics) ----
+    auto* workspaceGroup = new QActionGroup(this);
+    workspaceGroup->setExclusive(true);
+
+    actionWorkspaceSim = appMenuBar->addAction(IconHelper::map(QColor(138, 180, 248), 16), "Simulation");
+    actionWorkspaceSim->setCheckable(true);
+    actionWorkspaceSim->setChecked(true);
+    actionWorkspaceSim->setActionGroup(workspaceGroup);
+    connect(actionWorkspaceSim, &QAction::triggered, this, &MainWindow::showSimulationScreen);
+
+    actionWorkspaceAnalytics = appMenuBar->addAction(IconHelper::graph(QColor(167, 139, 250), 16), "Analytics");
+    actionWorkspaceAnalytics->setCheckable(true);
+    actionWorkspaceAnalytics->setChecked(false);
+    actionWorkspaceAnalytics->setActionGroup(workspaceGroup);
+    connect(actionWorkspaceAnalytics, &QAction::triggered, this, &MainWindow::showAnalyticsScreen);
 }
 
 void MainWindow::setupUi() {
@@ -526,7 +551,16 @@ void MainWindow::setupUi() {
     mainSplitter->setCollapsible(1, true);
     mainSplitter->setSizes({ 1060, 300 });
 
-    setCentralWidget(mainSplitter);
+    // Multi-Screen Root Stack (Index 0: Simulation Workspace, Index 1: Analytics Screen)
+    analyticsScreen = new QWidget(this);
+    analyticsScreen->setObjectName("analyticsScreen");
+    analyticsScreen->setStyleSheet("QWidget#analyticsScreen { background-color: #1A1A1A; }");
+
+    rootStack = new QStackedWidget(this);
+    rootStack->addWidget(mainSplitter);
+    rootStack->addWidget(analyticsScreen);
+
+    setCentralWidget(rootStack);
 
     // 2. Floating Search Bar (Top-Left)
     searchBar = new SearchBar(mapContainer);
@@ -941,6 +975,25 @@ void MainWindow::updateFloatingPositions() {
 
     // 7. Loading Overlay covering entire map area
     loadingOverlay->setGeometry(0, 0, w, h);
+}
+
+void MainWindow::showSimulationScreen() {
+    if (rootStack) {
+        rootStack->setCurrentIndex(0);
+    }
+    if (actionWorkspaceSim) {
+        actionWorkspaceSim->setChecked(true);
+    }
+    updateFloatingPositions();
+}
+
+void MainWindow::showAnalyticsScreen() {
+    if (rootStack) {
+        rootStack->setCurrentIndex(1);
+    }
+    if (actionWorkspaceAnalytics) {
+        actionWorkspaceAnalytics->setChecked(true);
+    }
 }
 
 } // namespace MapUI
