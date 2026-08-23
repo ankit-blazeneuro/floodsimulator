@@ -19,9 +19,10 @@ class FrameRulerCanvas : public QWidget {
 
 private:
     int startFrame = 0;
-    int endFrame = 72;
+    int endFrame = 60;
     int currentFrame = 0;
-    std::vector<int> keyframes = {0, 6, 12, 18, 24, 36, 48, 60, 72};
+    bool isBlocked = true;
+    QString trackName = "flood_sim";
 
     bool isDragging = false;
     float panOffset = 0.0f;
@@ -32,10 +33,12 @@ public:
     int getCurrentFrame() const { return currentFrame; }
     int getStartFrame() const { return startFrame; }
     int getEndFrame() const { return endFrame; }
+    bool getIsBlocked() const { return isBlocked; }
 
     void setCurrentFrame(int frame);
     void setFrameRange(int start, int end);
-    void setKeyframes(const std::vector<int>& keys);
+    void setBlocked(bool blocked);
+    void setSimulationTrack(const QString& name, int start, int end);
 
 signals:
     void frameChanged(int frame);
@@ -58,6 +61,8 @@ class TimelineWidget : public QWidget {
 private:
     // Top Control Toolbar
     QWidget* controlBar;
+    QLabel* lblHeaderTitle;
+    QLabel* lblTrackBadge;
     QPushButton* btnJumpStart;
     QPushButton* btnStepBack;
     QPushButton* btnPlayReverse;
@@ -82,6 +87,7 @@ private:
     bool isPlayingForward = false;
     bool isPlayingReverse = false;
     bool isLooping = true;
+    bool isDamLoaded = false;
     int fps = 24;
 
 public:
@@ -91,9 +97,11 @@ public:
     int getStartFrame() const { return rulerCanvas->getStartFrame(); }
     int getEndFrame() const { return rulerCanvas->getEndFrame(); }
     bool getIsPlaying() const { return isPlayingForward || isPlayingReverse; }
+    bool getIsDamLoaded() const { return isDamLoaded; }
 
     void setCurrentFrame(int frame);
     void setFrameRange(int start, int end);
+    void setDamSelected(bool selected, const QString& trackName = "flood_sim");
 
 public slots:
     void playForward();
@@ -119,6 +127,7 @@ private slots:
 private:
     void setupUi();
     void updateTimeCodeDisplay();
+    void updateControlsEnabled();
     QString formatTimeCode(int frame) const;
 };
 

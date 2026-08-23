@@ -791,8 +791,9 @@ void MainWindow::setupUi() {
                                                                slice0->depressionFilledPct, slice0->totalPondedVolumeMCM);
             }
 
-            // Set timeline frame to 0 without playing
+            // Set timeline frame to 0 and enable flood_sim track
             if (timelineWidget) {
+                timelineWidget->setDamSelected(true, "flood_sim");
                 timelineWidget->setFrameRange(0, 60);
                 timelineWidget->setCurrentFrame(0);
                 timelineWidget->stopPlayback();
@@ -892,6 +893,7 @@ void MainWindow::setupUi() {
 
         // 4. Configure Timeline Widget in 60-Minute Hydrodynamics Mode and auto-play
         if (timelineWidget) {
+            timelineWidget->setDamSelected(true, "flood_sim");
             timelineWidget->setFrameRange(0, 60);
             timelineWidget->setCurrentFrame(0);
             timelineWidget->setVisible(true);
@@ -925,6 +927,7 @@ void MainWindow::setupUi() {
             }
 
             if (timelineWidget) {
+                timelineWidget->setDamSelected(true, "flood_sim");
                 timelineWidget->setFrameRange(0, 60);
                 timelineWidget->setCurrentFrame(0);
                 timelineWidget->setVisible(true);
