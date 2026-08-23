@@ -4,6 +4,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
+#include <QLabel>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QTimer>
@@ -35,6 +36,7 @@ private:
     QLineEdit* searchInput;
     QPushButton* btnClear;
     QPushButton* btnSearchIcon;
+    QLabel* lblKbdBadge;
     QListWidget* suggestionList;
 
     const std::vector<MapCore::SearchItem>* searchIndex = nullptr;
@@ -47,6 +49,8 @@ private:
     void initStaticLocations();
     std::vector<SearchResultItem> staticIndiaLocations;
 
+    QWidget* createItemWidget(const SearchResultItem& res);
+
 public:
     explicit SearchBar(QWidget* parent = nullptr);
 
@@ -55,6 +59,7 @@ public:
 
     void clearSearch();
     void setQueryText(const QString& text);
+    void focusInput();
 
 signals:
     void searchResultSelected(MapCore::Point2D pos, float targetZoom,
@@ -74,6 +79,7 @@ private:
     void setupUi();
     void performSearch(const QString& query);
     void updateCardStyle(bool hasResults);
+    void populateList();
 };
 
 } // namespace MapUI

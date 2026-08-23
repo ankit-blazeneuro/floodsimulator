@@ -116,6 +116,11 @@ void SearchBar::initStaticLocations() {
     addRiver("Kaveri (Cauvery) River", "Southern India", 10.7905, 79.1378, 10.0f);
 }
 
+void SearchBar::focusInput() {
+    searchInput->setFocus();
+    searchInput->selectAll();
+}
+
 void SearchBar::setupUi() {
     setFixedWidth(460);
 
@@ -123,96 +128,141 @@ void SearchBar::setupUi() {
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
 
-    // 1. Google Maps Surface Search Card
+    // 1. shadcn Zinc Search Card
     cardWidget = new QWidget(this);
     cardWidget->setObjectName("searchCard");
     cardWidget->setStyleSheet(R"(
         QWidget#searchCard {
-            background-color: #202124;
-            border: 1px solid #3C4043;
+            background-color: #18181B;
+            border: 1px solid #27272A;
             border-radius: 8px;
+        }
+        QWidget#searchCard:hover {
+            border-color: #3F3F46;
         }
     )");
 
     auto* shadow = new QGraphicsDropShadowEffect(this);
-    shadow->setBlurRadius(16);
-    shadow->setColor(QColor(0, 0, 0, 120));
+    shadow->setBlurRadius(20);
+    shadow->setColor(QColor(0, 0, 0, 160));
     shadow->setOffset(0, 4);
     setGraphicsEffect(shadow);
 
     auto* cardLayout = new QHBoxLayout(cardWidget);
-    cardLayout->setContentsMargins(12, 8, 10, 8);
-    cardLayout->setSpacing(10);
+    cardLayout->setContentsMargins(12, 6, 10, 6);
+    cardLayout->setSpacing(8);
 
     btnSearchIcon = new QPushButton(cardWidget);
-    btnSearchIcon->setIcon(IconHelper::search(QColor(138, 180, 248), 18));
+    btnSearchIcon->setIcon(IconHelper::search(QColor(161, 161, 170), 16)); // zinc-400
     btnSearchIcon->setFlat(true);
-    btnSearchIcon->setFixedSize(26, 26);
+    btnSearchIcon->setFixedSize(22, 22);
     btnSearchIcon->setStyleSheet("QPushButton { border: none; background: transparent; }");
 
     searchInput = new QLineEdit(cardWidget);
-    searchInput->setPlaceholderText("Search places, dams, cities (e.g. Hirakud, Guwahati, Delhi)...");
+    searchInput->setPlaceholderText("Search places, dams, rivers (Ctrl+K)...");
     searchInput->setStyleSheet(R"(
         QLineEdit {
             border: none;
             background: transparent;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 14px;
+            font-family: 'Segoe UI', Inter, -apple-system, sans-serif;
+            font-size: 13px;
             font-weight: 500;
-            color: #FFFFFF;
-            selection-background-color: #8AB4F8;
-            selection-color: #202124;
+            color: #FAFAFA;
+            selection-background-color: #3F3F46;
+            selection-color: #FAFAFA;
+            padding: 0px;
+        }
+    )");
+
+    lblKbdBadge = new QLabel("Ctrl K", cardWidget);
+    lblKbdBadge->setObjectName("kbdBadge");
+    lblKbdBadge->setStyleSheet(R"(
+        QLabel#kbdBadge {
+            color: #A1A1AA;
+            background-color: #27272A;
+            border: 1px solid #3F3F46;
+            border-radius: 4px;
+            font-family: Consolas, 'Segoe UI Mono', monospace;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 5px;
         }
     )");
 
     btnClear = new QPushButton("✕", cardWidget);
+    btnClear->setObjectName("btnClear");
     btnClear->setFlat(true);
-    btnClear->setFixedSize(24, 24);
+    btnClear->setFixedSize(22, 22);
     btnClear->setStyleSheet(R"(
-        QPushButton {
+        QPushButton#btnClear {
             border: none;
-            border-radius: 12px;
-            font-size: 12px;
-            color: #9AA0A6;
+            border-radius: 11px;
+            font-size: 11px;
+            color: #71717A;
             font-weight: bold;
             background-color: transparent;
         }
-        QPushButton:hover {
-            background-color: #3C4043;
-            color: #FFFFFF;
+        QPushButton#btnClear:hover {
+            background-color: #27272A;
+            color: #FAFAFA;
+        }
+        QPushButton#btnClear:pressed {
+            background-color: #3F3F46;
         }
     )");
     btnClear->hide();
 
     cardLayout->addWidget(btnSearchIcon);
     cardLayout->addWidget(searchInput, 1);
+    cardLayout->addWidget(lblKbdBadge);
     cardLayout->addWidget(btnClear);
 
-    // 2. Google Search Result List Card (Attached Directly)
+    // 2. shadcn Command Dropdown / Suggestion List
     suggestionList = new QListWidget(this);
     suggestionList->setObjectName("suggestionList");
     suggestionList->setStyleSheet(R"(
         QListWidget#suggestionList {
-            background-color: #202124;
-            border-left: 1px solid #3C4043;
-            border-right: 1px solid #3C4043;
-            border-bottom: 1px solid #3C4043;
-            border-top: 1px solid #303134;
+            background-color: #18181B;
+            border-left: 1px solid #27272A;
+            border-right: 1px solid #27272A;
+            border-bottom: 1px solid #27272A;
+            border-top: none;
             border-bottom-left-radius: 8px;
             border-bottom-right-radius: 8px;
             outline: none;
-            padding: 4px 0px;
+            padding: 4px;
         }
         QListWidget#suggestionList::item {
             border: none;
+            border-radius: 6px;
             padding: 0px;
-            margin: 0px;
+            margin: 1px 0px;
         }
         QListWidget#suggestionList::item:hover {
-            background-color: #2D2F33;
+            background-color: #27272A;
         }
         QListWidget#suggestionList::item:selected {
-            background-color: #38465C;
+            background-color: #27272A;
+        }
+        QScrollBar:vertical {
+            background: #18181B;
+            width: 6px;
+            margin: 4px 0px 4px 0px;
+            border-radius: 3px;
+        }
+        QScrollBar::handle:vertical {
+            background: #3F3F46;
+            min-height: 20px;
+            border-radius: 3px;
+        }
+        QScrollBar::handle:vertical:hover {
+            background: #52525B;
+        }
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            height: 0px;
+        }
+        QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+            background: transparent;
         }
     )");
     suggestionList->hide();
@@ -228,15 +278,111 @@ void SearchBar::setupUi() {
     connect(suggestionList, &QListWidget::itemClicked, this, &SearchBar::onItemClicked);
 }
 
+QWidget* SearchBar::createItemWidget(const SearchResultItem& res) {
+    auto* itemWidget = new QWidget();
+    itemWidget->setStyleSheet("background: transparent;");
+
+    auto* rowLayout = new QHBoxLayout(itemWidget);
+    rowLayout->setContentsMargins(14, 4, 12, 4);
+    rowLayout->setSpacing(10);
+
+    // 1. Text Column (Title + Subtitle) - No leading icon
+    auto* textLayout = new QVBoxLayout();
+    textLayout->setContentsMargins(0, 0, 0, 0);
+    textLayout->setSpacing(2);
+
+    auto* lblTitle = new QLabel(res.title, itemWidget);
+    lblTitle->setStyleSheet("color: #F4F4F5; font-family: 'Segoe UI', Inter, -apple-system, sans-serif; font-size: 13px; font-weight: 500;");
+
+    auto* lblSub = new QLabel(res.subtitle, itemWidget);
+    lblSub->setStyleSheet("color: #71717A; font-family: 'Segoe UI', Inter, -apple-system, sans-serif; font-size: 11px; font-weight: 400;");
+
+    textLayout->addWidget(lblTitle);
+    textLayout->addWidget(lblSub);
+    rowLayout->addLayout(textLayout, 1);
+
+    // 2. Right shadcn Badge (Compact height 18px with exact full rounded pill corners)
+    auto* lblBadge = new QLabel(itemWidget);
+    lblBadge->setFixedHeight(18);
+    if (res.isDam) {
+        lblBadge->setText("Dam");
+        lblBadge->setStyleSheet(R"(
+            QLabel {
+                color: #38BDF8;
+                background-color: rgba(2, 132, 199, 0.18);
+                border: 1px solid rgba(56, 189, 248, 0.35);
+                border-radius: 9px;
+                padding: 0px 8px;
+                min-height: 18px;
+                max-height: 18px;
+                font-family: 'Segoe UI', Inter, -apple-system, sans-serif;
+                font-size: 10px;
+                font-weight: 600;
+            }
+        )");
+    } else if (res.category == MapCore::FeatureCategory::WATER_RIVER) {
+        lblBadge->setText("River");
+        lblBadge->setStyleSheet(R"(
+            QLabel {
+                color: #34D399;
+                background-color: rgba(5, 150, 105, 0.18);
+                border: 1px solid rgba(52, 211, 153, 0.35);
+                border-radius: 9px;
+                padding: 0px 8px;
+                min-height: 18px;
+                max-height: 18px;
+                font-family: 'Segoe UI', Inter, -apple-system, sans-serif;
+                font-size: 10px;
+                font-weight: 600;
+            }
+        )");
+    } else {
+        lblBadge->setText("Place");
+        lblBadge->setStyleSheet(R"(
+            QLabel {
+                color: #E4E4E7;
+                background-color: #27272A;
+                border: 1px solid #3F3F46;
+                border-radius: 9px;
+                padding: 0px 8px;
+                min-height: 18px;
+                max-height: 18px;
+                font-family: 'Segoe UI', Inter, -apple-system, sans-serif;
+                font-size: 10px;
+                font-weight: 500;
+            }
+        )");
+    }
+    lblBadge->setAlignment(Qt::AlignCenter);
+    rowLayout->addWidget(lblBadge);
+
+    return itemWidget;
+}
+
+void SearchBar::populateList() {
+    suggestionList->clear();
+    for (size_t i = 0; i < currentResults.size(); ++i) {
+        const auto& res = currentResults[i];
+
+        auto* listItem = new QListWidgetItem(suggestionList);
+        listItem->setSizeHint(QSize(440, 44));
+        listItem->setData(Qt::UserRole, static_cast<int>(i));
+
+        auto* widget = createItemWidget(res);
+        suggestionList->addItem(listItem);
+        suggestionList->setItemWidget(listItem, widget);
+    }
+}
+
 void SearchBar::updateCardStyle(bool hasResults) {
     if (hasResults && !currentResults.empty()) {
         cardWidget->setStyleSheet(R"(
             QWidget#searchCard {
-                background-color: #202124;
-                border-top: 1px solid #3C4043;
-                border-left: 1px solid #3C4043;
-                border-right: 1px solid #3C4043;
-                border-bottom: none;
+                background-color: #18181B;
+                border-top: 1px solid #27272A;
+                border-left: 1px solid #27272A;
+                border-right: 1px solid #27272A;
+                border-bottom: 1px solid #27272A;
                 border-top-left-radius: 8px;
                 border-top-right-radius: 8px;
                 border-bottom-left-radius: 0px;
@@ -246,8 +392,8 @@ void SearchBar::updateCardStyle(bool hasResults) {
 
         // Dynamic precise height calculation to fit results without clipping or empty space
         int numItems = static_cast<int>(currentResults.size());
-        int itemH = 36;
-        int listH = std::clamp(numItems * itemH + 6, 36, 320);
+        int itemH = 44;
+        int listH = std::clamp(numItems * itemH + 10, 44, 340);
         suggestionList->setFixedHeight(listH);
         suggestionList->show();
 
@@ -257,9 +403,12 @@ void SearchBar::updateCardStyle(bool hasResults) {
     } else {
         cardWidget->setStyleSheet(R"(
             QWidget#searchCard {
-                background-color: #202124;
-                border: 1px solid #3C4043;
+                background-color: #18181B;
+                border: 1px solid #27272A;
                 border-radius: 8px;
+            }
+            QWidget#searchCard:hover {
+                border-color: #3F3F46;
             }
         )");
         suggestionList->hide();
@@ -273,6 +422,7 @@ void SearchBar::updateCardStyle(bool hasResults) {
 void SearchBar::clearSearch() {
     searchInput->clear();
     btnClear->hide();
+    lblKbdBadge->show();
     suggestionList->clear();
     suggestionList->hide();
     currentResults.clear();
@@ -285,7 +435,10 @@ void SearchBar::setQueryText(const QString& text) {
 }
 
 void SearchBar::onTextChanged(const QString& text) {
-    btnClear->setVisible(!text.trimmed().isEmpty());
+    bool hasText = !text.trimmed().isEmpty();
+    btnClear->setVisible(hasText);
+    lblKbdBadge->setVisible(!hasText);
+
     if (text.trimmed().length() >= 1) {
         performSearch(text.trimmed());
         if (debounceTimer) debounceTimer->start();
@@ -387,30 +540,8 @@ void SearchBar::performSearch(const QString& query) {
         }
     }
 
-    // Populate Google-style search items with clean title only
-    for (size_t i = 0; i < currentResults.size(); ++i) {
-        const auto& res = currentResults[i];
-
-        auto* itemWidget = new QWidget();
-        itemWidget->setStyleSheet("background: transparent;");
-        auto* rowLayout = new QHBoxLayout(itemWidget);
-        rowLayout->setContentsMargins(16, 7, 16, 7);
-        rowLayout->setSpacing(0);
-
-        auto* lblTitle = new QLabel(res.title, itemWidget);
-        lblTitle->setStyleSheet("color: #FFFFFF; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; font-weight: 500;");
-
-        rowLayout->addWidget(lblTitle, 1);
-
-        auto* listItem = new QListWidgetItem(suggestionList);
-        listItem->setSizeHint(QSize(440, 36));
-        listItem->setData(Qt::UserRole, static_cast<int>(i));
-
-        suggestionList->addItem(listItem);
-        suggestionList->setItemWidget(listItem, itemWidget);
-    }
-
     if (!currentResults.empty()) {
+        populateList();
         suggestionList->show();
         updateCardStyle(true);
     } else {
@@ -498,30 +629,7 @@ void SearchBar::onGeocodeReply(QNetworkReply* reply) {
     }
 
     if (addedAny && !currentResults.empty()) {
-        // Re-populate list items
-        suggestionList->clear();
-        for (size_t i = 0; i < currentResults.size(); ++i) {
-            const auto& res = currentResults[i];
-
-            auto* itemWidget = new QWidget();
-            itemWidget->setStyleSheet("background: transparent;");
-            auto* rowLayout = new QHBoxLayout(itemWidget);
-            rowLayout->setContentsMargins(16, 7, 16, 7);
-            rowLayout->setSpacing(0);
-
-            auto* lblTitle = new QLabel(res.title, itemWidget);
-            lblTitle->setStyleSheet("color: #FFFFFF; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; font-weight: 500;");
-
-            rowLayout->addWidget(lblTitle, 1);
-
-            auto* listItem = new QListWidgetItem(suggestionList);
-            listItem->setSizeHint(QSize(440, 36));
-            listItem->setData(Qt::UserRole, static_cast<int>(i));
-
-            suggestionList->addItem(listItem);
-            suggestionList->setItemWidget(listItem, itemWidget);
-        }
-
+        populateList();
         suggestionList->show();
         updateCardStyle(true);
     }

@@ -1,6 +1,7 @@
 #include "TimelineWidget.h"
 #include "IconHelper.h"
 #include <QPainter>
+#include <QPainterPath>
 #include <QPolygonF>
 #include <QLinearGradient>
 #include <QStyle>
@@ -110,15 +111,13 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
         return;
     }
 
-    // 2. Unlocked Active Timeline Background
-    painter.fillRect(rect(), QColor(24, 24, 27));
+    // 2. Base Timeline Background
+    painter.fillRect(rect(), QColor(18, 18, 20));
 
     float xStart = frameToX(startFrame);
     float xEnd = frameToX(endFrame);
-    QRectF activeRangeRect(xStart, 0, xEnd - xStart, h);
-    painter.fillRect(activeRangeRect, QColor(30, 30, 34));
 
-    // 3. Render Continuous Tracks (flood_sim simulation clips instead of keyframes)
+    // 3. Render Continuous Tracks
     struct SimTrack {
         QString channelName;
         QString clipLabel;
@@ -162,7 +161,7 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
         const auto& tr = tracks[i];
 
         // Row background
-        QColor rowBg = (i % 2 == 0) ? QColor(28, 28, 31) : QColor(24, 24, 27);
+        QColor rowBg = (i % 2 == 0) ? QColor(26, 26, 29) : QColor(22, 22, 25);
         painter.fillRect(QRect(0, curY, w, trackH), rowBg);
 
         // Row horizontal separator
@@ -178,7 +177,7 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
         painter.setPen(tr.borderColor);
         painter.drawText(QRect(10, curY, 120, trackH), Qt::AlignVCenter | Qt::AlignLeft, tr.channelName);
 
-        // Render Continuous Simulation Track Bar (Instead of keyframes)
+        // Render Continuous Simulation Track Bar
         float clipX = xStart;
         float clipW = std::max(10.0f, xEnd - xStart);
         QRectF clipRect(clipX, curY + 2, clipW, trackH - 4);
@@ -192,11 +191,11 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
         painter.setPen(QPen(tr.borderColor, 1.0));
         painter.drawRoundedRect(clipRect, 4.0, 4.0);
 
-        // Simulation Progress Fill inside Track Bar
+        // Simulation Progress Fill inside Track Bar (20% Opacity Gray during playback: alpha 51 / 255 = 20%)
         if (currentFrame > startFrame) {
             float progW = frameToX(currentFrame) - xStart;
             QRectF progRect(clipX, curY + 2, progW, trackH - 4);
-            painter.setBrush(QColor(255, 255, 255, 45));
+            painter.setBrush(QColor(255, 255, 255, 51)); // 20% opacity progress fill
             painter.setPen(Qt::NoPen);
             painter.drawRoundedRect(progRect, 4.0, 4.0);
         }
@@ -207,6 +206,27 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
         painter.drawText(clipRect.adjusted(8, 0, -8, 0), Qt::AlignVCenter | Qt::AlignLeft, tr.clipLabel);
 
         curY += trackH;
+    }
+
+    // Start-to-End Active Displacement Area (20% Opacity Gray under area: alpha 51 / 255 = 20%)
+    if (xEnd > xStart) {
+        QRectF activeRangeRect(xStart, 0, xEnd - xStart, h);
+        painter.fillRect(activeRangeRect, QColor(255, 255, 255, 51)); // 20% opacity gray
+    }
+
+    // Elapsed Playback Displacement from Start to Current Frame (20% Opacity Gray while playing)
+    float curX = frameToX(currentFrame);
+    if (curX > xStart) {
+        QRectF elapsedRangeRect(xStart, 0, curX - xStart, h);
+        painter.fillRect(elapsedRangeRect, QColor(255, 255, 255, 51)); // 20% opacity gray
+    }
+
+    // Inactive Outside Range Shading
+    if (xStart > 135) {
+        painter.fillRect(QRectF(135, 0, xStart - 135, h), QColor(0, 0, 0, 95));
+    }
+    if (xEnd < w) {
+        painter.fillRect(QRectF(xEnd, 0, w - xEnd, h), QColor(0, 0, 0, 95));
     }
 
     // 4. Ruler Top Bar Background & Separator
@@ -249,29 +269,79 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
         }
     }
 
-    // 6. Playhead Indicator (Glowing Cyan line + Top Flag Badge)
-    float curX = frameToX(currentFrame);
+    // 6. Playhead Indicator (Blender-Style Player Line & Frame Tag)
     if (curX >= 135) {
-        // Vertical line across full ruler and tracks
-        painter.setPen(QPen(QColor(0, 229, 255), 2.0));
+        // A. Subtle Drop Shadow / Glow behind vertical player line for crisp contrast over tracks
+        painter.setPen(QPen(QColor(0, 0, 0, 95), 3.0));
+        painter.drawLine(QPointF(curX, rulerH), QPointF(curX, h));
+
+        // B. Blender Vertical Player Line (#5294E2 / #4772B3)
+        painter.setPen(QPen(QColor(82, 148, 226), 1.5));
         painter.drawLine(QPointF(curX, 0), QPointF(curX, h));
 
-        // Top flag badge (shadcn zinc-900 style)
-        QPolygonF playheadFlag;
-        playheadFlag << QPointF(curX - 14, 0)
-                     << QPointF(curX + 14, 0)
-                     << QPointF(curX + 14, 13)
-                     << QPointF(curX, 19)
-                     << QPointF(curX - 14, 13);
+        // C. Blender Current Frame Tag in Ruler Header
+        QString frameStr = QString::number(currentFrame);
+        QFont tagFont("Segoe UI", 8, QFont::Bold);
+        painter.setFont(tagFont);
+        QFontMetrics fm(tagFont);
 
-        painter.setBrush(QColor(24, 24, 27));
-        painter.setPen(QPen(QColor(0, 229, 255), 1.2));
-        painter.drawPolygon(playheadFlag);
+        float textW = static_cast<float>(fm.horizontalAdvance(frameStr));
+        float tagW = std::max(28.0f, textW + 12.0f);
+        float tagH = 15.0f;
+        float tagTop = 2.5f;
+        float tagBottom = tagTop + tagH; // 17.5f
+        float pointerH = 4.5f;           // tip extends to 22.0f
+        float halfW = tagW / 2.0f;
+        float left = curX - halfW;
+        float right = curX + halfW;
+        float r = 3.0f;
 
-        // Frame / minute text inside flag
-        painter.setFont(QFont("Segoe UI", 7, QFont::Bold));
-        painter.setPen(QColor(0, 229, 255));
-        painter.drawText(QRectF(curX - 14, 1, 28, 12), Qt::AlignCenter, QString("T+%1m").arg(currentFrame));
+        // Shadow behind the Blender badge
+        QPainterPath shadowPath;
+        float sOff = 1.0f;
+        shadowPath.moveTo(left + r, tagTop + sOff);
+        shadowPath.lineTo(right - r, tagTop + sOff);
+        shadowPath.quadTo(right, tagTop + sOff, right, tagTop + r + sOff);
+        shadowPath.lineTo(right, tagBottom - r + sOff);
+        shadowPath.quadTo(right, tagBottom + sOff, right - r, tagBottom + sOff);
+        shadowPath.lineTo(curX + 4.0f, tagBottom + sOff);
+        shadowPath.lineTo(curX, tagBottom + pointerH + sOff);
+        shadowPath.lineTo(curX - 4.0f, tagBottom + sOff);
+        shadowPath.lineTo(left + r, tagBottom + sOff);
+        shadowPath.quadTo(left, tagBottom + sOff, left, tagBottom - r + sOff);
+        shadowPath.lineTo(left, tagTop + r + sOff);
+        shadowPath.quadTo(left, tagTop + sOff, left + r, tagTop + sOff);
+        shadowPath.closeSubpath();
+        painter.fillPath(shadowPath, QColor(0, 0, 0, 80));
+
+        // Blender Tag Shape with Downward Pointer
+        QPainterPath badgePath;
+        badgePath.moveTo(left + r, tagTop);
+        badgePath.lineTo(right - r, tagTop);
+        badgePath.quadTo(right, tagTop, right, tagTop + r);
+        badgePath.lineTo(right, tagBottom - r);
+        badgePath.quadTo(right, tagBottom, right - r, tagBottom);
+        badgePath.lineTo(curX + 4.0f, tagBottom);
+        badgePath.lineTo(curX, tagBottom + pointerH);
+        badgePath.lineTo(curX - 4.0f, tagBottom);
+        badgePath.lineTo(left + r, tagBottom);
+        badgePath.quadTo(left, tagBottom, left, tagBottom - r);
+        badgePath.lineTo(left, tagTop + r);
+        badgePath.quadTo(left, tagTop, left + r, tagTop);
+        badgePath.closeSubpath();
+
+        // Blender Gradient: #568CE8 (top highlight) -> #4772B3 (Blender blue) -> #3C66A6 (base)
+        QLinearGradient tagGrad(QPointF(curX, tagTop), QPointF(curX, tagBottom + pointerH));
+        tagGrad.setColorAt(0.0, QColor(86, 140, 232));
+        tagGrad.setColorAt(0.65, QColor(71, 114, 179));
+        tagGrad.setColorAt(1.0, QColor(60, 102, 166));
+
+        painter.fillPath(badgePath, tagGrad);
+        painter.strokePath(badgePath, QPen(QColor(118, 174, 255), 1.0));
+
+        // White Frame Number Text inside Badge
+        painter.setPen(QColor(255, 255, 255));
+        painter.drawText(QRectF(left, tagTop, tagW, tagH), Qt::AlignCenter, frameStr);
     }
 }
 

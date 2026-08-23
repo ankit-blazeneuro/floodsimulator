@@ -494,7 +494,7 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                         fullReachPath.lineTo(cPt);
                     }
                 }
-                painter.setPen(QPen(QColor(138, 180, 248, 55), 1.5, Qt::DotLine, Qt::RoundCap));
+                painter.setPen(QPen(QColor(138, 180, 248, 51), 1.5, Qt::DotLine, Qt::RoundCap)); // 20% opacity
                 painter.drawPath(fullReachPath);
             }
 
@@ -551,8 +551,8 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                         QRectF pRect(poolCenterScreen.x() - pfm.horizontalAdvance(poolLabel) / 2.0 - 6,
                                      poolCenterScreen.y() - pfm.height() / 2.0 - 2,
                                      pfm.horizontalAdvance(poolLabel) + 12, pfm.height() + 4);
-                        painter.setBrush(QColor(24, 24, 27, 240)); // shadcn zinc-900 gray
-                        painter.setPen(QPen(QColor(63, 63, 70, 220), 1.0)); // shadcn zinc-700 border
+                        painter.setBrush(QColor(24, 24, 27, 51)); // 20% opacity gray
+                        painter.setPen(QPen(QColor(63, 63, 70, 100), 1.0)); // subtle border
                         painter.drawRoundedRect(pRect, 5.0, 5.0);
                         painter.setPen(QColor(244, 244, 245)); // shadcn zinc-100 text
                         painter.drawText(pRect, Qt::AlignCenter, poolLabel);
@@ -578,8 +578,8 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                             QFontMetricsF sfm(sFont);
                             QRectF sRect(spillScreen.x() + 8, spillScreen.y() - sfm.height() / 2.0 - 2,
                                          sfm.horizontalAdvance(spillText) + 10, sfm.height() + 4);
-                            painter.setBrush(QColor(24, 24, 27, 240));
-                            painter.setPen(QPen(QColor(63, 63, 70, 220), 1.0));
+                            painter.setBrush(QColor(24, 24, 27, 51)); // 20% opacity gray
+                            painter.setPen(QPen(QColor(63, 63, 70, 100), 1.0));
                             painter.drawRoundedRect(sRect, 5.0, 5.0);
                             painter.setPen(QColor(253, 214, 99));
                             painter.drawText(sRect, Qt::AlignCenter, spillText);
@@ -631,7 +631,7 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                     }
                 }
 
-                // Milestone Distance Markers (shadcn tooltip style)
+                // Milestone Distance Markers (20% opacity gray badge)
                 for (size_t i = 0; i < slice->riverStreamline.size(); ++i) {
                     if (i > 0 && i % 8 == 0 && i < floodSimulation.rawNodes.size()) {
                         QPointF cPt = toCanvasPoint(slice->riverStreamline[i].x(), slice->riverStreamline[i].y());
@@ -645,8 +645,8 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                         painter.setFont(mFont);
                         QFontMetricsF mfm(mFont);
                         QRectF mRect(cPt.x() + 6, cPt.y() - mfm.height() / 2.0 - 1, mfm.horizontalAdvance(dLabel) + 8, mfm.height() + 2);
-                        painter.setBrush(QColor(24, 24, 27, 230));
-                        painter.setPen(QPen(QColor(63, 63, 70, 200), 1.0));
+                        painter.setBrush(QColor(24, 24, 27, 51)); // 20% opacity gray
+                        painter.setPen(QPen(QColor(63, 63, 70, 100), 1.0));
                         painter.drawRoundedRect(mRect, 4.0, 4.0);
                         painter.setPen(QColor(228, 228, 231));
                         painter.drawText(mRect, Qt::AlignCenter, dLabel);
@@ -654,7 +654,7 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                 }
             }
 
-            // 5. Leading Wave Front Distance Marker & Floating Tooltip (shadcn tooltip style, no icons)
+            // 5. Leading Wave Front Distance Marker & Floating Tooltip (20% opacity gray)
             if (slice->frontDistanceKm > 0.05) {
                 QPointF frontScreen = toCanvasPoint(slice->leadingFrontPos.x(), slice->leadingFrontPos.y());
 
@@ -668,7 +668,7 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                 painter.setBrush(QColor(253, 214, 99));
                 painter.drawEllipse(frontScreen, 3.5, 3.5);
 
-                // shadcn gray Tooltip Badge (no icons)
+                // shadcn 20% opacity gray Tooltip Badge
                 QString frontBadge = QString("%1 km · T + %2m")
                     .arg(slice->frontDistanceKm, 0, 'f', 1)
                     .arg(floodSimulation.currentMinute);
@@ -680,21 +680,20 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                 double bh = bfm.height() + 6.0;
                 QRectF bRect(frontScreen.x() - bw / 2.0, frontScreen.y() - bh - 10.0, bw, bh);
 
-                // shadcn dark gray background with subtle zinc border
-                painter.setBrush(QColor(24, 24, 27, 245)); // #18181B zinc-900
-                painter.setPen(QPen(QColor(63, 63, 70, 230), 1.0)); // #3F3F46 zinc-700
+                painter.setBrush(QColor(24, 24, 27, 51)); // 20% opacity gray
+                painter.setPen(QPen(QColor(63, 63, 70, 100), 1.0)); // subtle border
                 painter.drawRoundedRect(bRect, 6.0, 6.0);
 
                 painter.setPen(QColor(244, 244, 245)); // #F4F4F5 zinc-100
                 painter.drawText(bRect, Qt::AlignCenter, frontBadge);
 
-                // Downward pointer arrow (shadcn styled)
+                // Downward pointer arrow (20% opacity)
                 QPolygonF pointerArrow;
                 pointerArrow << QPointF(frontScreen.x() - 4, bRect.bottom())
                              << QPointF(frontScreen.x() + 4, bRect.bottom())
                              << QPointF(frontScreen.x(), frontScreen.y() - 1);
-                painter.setBrush(QColor(24, 24, 27, 245));
-                painter.setPen(QPen(QColor(63, 63, 70, 230), 1.0));
+                painter.setBrush(QColor(24, 24, 27, 51));
+                painter.setPen(QPen(QColor(63, 63, 70, 100), 1.0));
                 painter.drawPolygon(pointerArrow);
             }
         }

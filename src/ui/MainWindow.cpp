@@ -891,13 +891,13 @@ void MainWindow::setupUi() {
             onlineMap->setZoom(10);
         }
 
-        // 4. Configure Timeline Widget in 60-Minute Hydrodynamics Mode and auto-play
+        // 4. Configure Timeline Widget in 60-Minute Hydrodynamics Mode (paused; wait for user to hit Play)
         if (timelineWidget) {
             timelineWidget->setDamSelected(true, "flood_sim");
             timelineWidget->setFrameRange(0, 60);
             timelineWidget->setCurrentFrame(0);
             timelineWidget->setVisible(true);
-            timelineWidget->playForward();
+            timelineWidget->stopPlayback();
         }
     });
 
@@ -931,7 +931,7 @@ void MainWindow::setupUi() {
                 timelineWidget->setFrameRange(0, 60);
                 timelineWidget->setCurrentFrame(0);
                 timelineWidget->setVisible(true);
-                timelineWidget->playForward();
+                timelineWidget->stopPlayback();
             }
         }
     });
@@ -1052,6 +1052,15 @@ void MainWindow::setupUi() {
         if (searchBar && searchBar->hasFocus()) return;
         if (timelineWidget) {
             timelineWidget->togglePlayPause();
+        }
+    });
+
+    // Global Ctrl+K Shortcut to focus Search Bar (shadcn Command trigger)
+    auto* searchShortcut = new QShortcut(QKeySequence("Ctrl+K"), this);
+    searchShortcut->setContext(Qt::ApplicationShortcut);
+    connect(searchShortcut, &QShortcut::activated, this, [this]() {
+        if (searchBar) {
+            searchBar->focusInput();
         }
     });
 
