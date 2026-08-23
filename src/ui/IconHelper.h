@@ -111,6 +111,12 @@ public:
     static QIcon radar(const QColor& color = QColor(212, 212, 216), int size = 18) {
         return get("radar", color, size);
     }
+    static QIcon compass(const QColor& color = QColor(212, 212, 216), int size = 18) {
+        return get("compass", color, size);
+    }
+    static QIcon info(const QColor& color = QColor(212, 212, 216), int size = 18) {
+        return get("info", color, size);
+    }
     static QIcon graph(const QColor& color = QColor(212, 212, 216), int size = 18) {
         return get("graph", color, size);
     }

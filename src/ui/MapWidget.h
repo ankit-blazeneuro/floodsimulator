@@ -97,6 +97,7 @@ signals:
     void featureSelected(MapCore::FeatureInfo info);
     void cursorGeoMoved(MapCore::GeoCoord geo, QString hoverText);
     void fpsChanged(float fps);
+    void contextMenuRequested(const QPoint& globalPos);
 
 protected:
     void paintEvent(QPaintEvent* event) override;

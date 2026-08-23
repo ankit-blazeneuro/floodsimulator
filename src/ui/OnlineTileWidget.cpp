@@ -188,6 +188,8 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
 
     int w = width();
     int h = height();
+    double cx = w / 2.0;
+    double cy = h / 2.0;
 
     // Dark background for modern theme
     painter.fillRect(rect(), QColor(24, 24, 27));
@@ -196,21 +198,26 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
     double centerTileX = lonToTileX(centerLon, zoomLevel);
     double centerTileY = latToTileY(centerLat, zoomLevel);
 
-    // Pixel offset from center of the widget to the top-left corner of the center tile
-    double offsetX = w / 2.0 - (centerTileX - std::floor(centerTileX)) * TILE_SIZE;
-    double offsetY = h / 2.0 - (centerTileY - std::floor(centerTileY)) * TILE_SIZE;
+    // Pixel offset from center of widget to top-left corner of the center tile
+    double offsetX = cx - (centerTileX - std::floor(centerTileX)) * TILE_SIZE;
+    double offsetY = cy - (centerTileY - std::floor(centerTileY)) * TILE_SIZE;
 
     int centerTileXInt = static_cast<int>(std::floor(centerTileX));
     int centerTileYInt = static_cast<int>(std::floor(centerTileY));
 
-    // How many tiles to cover viewport
-    int tilesLeft = static_cast<int>(std::ceil(offsetX / TILE_SIZE)) + 1;
-    int tilesRight = static_cast<int>(std::ceil((w - offsetX) / static_cast<double>(TILE_SIZE))) + 1;
-    int tilesTop = static_cast<int>(std::ceil(offsetY / TILE_SIZE)) + 1;
-    int tilesBottom = static_cast<int>(std::ceil((h - offsetY) / static_cast<double>(TILE_SIZE))) + 1;
+    // Cover maximum diagonal distance to support full 360° rotation without black borders
+    double maxDiag = std::sqrt(w * w + h * h) / 2.0;
+    int tilesRadius = static_cast<int>(std::ceil(maxDiag / TILE_SIZE)) + 1;
 
-    for (int dy = -tilesTop; dy <= tilesBottom; ++dy) {
-        for (int dx = -tilesLeft; dx <= tilesRight; ++dx) {
+    // 1. Begin Rotated Map Scene (Centered on Screen Middle Crosshair)
+    painter.save();
+    painter.translate(cx, cy);
+    painter.rotate(rotationAngle);
+    painter.translate(-cx, -cy);
+
+    // Draw Map Tiles
+    for (int dy = -tilesRadius; dy <= tilesRadius; ++dy) {
+        for (int dx = -tilesRadius; dx <= tilesRadius; ++dx) {
             int tileX = centerTileXInt + dx;
             int tileY = centerTileYInt + dy;
 
@@ -221,16 +228,10 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
             if (tile && !tile->isNull()) {
                 painter.drawPixmap(drawX, drawY, TILE_SIZE, TILE_SIZE, *tile);
             } else {
-                // Placeholder tile
                 QRect tileRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
                 painter.fillRect(tileRect, QColor(32, 33, 36));
                 painter.setPen(QPen(QColor(45, 48, 52), 1));
                 painter.drawRect(tileRect);
-
-                painter.setPen(QColor(113, 113, 122));
-                QFont loadFont("Segoe UI", 8);
-                painter.setFont(loadFont);
-                painter.drawText(tileRect, Qt::AlignCenter, "Loading...");
             }
         }
     }
@@ -241,50 +242,102 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
         const QColor glowColor(0x54, 0xD5, 0x9A, 90);
         const QColor dotBorder(0x1B, 0x5E, 0x3E, 200);
 
-        // 1. Calculate Viewport Frustum Bounding Box in WGS84 with 48px pre-fetch buffer margin
-        const double bufferPx = 48.0;
-        double leftTileX = centerTileX - (w / 2.0 + bufferPx) / TILE_SIZE;
-        double rightTileX = centerTileX + (w / 2.0 + bufferPx) / TILE_SIZE;
-        double topTileY = centerTileY - (h / 2.0 + bufferPx) / TILE_SIZE;
-        double bottomTileY = centerTileY + (h / 2.0 + bufferPx) / TILE_SIZE;
+        // Calculate Viewport Bounding Box covering full rotation diagonal with buffer
+        const double bufferPx = maxDiag + 48.0;
+        double leftTileX = centerTileX - bufferPx / TILE_SIZE;
+        double rightTileX = centerTileX + bufferPx / TILE_SIZE;
+        double topTileY = centerTileY - bufferPx / TILE_SIZE;
+        double bottomTileY = centerTileY + bufferPx / TILE_SIZE;
 
         double minLon = tileXToLon(leftTileX, zoomLevel);
         double maxLon = tileXToLon(rightTileX, zoomLevel);
         double maxLat = tileYToLat(topTileY, zoomLevel);
         double minLat = tileYToLat(bottomTileY, zoomLevel);
 
-        // 2. Spatial Grid Frustum Query (Zero overhead, instant O(k) extraction)
         std::vector<const MapCore::DamPoint*> visibleDams;
         damManager->getDamsInBbox(minLat, minLon, maxLat, maxLon, visibleDams);
 
-        // 3. Dynamic scale based on zoom distance
         double radius = (zoomLevel <= 6) ? 3.0 : std::min(5.5, 3.0 + (zoomLevel - 6) * 0.35);
 
-        // 4. Render visible culled dams with floating-point sub-pixel precision
         for (const auto* dam : visibleDams) {
             double tileX = lonToTileX(dam->lon, zoomLevel);
             double tileY = latToTileY(dam->lat, zoomLevel);
 
-            double sx = w / 2.0 + (tileX - centerTileX) * TILE_SIZE;
-            double sy = h / 2.0 + (tileY - centerTileY) * TILE_SIZE;
+            double sx = cx + (tileX - centerTileX) * TILE_SIZE;
+            double sy = cy + (tileY - centerTileY) * TILE_SIZE;
 
-            // Subtle outer glow for visibility
             painter.setPen(Qt::NoPen);
             painter.setBrush(glowColor);
             painter.drawEllipse(QPointF(sx, sy), radius + 1.2, radius + 1.2);
 
-            // Main #54D59A dot
             painter.setPen(QPen(dotBorder, 0.75));
             painter.setBrush(dotColor);
             painter.drawEllipse(QPointF(sx, sy), radius, radius);
         }
     }
 
+    // --- Render Selected Dams Highlight (Glow Target Rings) ---
+    if (!selectedDams.empty()) {
+        for (const auto* dam : selectedDams) {
+            if (!dam) continue;
+            QPointF sPos = geoToScreen(dam->lat, dam->lon);
+            painter.setPen(QPen(QColor(253, 214, 99, 220), 1.8));
+            painter.setBrush(QColor(253, 214, 99, 50));
+            painter.drawEllipse(sPos, 9.0, 9.0);
+
+            painter.setPen(QPen(Qt::white, 1.5));
+            painter.setBrush(QColor(253, 214, 99));
+            painter.drawEllipse(sPos, 3.5, 3.5);
+        }
+    }
+
+    // --- Render Dotted Border Selection Box (Select Tool) ---
+    if (isBoxSelecting) {
+        QPointF unrotStart = unrotatePoint(boxSelectStart);
+        QPointF unrotCurrent = unrotatePoint(boxSelectCurrent);
+        QRectF boxRect = QRectF(unrotStart, unrotCurrent).normalized();
+
+        painter.setBrush(QColor(138, 180, 248, 38));
+
+        QPen dottedPen(QColor(138, 180, 248), 1.5, Qt::CustomDashLine);
+        QList<qreal> dashes;
+        dashes << 4.0 << 4.0;
+        dottedPen.setDashPattern(dashes);
+        painter.setPen(dottedPen);
+        painter.drawRect(boxRect);
+
+        double minLon = screenToLon(boxSelectStart.x(), boxSelectStart.y());
+        double maxLon = screenToLon(boxSelectCurrent.x(), boxSelectCurrent.y());
+        double minLat = screenToLat(boxSelectStart.x(), boxSelectStart.y());
+        double maxLat = screenToLat(boxSelectCurrent.x(), boxSelectCurrent.y());
+        if (minLon > maxLon) std::swap(minLon, maxLon);
+        if (minLat > maxLat) std::swap(minLat, maxLat);
+
+        std::vector<const MapCore::DamPoint*> previewDams;
+        if (damManager && showDams && damManager->hasData()) {
+            damManager->getDamsInBbox(minLat, minLon, maxLat, maxLon, previewDams);
+        }
+
+        QString badgeText = (previewDams.empty())
+            ? QString("%1 × %2 px").arg(qRound(boxRect.width())).arg(qRound(boxRect.height()))
+            : QString("%1 dams (%2 × %3 px)").arg(previewDams.size()).arg(qRound(boxRect.width())).arg(qRound(boxRect.height()));
+
+        QFont badgeFont("Segoe UI", 8, QFont::Bold);
+        painter.setFont(badgeFont);
+        QFontMetricsF bfm(badgeFont);
+        QRectF badgeRect(boxRect.right() - bfm.horizontalAdvance(badgeText) - 10, boxRect.bottom() + 4,
+                         bfm.horizontalAdvance(badgeText) + 10, bfm.height() + 4);
+
+        painter.setBrush(QColor(20, 20, 24, 230));
+        painter.setPen(QPen(QColor(138, 180, 248, 180), 1.0));
+        painter.drawRoundedRect(badgeRect, 3.0, 3.0);
+
+        painter.setPen(QColor(240, 240, 245));
+        painter.drawText(badgeRect, Qt::AlignCenter, badgeText);
+    }
+
     // --- Render Distance Measurement Path & Pins (Ruler Tool) ---
     if (measureMode && (!measurePoints.empty() || hasLiveMouse)) {
-        painter.save();
-        painter.setRenderHint(QPainter::Antialiasing, true);
-
         const QColor rulerLineColor(138, 180, 248); // Neon Blue
         const QColor rulerPointColor(255, 255, 255);
 
@@ -296,11 +349,9 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                 path.lineTo(geoToScreen(measurePoints[i].x(), measurePoints[i].y()));
             }
 
-            // Outline shadow
             painter.setPen(QPen(QColor(0, 0, 0, 180), 5.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
             painter.drawPath(path);
 
-            // Core neon line
             painter.setPen(QPen(rulerLineColor, 2.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
             painter.drawPath(path);
         }
@@ -308,14 +359,13 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
         // 2. Draw live dashed elastic line to current cursor
         if (!measurePoints.empty() && hasLiveMouse && !isDragging) {
             QPointF lastScreenPt = geoToScreen(measurePoints.back().x(), measurePoints.back().y());
-            QPointF cursorPt(liveMousePos);
+            QPointF cursorPt = unrotatePoint(liveMousePos);
 
             painter.setPen(QPen(QColor(255, 255, 255, 200), 1.8, Qt::DashLine, Qt::RoundCap));
             painter.drawLine(lastScreenPt, cursorPt);
 
-            // Live segment distance
-            double curLat = screenToLat(cursorPt.y());
-            double curLon = screenToLon(cursorPt.x());
+            double curLat = screenToLat(liveMousePos.x(), liveMousePos.y());
+            double curLon = screenToLon(liveMousePos.x(), liveMousePos.y());
             double segDistM = haversineDistanceM(measurePoints.back().x(), measurePoints.back().y(), curLat, curLon);
 
             QString liveText = (segDistM < 1000.0)
@@ -345,17 +395,14 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                                                  measurePoints[i].x(), measurePoints[i].y());
             }
 
-            // Pin shadow
             painter.setPen(Qt::NoPen);
             painter.setBrush(QColor(0, 0, 0, 140));
             painter.drawEllipse(ptScreen + QPointF(0, 2), 6.0, 6.0);
 
-            // Pin dot
             painter.setBrush(rulerLineColor);
             painter.setPen(QPen(rulerPointColor, 2.5));
             painter.drawEllipse(ptScreen, 5.5, 5.5);
 
-            // Distance Badge
             QString distText = (i == 0) ? "Start" : ((totalDistM < 1000.0)
                 ? QString("%1 m").arg(qRound(totalDistM))
                 : QString("%1 km").arg(totalDistM / 1000.0, 0, 'f', 2));
@@ -372,28 +419,44 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
             painter.setPen(Qt::white);
             painter.drawText(badgeRect, Qt::AlignCenter, distText);
         }
-
-        // Measure instructions HUD hint in top-center
-        if (measurePoints.empty()) {
-            QString hint = "Click anywhere on map to measure distance (Right-click or ESC to exit)";
-            QFont hFont("Segoe UI", 9, QFont::Medium);
-            painter.setFont(hFont);
-            QFontMetricsF hfm(hFont);
-            QRectF hRect((w - hfm.horizontalAdvance(hint) - 20) / 2.0, 16, hfm.horizontalAdvance(hint) + 20, hfm.height() + 8);
-            painter.setBrush(QColor(20, 20, 24, 230));
-            painter.setPen(QPen(QColor(138, 180, 248, 160), 1.0));
-            painter.drawRoundedRect(hRect, 6, 6);
-            painter.setPen(QColor(230, 230, 235));
-            painter.drawText(hRect, Qt::AlignCenter, hint);
-        }
-
-        painter.restore();
     }
 
-    // Draw center crosshair
-    painter.setPen(QPen(QColor(138, 180, 248, 140), 1.5));
-    painter.drawLine(w / 2 - 8, h / 2, w / 2 + 8, h / 2);
-    painter.drawLine(w / 2, h / 2 - 8, w / 2, h / 2 + 8);
+    // End Rotated Map Scene
+    painter.restore();
+
+    // 2. Draw Upright Overlays & Axis Crosshair (Screen Middle Plus)
+    // Center crosshair (the axis of rotation)
+    painter.setPen(QPen(QColor(138, 180, 248, 180), 1.5));
+    painter.drawLine(cx - 8, cy, cx + 8, cy);
+    painter.drawLine(cx, cy - 8, cx, cy + 8);
+
+    // Rotation angle badge (if rotated)
+    if (std::abs(rotationAngle) > 0.5) {
+        QString rotText = QString("🧭 %1°").arg(qRound(rotationAngle));
+        QFont rotFont("Segoe UI", 9, QFont::Bold);
+        painter.setFont(rotFont);
+        QFontMetricsF rfm(rotFont);
+        QRectF rotRect(w - rfm.horizontalAdvance(rotText) - 30, 16, rfm.horizontalAdvance(rotText) + 16, rfm.height() + 6);
+        painter.setBrush(QColor(20, 20, 24, 230));
+        painter.setPen(QPen(QColor(84, 213, 154, 200), 1.2));
+        painter.drawRoundedRect(rotRect, 5.0, 5.0);
+        painter.setPen(QColor(84, 213, 154));
+        painter.drawText(rotRect, Qt::AlignCenter, rotText);
+    }
+
+    // Measure instructions HUD hint in top-center
+    if (measureMode && measurePoints.empty()) {
+        QString hint = "Click anywhere on map to measure distance (Right-click or ESC to exit)";
+        QFont hFont("Segoe UI", 9, QFont::Medium);
+        painter.setFont(hFont);
+        QFontMetricsF hfm(hFont);
+        QRectF hRect((w - hfm.horizontalAdvance(hint) - 20) / 2.0, 16, hfm.horizontalAdvance(hint) + 20, hfm.height() + 8);
+        painter.setBrush(QColor(20, 20, 24, 230));
+        painter.setPen(QPen(QColor(138, 180, 248, 160), 1.0));
+        painter.drawRoundedRect(hRect, 6, 6);
+        painter.setPen(QColor(230, 230, 235));
+        painter.drawText(hRect, Qt::AlignCenter, hint);
+    }
 
     // Required Attribution text
     painter.setPen(QColor(230, 230, 230));
@@ -407,6 +470,26 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
 
 // --- Coordinate Projection Helpers & Distance ---
 
+QPointF OnlineTileWidget::unrotatePoint(const QPointF& pt) const {
+    if (std::abs(rotationAngle) < 0.001) return pt;
+    double rad = -rotationAngle * M_PI / 180.0;
+    double dx = pt.x() - width() / 2.0;
+    double dy = pt.y() - height() / 2.0;
+    double rx = dx * std::cos(rad) - dy * std::sin(rad);
+    double ry = dx * std::sin(rad) + dy * std::cos(rad);
+    return QPointF(width() / 2.0 + rx, height() / 2.0 + ry);
+}
+
+QPointF OnlineTileWidget::rotatePoint(const QPointF& pt) const {
+    if (std::abs(rotationAngle) < 0.001) return pt;
+    double rad = rotationAngle * M_PI / 180.0;
+    double dx = pt.x() - width() / 2.0;
+    double dy = pt.y() - height() / 2.0;
+    double rx = dx * std::cos(rad) - dy * std::sin(rad);
+    double ry = dx * std::sin(rad) + dy * std::cos(rad);
+    return QPointF(width() / 2.0 + rx, height() / 2.0 + ry);
+}
+
 double OnlineTileWidget::haversineDistanceM(double lat1, double lon1, double lat2, double lon2) {
     constexpr double R = 6371008.8; // Earth's mean radius in meters
     double dLat = (lat2 - lat1) * M_PI / 180.0;
@@ -418,15 +501,17 @@ double OnlineTileWidget::haversineDistanceM(double lat1, double lon1, double lat
     return R * c;
 }
 
-double OnlineTileWidget::screenToLon(double screenX) const {
+double OnlineTileWidget::screenToLon(double screenX, double screenY) const {
+    QPointF unrot = unrotatePoint(QPointF(screenX, screenY));
     double centerTileX = lonToTileX(centerLon, zoomLevel);
-    double tileX = centerTileX + (screenX - width() / 2.0) / TILE_SIZE;
+    double tileX = centerTileX + (unrot.x() - width() / 2.0) / TILE_SIZE;
     return tileXToLon(tileX, zoomLevel);
 }
 
-double OnlineTileWidget::screenToLat(double screenY) const {
+double OnlineTileWidget::screenToLat(double screenX, double screenY) const {
+    QPointF unrot = unrotatePoint(QPointF(screenX, screenY));
     double centerTileY = latToTileY(centerLat, zoomLevel);
-    double tileY = centerTileY + (screenY - height() / 2.0) / TILE_SIZE;
+    double tileY = centerTileY + (unrot.y() - height() / 2.0) / TILE_SIZE;
     return tileYToLat(tileY, zoomLevel);
 }
 
@@ -437,7 +522,39 @@ QPointF OnlineTileWidget::geoToScreen(double lat, double lon) const {
     double tileY = latToTileY(lat, zoomLevel);
     double sx = width() / 2.0 + (tileX - centerTileX) * TILE_SIZE;
     double sy = height() / 2.0 + (tileY - centerTileY) * TILE_SIZE;
-    return QPointF(sx, sy);
+    return rotatePoint(QPointF(sx, sy));
+}
+
+void OnlineTileWidget::setTool(MapTool tool) {
+    currentTool = tool;
+    if (tool == MapTool::Move) {
+        setMeasureMode(false);
+        clearBoxSelection();
+        setCursor(Qt::ArrowCursor);
+    } else if (tool == MapTool::Select) {
+        setMeasureMode(false);
+        setCursor(Qt::CrossCursor);
+    } else if (tool == MapTool::Rotate) {
+        setMeasureMode(false);
+        clearBoxSelection();
+        setCursor(Qt::SizeAllCursor);
+    } else if (tool == MapTool::Ruler) {
+        clearBoxSelection();
+        setMeasureMode(true);
+    }
+    update();
+}
+
+void OnlineTileWidget::setRotation(double degrees) {
+    rotationAngle = degrees;
+    while (rotationAngle >= 360.0) rotationAngle -= 360.0;
+    while (rotationAngle < 0.0) rotationAngle += 360.0;
+    emit rotationChanged(rotationAngle);
+    update();
+}
+
+void OnlineTileWidget::resetRotation() {
+    setRotation(0.0);
 }
 
 void OnlineTileWidget::setMeasureMode(bool active) {
@@ -445,7 +562,7 @@ void OnlineTileWidget::setMeasureMode(bool active) {
     if (!active) {
         clearMeasure();
     }
-    setCursor(active ? Qt::CrossCursor : Qt::ArrowCursor);
+    setCursor(active ? Qt::CrossCursor : (currentTool == MapTool::Select ? Qt::CrossCursor : (currentTool == MapTool::Rotate ? Qt::SizeAllCursor : Qt::ArrowCursor)));
     emit measureModeChanged(active);
     update();
 }
@@ -456,15 +573,35 @@ void OnlineTileWidget::clearMeasure() {
     update();
 }
 
+void OnlineTileWidget::clearBoxSelection() {
+    isBoxSelecting = false;
+    selectedDams.clear();
+    update();
+}
+
 // --- Mouse interaction ---
 
 void OnlineTileWidget::mousePressEvent(QMouseEvent* event) {
     pressMousePos = event->pos();
     if (event->button() == Qt::LeftButton) {
-        isDragging = true;
-        lastMousePos = event->pos();
-        if (!measureMode) {
-            setCursor(Qt::ClosedHandCursor);
+        if (currentTool == MapTool::Rotate) {
+            isRotating = true;
+            double dx = event->pos().x() - width() / 2.0;
+            double dy = event->pos().y() - height() / 2.0;
+            lastRotationMouseAngle = std::atan2(dy, dx) * 180.0 / M_PI;
+            update();
+        } else if (currentTool == MapTool::Select) {
+            isBoxSelecting = true;
+            boxSelectStart = event->pos();
+            boxSelectCurrent = event->pos();
+            isDragging = false;
+            update();
+        } else {
+            isDragging = true;
+            lastMousePos = event->pos();
+            if (!measureMode) {
+                setCursor(Qt::ClosedHandCursor);
+            }
         }
     } else if (event->button() == Qt::RightButton) {
         if (measureMode) {
@@ -474,6 +611,10 @@ void OnlineTileWidget::mousePressEvent(QMouseEvent* event) {
             } else {
                 setMeasureMode(false);
             }
+        } else if (isBoxSelecting) {
+            clearBoxSelection();
+        } else {
+            emit contextMenuRequested(event->globalPosition().toPoint());
         }
     }
 }
@@ -482,16 +623,44 @@ void OnlineTileWidget::mouseMoveEvent(QMouseEvent* event) {
     liveMousePos = event->pos();
     hasLiveMouse = true;
 
+    if (isRotating && (event->buttons() & Qt::LeftButton)) {
+        double dx = event->pos().x() - width() / 2.0;
+        double dy = event->pos().y() - height() / 2.0;
+        double curAngle = std::atan2(dy, dx) * 180.0 / M_PI;
+        double delta = curAngle - lastRotationMouseAngle;
+        while (delta > 180.0) delta -= 360.0;
+        while (delta < -180.0) delta += 360.0;
+
+        rotationAngle += delta;
+        while (rotationAngle >= 360.0) rotationAngle -= 360.0;
+        while (rotationAngle < 0.0) rotationAngle += 360.0;
+
+        lastRotationMouseAngle = curAngle;
+        emit rotationChanged(rotationAngle);
+        update();
+        return;
+    }
+
+    if (isBoxSelecting && (event->buttons() & Qt::LeftButton)) {
+        boxSelectCurrent = event->pos();
+        update();
+        return;
+    }
+
     if (isDragging && (event->buttons() & Qt::LeftButton)) {
         QPoint delta = event->pos() - lastMousePos;
         lastMousePos = event->pos();
 
-        // Convert pixel delta to geographic coordinate delta
+        // Compensate for viewport rotation when panning
+        double rad = -rotationAngle * M_PI / 180.0;
+        double rdx = delta.x() * std::cos(rad) - delta.y() * std::sin(rad);
+        double rdy = delta.x() * std::sin(rad) + delta.y() * std::cos(rad);
+
         double tileCount = std::pow(2.0, zoomLevel);
-        double lonDelta = -delta.x() / (TILE_SIZE * tileCount) * 360.0;
+        double lonDelta = -rdx / (TILE_SIZE * tileCount) * 360.0;
 
         double centerTileY = latToTileY(centerLat, zoomLevel);
-        double newTileY = centerTileY - delta.y() / static_cast<double>(TILE_SIZE);
+        double newTileY = centerTileY - rdy / static_cast<double>(TILE_SIZE);
         double newLat = tileYToLat(newTileY, zoomLevel);
 
         centerLon = std::clamp(centerLon + lonDelta, -180.0, 180.0);
@@ -509,13 +678,60 @@ void OnlineTileWidget::mouseMoveEvent(QMouseEvent* event) {
 
 void OnlineTileWidget::mouseReleaseEvent(QMouseEvent* event) {
     if (event->button() == Qt::LeftButton) {
+        if (isRotating) {
+            isRotating = false;
+            setCursor(Qt::SizeAllCursor);
+            return;
+        }
+
+        if (isBoxSelecting) {
+            isBoxSelecting = false;
+            QPointF unrotStart = unrotatePoint(boxSelectStart);
+            QPointF unrotCurrent = unrotatePoint(boxSelectCurrent);
+            QRectF selRect = QRectF(unrotStart, unrotCurrent).normalized();
+
+            if (selRect.width() > 6 || selRect.height() > 6) {
+                double minLon = screenToLon(boxSelectStart.x(), boxSelectStart.y());
+                double maxLon = screenToLon(boxSelectCurrent.x(), boxSelectCurrent.y());
+                double minLat = screenToLat(boxSelectStart.x(), boxSelectStart.y());
+                double maxLat = screenToLat(boxSelectCurrent.x(), boxSelectCurrent.y());
+
+                if (minLon > maxLon) std::swap(minLon, maxLon);
+                if (minLat > maxLat) std::swap(minLat, maxLat);
+
+                selectedDams.clear();
+                if (damManager && showDams && damManager->hasData()) {
+                    damManager->getDamsInBbox(minLat, minLon, maxLat, maxLon, selectedDams);
+                }
+
+                emit boxSelectionCompleted(minLat, minLon, maxLat, maxLon, static_cast<int>(selectedDams.size()));
+                update();
+            } else {
+                // Point click inspection
+                double clickLat = screenToLat(event->pos().x(), event->pos().y());
+                double clickLon = screenToLon(event->pos().x(), event->pos().y());
+                if (damManager && showDams && damManager->hasData()) {
+                    const auto* nearest = damManager->findNearest(clickLat, clickLon, 0.08);
+                    if (nearest) {
+                        selectedDams.clear();
+                        selectedDams.push_back(nearest);
+                        emit damClicked(*nearest);
+                        update();
+                    } else {
+                        clearBoxSelection();
+                    }
+                }
+            }
+            return;
+        }
+
         isDragging = false;
-        setCursor(measureMode ? Qt::CrossCursor : Qt::ArrowCursor);
+        setCursor((measureMode || currentTool == MapTool::Select) ? Qt::CrossCursor : (currentTool == MapTool::Rotate ? Qt::SizeAllCursor : Qt::ArrowCursor));
 
         // Check if it was a clean stationary click without dragging
         if ((event->pos() - pressMousePos).manhattanLength() < 6) {
-            double clickLat = screenToLat(event->pos().y());
-            double clickLon = screenToLon(event->pos().x());
+            double clickLat = screenToLat(event->pos().x(), event->pos().y());
+            double clickLon = screenToLon(event->pos().x(), event->pos().y());
 
             if (measureMode) {
                 measurePoints.emplace_back(clickLat, clickLon);

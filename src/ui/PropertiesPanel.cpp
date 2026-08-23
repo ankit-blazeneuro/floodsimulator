@@ -1,5 +1,6 @@
 #include "PropertiesPanel.h"
 #include "IconHelper.h"
+#include "../core/DamManager.h"
 
 namespace MapUI {
 
@@ -76,7 +77,7 @@ PropertiesPanel::PropertiesPanel(QWidget* parent) : QWidget(parent) {
 }
 
 void PropertiesPanel::setupUi() {
-    setMinimumWidth(290);
+    setMinimumWidth(300);
 
     setStyleSheet(R"(
         QWidget#propertiesPanel {
@@ -98,40 +99,51 @@ void PropertiesPanel::setupUi() {
             max-width: 40px;
             min-height: 40px;
             max-height: 40px;
-            padding: 0px;
         }
         QWidget#iconStrip QPushButton:hover {
-            background-color: #2D2D2D;
+            background-color: #2B2B2B;
         }
         QWidget#iconStrip QPushButton:checked {
-            background-color: #282828;
-            border-left: 3px solid #8AB4F8;
+            background-color: #2D323A;
+            border-left: 3px solid #54D59A;
         }
         QScrollArea {
             border: none;
-            background-color: transparent;
+            background-color: #282828;
+        }
+        QScrollBar:vertical {
+            background: #1E1E1E;
+            width: 8px;
+            margin: 0px;
+        }
+        QScrollBar::handle:vertical {
+            background: #3E3E3E;
+            min-height: 20px;
+            border-radius: 4px;
+        }
+        QScrollBar::handle:vertical:hover {
+            background: #4E4E4E;
+        }
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            height: 0px;
         }
         QLabel {
             color: #CCCCCC;
-            font-size: 11px;
+        }
+        QDoubleSpinBox, QSlider {
+            color: #FFFFFF;
         }
         QDoubleSpinBox {
             background-color: #181818;
-            color: #E6E6E6;
             border: 1px solid #333333;
-            border-radius: 3px;
-            font-family: Consolas, 'Segoe UI', monospace;
+            border-radius: 4px;
+            padding: 4px 6px;
+            color: #FFFFFF;
+            font-family: Consolas, monospace;
             font-size: 11px;
-            font-weight: bold;
-            padding: 2px 6px;
-            min-height: 22px;
-        }
-        QDoubleSpinBox:hover {
-            border-color: #4772B3;
         }
         QDoubleSpinBox:focus {
-            border-color: #5680C2;
-            background-color: #111111;
+            border-color: #54D59A;
         }
         QCheckBox {
             color: #CCCCCC;
@@ -141,13 +153,13 @@ void PropertiesPanel::setupUi() {
         QCheckBox::indicator {
             width: 14px;
             height: 14px;
-            border-radius: 3px;
-            border: 1px solid #444444;
             background-color: #181818;
+            border: 1px solid #3A3A3A;
+            border-radius: 3px;
         }
         QCheckBox::indicator:checked {
-            background-color: #4772B3;
-            border-color: #5680C2;
+            background-color: #54D59A;
+            border-color: #54D59A;
         }
         QPushButton#btnBake {
             background-color: #E87D0D;
@@ -163,6 +175,18 @@ void PropertiesPanel::setupUi() {
         }
         QPushButton#btnBake:pressed {
             background-color: #C76505;
+        }
+        QPushButton#btnActionBlue {
+            background-color: #2F4D7B;
+            color: #FFFFFF;
+            border: 1px solid #4772B3;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 6px 10px;
+        }
+        QPushButton#btnActionBlue:hover {
+            background-color: #3C639D;
         }
         QPushButton#btnReset {
             background-color: #303030;
@@ -228,6 +252,14 @@ void PropertiesPanel::setupUi() {
     tabButtonGroup->addButton(btnTabDisplay, 3);
     isLayout->addWidget(btnTabDisplay);
 
+    btnTabDam = new QPushButton(iconStrip);
+    btnTabDam->setIcon(IconHelper::info(QColor(84, 213, 154), 22));
+    btnTabDam->setIconSize(QSize(22, 22));
+    btnTabDam->setCheckable(true);
+    btnTabDam->setToolTip("Dam Specifications & Preferences");
+    tabButtonGroup->addButton(btnTabDam, 4);
+    isLayout->addWidget(btnTabDam);
+
     isLayout->addStretch();
 
     mainLayout->addWidget(iconStrip);
@@ -257,6 +289,7 @@ void PropertiesPanel::setupUi() {
     pageStack->addWidget(createTerrainTab());
     pageStack->addWidget(createTelemetryTab());
     pageStack->addWidget(createDisplayTab());
+    pageStack->addWidget(createDamTab());
 
     caLayout->addWidget(pageStack, 1);
     mainLayout->addWidget(contentArea, 1);
@@ -273,6 +306,9 @@ void PropertiesPanel::setupUi() {
     });
     connect(btnTabDisplay, &QPushButton::clicked, this, [this]() {
         switchTab(3, "Viewport Overlays & Heatmaps");
+    });
+    connect(btnTabDam, &QPushButton::clicked, this, [this]() {
+        switchTab(4, "Dam Specifications & Preferences");
     });
 
     btnTabFluid->setChecked(true);
@@ -298,77 +334,67 @@ QWidget* PropertiesPanel::createFluidTab() {
     layout->setSpacing(8);
 
     // Section 1: Inflow & Boundary Conditions
-    auto* secBoundary = new CollapsibleSection("Flood Boundary Dynamics", container);
+    auto* secInflow = new CollapsibleSection("Inflow & Hydrodynamics", container);
 
-    auto makeRow = [](const QString& labelText, QWidget* control) {
+    auto makeRow = [](const QString& labelText, QWidget* controlWidget) {
         auto* row = new QWidget();
-        auto* rl = new QHBoxLayout(row);
-        rl->setContentsMargins(0, 0, 0, 0);
+        auto* hl = new QHBoxLayout(row);
+        hl->setContentsMargins(0, 2, 0, 2);
         auto* lbl = new QLabel(labelText, row);
         lbl->setMinimumWidth(110);
-        rl->addWidget(lbl);
-        rl->addWidget(control, 1);
+        hl->addWidget(lbl);
+        hl->addWidget(controlWidget, 1);
         return row;
     };
 
-    spinWaterRise = new QDoubleSpinBox();
-    spinWaterRise->setRange(0.0, 20.0);
-    spinWaterRise->setValue(2.40);
-    spinWaterRise->setSingleStep(0.1);
+    spinWaterRise = new QDoubleSpinBox(container);
+    spinWaterRise->setRange(0.0, 25.0);
+    spinWaterRise->setValue(3.5);
+    spinWaterRise->setSingleStep(0.5);
     spinWaterRise->setSuffix(" m");
-    secBoundary->addWidget(makeRow("Peak Water Rise:", spinWaterRise));
+    secInflow->addWidget(makeRow("Peak Water Rise:", spinWaterRise));
 
-    spinRainfall = new QDoubleSpinBox();
+    spinRainfall = new QDoubleSpinBox(container);
     spinRainfall->setRange(0.0, 500.0);
-    spinRainfall->setValue(85.0);
-    spinRainfall->setSingleStep(5.0);
+    spinRainfall->setValue(120.0);
+    spinRainfall->setSingleStep(10.0);
     spinRainfall->setSuffix(" mm/h");
-    secBoundary->addWidget(makeRow("Rainfall Rate:", spinRainfall));
+    secInflow->addWidget(makeRow("Rainfall Intensity:", spinRainfall));
 
-    spinBreachWidth = new QDoubleSpinBox();
-    spinBreachWidth->setRange(0.0, 1000.0);
-    spinBreachWidth->setValue(120.0);
-    spinBreachWidth->setSingleStep(10.0);
+    spinBreachWidth = new QDoubleSpinBox(container);
+    spinBreachWidth->setRange(5.0, 500.0);
+    spinBreachWidth->setValue(75.0);
+    spinBreachWidth->setSingleStep(5.0);
     spinBreachWidth->setSuffix(" m");
-    secBoundary->addWidget(makeRow("Breach Width:", spinBreachWidth));
+    secInflow->addWidget(makeRow("Breach Width:", spinBreachWidth));
 
-    layout->addWidget(secBoundary);
-
-    // Section 2: Fluid Physics
-    auto* secPhysics = new CollapsibleSection("Fluid Physics & Roughness", container);
-
-    spinVelocity = new QDoubleSpinBox();
+    spinVelocity = new QDoubleSpinBox(container);
     spinVelocity->setRange(0.1, 15.0);
-    spinVelocity->setValue(2.1);
+    spinVelocity->setValue(2.8);
     spinVelocity->setSingleStep(0.2);
     spinVelocity->setSuffix(" m/s");
-    secPhysics->addWidget(makeRow("Flow Velocity:", spinVelocity));
+    secInflow->addWidget(makeRow("Flow Velocity:", spinVelocity));
 
-    auto* spinManning = new QDoubleSpinBox();
-    spinManning->setRange(0.01, 0.15);
-    spinManning->setValue(0.035);
-    spinManning->setSingleStep(0.005);
-    spinManning->setDecimals(3);
-    secPhysics->addWidget(makeRow("Manning (n):", spinManning));
+    layout->addWidget(secInflow);
+
+    // Section 2: Physics Simulation Engine
+    auto* secPhysics = new CollapsibleSection("Bake Physics Simulation", container);
+
+    btnBakeSim = new QPushButton("Bake 2D Fluid Mesh", container);
+    btnBakeSim->setObjectName("btnBake");
+    secPhysics->addWidget(btnBakeSim);
+
+    btnResetSim = new QPushButton("Reset Simulation", container);
+    btnResetSim->setObjectName("btnReset");
+    secPhysics->addWidget(btnResetSim);
+
+    connect(btnBakeSim, &QPushButton::clicked, this, [this]() {
+        emit simulationBakeRequested(spinWaterRise->value(), spinRainfall->value(), spinBreachWidth->value());
+    });
 
     layout->addWidget(secPhysics);
 
-    // Section 3: Bake & Execution
-    auto* secBake = new CollapsibleSection("Bake Simulation", container);
-
-    btnBakeSim = new QPushButton("Bake Simulation (Assam)", container);
-    btnBakeSim->setIcon(IconHelper::rain(Qt::white, 16));
-    btnBakeSim->setObjectName("btnBake");
-    secBake->addWidget(btnBakeSim);
-
-    btnResetSim = new QPushButton("Clear Cache & Reset", container);
-    btnResetSim->setIcon(IconHelper::rewind(QColor(212, 212, 216), 14));
-    btnResetSim->setObjectName("btnReset");
-    secBake->addWidget(btnResetSim);
-
-    layout->addWidget(secBake);
     layout->addStretch();
-
     scroll->setWidget(container);
     return scroll;
 }
@@ -382,20 +408,34 @@ QWidget* PropertiesPanel::createTerrainTab() {
     layout->setContentsMargins(8, 8, 8, 8);
     layout->setSpacing(8);
 
-    auto* secDEM = new CollapsibleSection("Digital Elevation Model", container);
-    auto* chkContours = new QCheckBox("Elevation Contour Lines (10m)", container);
-    chkContours->setChecked(true);
-    auto* chkHillshade = new QCheckBox("3D Hillshade & Shading", container);
-    chkHillshade->setChecked(true);
-    auto* chkSlope = new QCheckBox("Slope Steepness Overlay", container);
+    auto* secManning = new CollapsibleSection("Surface Roughness (Manning's n)", container);
+    auto makeRow = [](const QString& labelText, QWidget* controlWidget) {
+        auto* row = new QWidget();
+        auto* hl = new QHBoxLayout(row);
+        hl->setContentsMargins(0, 2, 0, 2);
+        auto* lbl = new QLabel(labelText, row);
+        lbl->setMinimumWidth(110);
+        hl->addWidget(lbl);
+        hl->addWidget(controlWidget, 1);
+        return row;
+    };
 
-    secDEM->addWidget(chkContours);
-    secDEM->addWidget(chkHillshade);
-    secDEM->addWidget(chkSlope);
-    layout->addWidget(secDEM);
+    auto* spinRiverBed = new QDoubleSpinBox(container);
+    spinRiverBed->setRange(0.015, 0.08);
+    spinRiverBed->setValue(0.030);
+    spinRiverBed->setSingleStep(0.005);
+    secManning->addWidget(makeRow("River Channel:", spinRiverBed));
 
-    auto* secEmbankments = new CollapsibleSection("Embankments & Dykes", container);
-    auto* chkDykes = new QCheckBox("Brahmaputra Embankment System", container);
+    auto* spinFloodplain = new QDoubleSpinBox(container);
+    spinFloodplain->setRange(0.025, 0.15);
+    spinFloodplain->setValue(0.055);
+    spinFloodplain->setSingleStep(0.005);
+    secManning->addWidget(makeRow("Floodplain Vegetated:", spinFloodplain));
+
+    layout->addWidget(secManning);
+
+    auto* secEmbankments = new CollapsibleSection("Assam Embankments & Dykes", container);
+    auto* chkDykes = new QCheckBox("Enforce Brahmaputra Dykes", container);
     chkDykes->setChecked(true);
     auto* chkBreachPoints = new QCheckBox("Highlight Vulnerable Breach Points", container);
     chkBreachPoints->setChecked(true);
@@ -484,6 +524,190 @@ QWidget* PropertiesPanel::createDisplayTab() {
     layout->addStretch();
     scroll->setWidget(container);
     return scroll;
+}
+
+QWidget* PropertiesPanel::createDamTab() {
+    auto* scroll = new QScrollArea();
+    scroll->setWidgetResizable(true);
+
+    auto* container = new QWidget();
+    auto* layout = new QVBoxLayout(container);
+    layout->setContentsMargins(8, 8, 8, 8);
+    layout->setSpacing(8);
+
+    // 1. Dam Header Card
+    auto* headerCard = new QWidget(container);
+    headerCard->setStyleSheet(R"(
+        background-color: #1E1E22;
+        border: 1px solid #32323A;
+        border-left: 3px solid #54D59A;
+        border-radius: 5px;
+    )");
+    auto* hcLayout = new QVBoxLayout(headerCard);
+    hcLayout->setContentsMargins(10, 8, 10, 8);
+    hcLayout->setSpacing(4);
+
+    lblDamName = new QLabel("Select a Dam on Map", headerCard);
+    lblDamName->setStyleSheet("color: #FFFFFF; font-size: 13px; font-weight: bold;");
+    lblDamName->setWordWrap(true);
+
+    lblDamPic = new QLabel("National PIC: --", headerCard);
+    lblDamPic->setStyleSheet("color: #8AB4F8; font-family: Consolas, monospace; font-size: 10px; font-weight: bold;");
+
+    lblDamStatus = new QLabel("● National Hydrological Asset", headerCard);
+    lblDamStatus->setStyleSheet("color: #54D59A; font-size: 10px; font-weight: bold;");
+
+    hcLayout->addWidget(lblDamName);
+    hcLayout->addWidget(lblDamPic);
+    hcLayout->addWidget(lblDamStatus);
+    layout->addWidget(headerCard);
+
+    // 2. Geographic & Regional Details
+    auto* secGeo = new CollapsibleSection("Geographic & Regional Details", container);
+    auto makeDataRow = [](const QString& labelText, QLabel*& valueLabel) {
+        auto* row = new QWidget();
+        auto* hl = new QHBoxLayout(row);
+        hl->setContentsMargins(0, 2, 0, 2);
+        auto* lbl = new QLabel(labelText, row);
+        lbl->setStyleSheet("color: #9E9EA6; font-size: 10px;");
+        lbl->setMinimumWidth(100);
+        valueLabel = new QLabel("--", row);
+        valueLabel->setStyleSheet("color: #E2E2E8; font-size: 11px; font-weight: 500;");
+        valueLabel->setWordWrap(true);
+        hl->addWidget(lbl);
+        hl->addWidget(valueLabel, 1);
+        return row;
+    };
+
+    secGeo->addWidget(makeDataRow("State:", lblDamState));
+    secGeo->addWidget(makeDataRow("District:", lblDamDistrict));
+    secGeo->addWidget(makeDataRow("River:", lblDamRiver));
+    secGeo->addWidget(makeDataRow("River Basin:", lblDamBasin));
+    secGeo->addWidget(makeDataRow("Coordinates:", lblDamCoords));
+    secGeo->addWidget(makeDataRow("Authority:", lblDamIncharge));
+    layout->addWidget(secGeo);
+
+    // 3. Technical & Structural Engineering Specifications
+    auto* secEng = new CollapsibleSection("Engineering Specifications", container);
+    secEng->addWidget(makeDataRow("Structure Type:", lblDamType));
+    secEng->addWidget(makeDataRow("Structural Height:", lblDamHeight));
+    secEng->addWidget(makeDataRow("Gross Storage:", lblDamStorage));
+    secEng->addWidget(makeDataRow("Discharge Capacity:", lblDamSpillway));
+    secEng->addWidget(makeDataRow("Commissioned:", lblDamYear));
+    secEng->addWidget(makeDataRow("Primary Purpose:", lblDamPurpose));
+    layout->addWidget(secEng);
+
+    // 4. Dam Preferences & Simulation Tuning
+    auto* secPref = new CollapsibleSection("Preferences & Simulation", container);
+
+    auto makeSpinRow = [](const QString& labelText, QWidget* controlWidget) {
+        auto* row = new QWidget();
+        auto* hl = new QHBoxLayout(row);
+        hl->setContentsMargins(0, 2, 0, 2);
+        auto* lbl = new QLabel(labelText, row);
+        lbl->setStyleSheet("color: #9E9EA6; font-size: 10px;");
+        lbl->setMinimumWidth(120);
+        hl->addWidget(lbl);
+        hl->addWidget(controlWidget, 1);
+        return row;
+    };
+
+    spinDamWarningThreshold = new QDoubleSpinBox(container);
+    spinDamWarningThreshold->setRange(10.0, 100.0);
+    spinDamWarningThreshold->setValue(80.0);
+    spinDamWarningThreshold->setSingleStep(5.0);
+    spinDamWarningThreshold->setSuffix(" %");
+    secPref->addWidget(makeSpinRow("Alert Threshold:", spinDamWarningThreshold));
+
+    spinDamInflowMultiplier = new QDoubleSpinBox(container);
+    spinDamInflowMultiplier->setRange(0.1, 10.0);
+    spinDamInflowMultiplier->setValue(1.0);
+    spinDamInflowMultiplier->setSingleStep(0.2);
+    spinDamInflowMultiplier->setSuffix(" x");
+    secPref->addWidget(makeSpinRow("Inflow Multiplier:", spinDamInflowMultiplier));
+
+    btnCenterOnDam = new QPushButton("🎯 Center Map on Dam", container);
+    btnCenterOnDam->setObjectName("btnActionBlue");
+    secPref->addWidget(btnCenterOnDam);
+
+    btnSimulateDam = new QPushButton("🌊 Run Localized Inundation", container);
+    btnSimulateDam->setObjectName("btnBake");
+    secPref->addWidget(btnSimulateDam);
+
+    connect(btnCenterOnDam, &QPushButton::clicked, this, [this]() {
+        if (std::abs(currentDamLat) > 0.001 || std::abs(currentDamLon) > 0.001) {
+            emit centerLocationRequested(currentDamLat, currentDamLon, 12);
+        }
+    });
+
+    connect(btnSimulateDam, &QPushButton::clicked, this, [this]() {
+        emit simulationBakeRequested(spinWaterRise ? spinWaterRise->value() : 3.5,
+                                    spinRainfall ? spinRainfall->value() : 120.0,
+                                    spinBreachWidth ? spinBreachWidth->value() : 75.0);
+    });
+
+    layout->addWidget(secPref);
+
+    layout->addStretch();
+    scroll->setWidget(container);
+    return scroll;
+}
+
+void PropertiesPanel::showDamDetails(const MapCore::DamPoint& dam) {
+    currentDamLat = dam.lat;
+    currentDamLon = dam.lon;
+
+    if (lblDamName) lblDamName->setText(dam.name.isEmpty() ? "Unnamed Dam / Reservoir" : dam.name);
+    if (lblDamPic) lblDamPic->setText(QString("National PIC: %1").arg(dam.pic.isEmpty() ? "N/A" : dam.pic));
+    if (lblDamStatus) lblDamStatus->setText("● National Hydrological Asset");
+
+    if (lblDamState) lblDamState->setText(QString("State: %1").arg(dam.state.isEmpty() ? "India" : dam.state));
+    if (lblDamDistrict) lblDamDistrict->setText(QString("District: %1").arg(dam.district.isEmpty() ? "N/A" : dam.district));
+    if (lblDamRiver) lblDamRiver->setText(QString("River: %1").arg(dam.river.isEmpty() ? "N/A" : dam.river));
+    if (lblDamBasin) lblDamBasin->setText(QString("Basin: %1").arg(dam.basin.isEmpty() ? "N/A" : dam.basin));
+    if (lblDamCoords) lblDamCoords->setText(QString("%1° N, %2° E").arg(dam.lat, 0, 'f', 4).arg(dam.lon, 0, 'f', 4));
+    if (lblDamIncharge) lblDamIncharge->setText(dam.incharge.isEmpty() ? "State Water Resources Dept." : dam.incharge);
+
+    if (lblDamType) lblDamType->setText(dam.damType.isEmpty() ? "Earthen / Gravity Structure" : dam.damType);
+    if (lblDamHeight) lblDamHeight->setText(dam.height > 0 ? QString("%1 m").arg(dam.height, 0, 'f', 1) : "Data pending");
+    if (lblDamStorage) lblDamStorage->setText(dam.storage > 0 ? QString("%1 MCM").arg(dam.storage, 0, 'f', 1) : "Data pending");
+    if (lblDamSpillway) lblDamSpillway->setText(dam.spillwayCap > 0 ? QString("%1 m³/s").arg(dam.spillwayCap, 0, 'f', 1) : "Data pending");
+    if (lblDamYear) lblDamYear->setText(dam.year > 0 ? QString("%1").arg(dam.year) : "Historical");
+    if (lblDamPurpose) lblDamPurpose->setText(dam.purpose.isEmpty() ? "Irrigation & Flood Moderation" : dam.purpose);
+
+    btnTabDam->setChecked(true);
+    switchTab(4, "Dam Specifications & Preferences");
+}
+
+void PropertiesPanel::showDamSelectionSummary(int count, double minLat, double minLon, double maxLat, double maxLon, const std::vector<const MapCore::DamPoint*>& dams) {
+    if (count == 1 && !dams.empty() && dams[0]) {
+        showDamDetails(*dams[0]);
+        return;
+    }
+
+    currentDamLat = (minLat + maxLat) / 2.0;
+    currentDamLon = (minLon + maxLon) / 2.0;
+
+    if (lblDamName) lblDamName->setText(QString("Multi-Selection (%1 Dams)").arg(count));
+    if (lblDamPic) lblDamPic->setText(QString("Region: [%1°N, %2°E] to [%3°N, %4°E]").arg(minLat, 0, 'f', 2).arg(minLon, 0, 'f', 2).arg(maxLat, 0, 'f', 2).arg(maxLon, 0, 'f', 2));
+    if (lblDamStatus) lblDamStatus->setText(QString("● %1 Infrastructure Assets Selected").arg(count));
+
+    if (lblDamState) lblDamState->setText(QString("%1 dams selected").arg(count));
+    if (lblDamDistrict) lblDamDistrict->setText(QString("Span Lat: %1°").arg(maxLat - minLat, 0, 'f', 3));
+    if (lblDamRiver) lblDamRiver->setText(QString("Span Lon: %1°").arg(maxLon - minLon, 0, 'f', 3));
+    if (lblDamBasin) lblDamBasin->setText("Regional Bounding Box");
+    if (lblDamCoords) lblDamCoords->setText(QString("Center: %1° N, %2° E").arg(currentDamLat, 0, 'f', 4).arg(currentDamLon, 0, 'f', 4));
+    if (lblDamIncharge) lblDamIncharge->setText("Multiple Authorities");
+
+    if (lblDamType) lblDamType->setText("Multiple Structural Types");
+    if (lblDamHeight) lblDamHeight->setText("Regional Cluster");
+    if (lblDamStorage) lblDamStorage->setText("Combined Storage Basin");
+    if (lblDamSpillway) lblDamSpillway->setText("Multiple Spillways");
+    if (lblDamYear) lblDamYear->setText("Multi-Era");
+    if (lblDamPurpose) lblDamPurpose->setText("Irrigation, Power & Flood Mitigation");
+
+    btnTabDam->setChecked(true);
+    switchTab(4, "Dam Selection & Regional Analysis");
 }
 
 } // namespace MapUI

@@ -199,9 +199,12 @@ void MapWidget::mousePressEvent(QMouseEvent* event) {
             if (!measurePoints.empty()) {
                 measurePoints.pop_back();
                 update();
+            } else {
+                setMeasureMode(false);
             }
         } else {
             clearSelection();
+            emit contextMenuRequested(event->globalPosition().toPoint());
         }
     }
 }

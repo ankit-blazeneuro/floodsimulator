@@ -40,7 +40,7 @@ void NavigationControls::setupUi() {
     )";
 
     btnResetNorth = new QPushButton(this);
-    btnResetNorth->setIcon(IconHelper::radar(QColor(220, 220, 225), 20));
+    btnResetNorth->setIcon(IconHelper::compass(QColor(220, 220, 225), 20));
     btnResetNorth->setIconSize(QSize(20, 20));
     btnResetNorth->setToolTip("Reset Orientation (North Up)");
     btnResetNorth->setStyleSheet(btnStyle);
@@ -95,8 +95,8 @@ void NavigationControls::setupUi() {
     shadow4->setOffset(0, 3);
     btnZoomOut->setGraphicsEffect(shadow4);
 
-    layout->addWidget(btnResetNorth);
     layout->addWidget(btnFitExtent);
+    layout->addWidget(btnResetNorth);
     layout->addWidget(btnMeasure);
     layout->addSpacing(6);
     layout->addWidget(btnZoomIn);

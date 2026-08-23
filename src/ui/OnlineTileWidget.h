@@ -13,6 +13,7 @@
 #include <vector>
 #include <cmath>
 #include "../core/DamManager.h"
+#include "MapTool.h"
 
 namespace MapUI {
 
@@ -72,12 +73,26 @@ private:
     const MapCore::DamManager* damManager = nullptr;
     bool showDams = true;
 
+    // Active Tool & Mode
+    MapTool currentTool = MapTool::Move;
+
     // Measurement Tool (Ruler)
     bool measureMode = false;
     std::vector<QPointF> measurePoints; // stored as (lat, lon)
     QPoint liveMousePos;
     bool hasLiveMouse = false;
     QPoint pressMousePos;
+
+    // Box Selection (Select Tool)
+    bool isBoxSelecting = false;
+    QPoint boxSelectStart;
+    QPoint boxSelectCurrent;
+    std::vector<const MapCore::DamPoint*> selectedDams;
+
+    // 360° Map Rotation (Rotate Tool)
+    double rotationAngle = 0.0;
+    bool isRotating = false;
+    double lastRotationMouseAngle = 0.0;
 
     static constexpr int TILE_SIZE = 256;
 
@@ -88,12 +103,26 @@ public:
     void setShowDams(bool show) { showDams = show; update(); }
     bool getShowDams() const { return showDams; }
 
+    void setTool(MapTool tool);
+    MapTool getTool() const { return currentTool; }
+
     void setMeasureMode(bool active);
     bool isMeasureMode() const { return measureMode; }
     void clearMeasure();
+    void clearBoxSelection();
+    const std::vector<const MapCore::DamPoint*>& getSelectedDams() const { return selectedDams; }
 
-    double screenToLon(double screenX) const;
-    double screenToLat(double screenY) const;
+    void setRotation(double degrees);
+    double getRotation() const { return rotationAngle; }
+    void resetRotation();
+
+    QPointF unrotatePoint(const QPointF& pt) const;
+    QPointF rotatePoint(const QPointF& pt) const;
+
+    double screenToLon(double screenX, double screenY) const;
+    double screenToLat(double screenX, double screenY) const;
+    double screenToLon(double screenX) const { return screenToLon(screenX, height() / 2.0); }
+    double screenToLat(double screenY) const { return screenToLat(width() / 2.0, screenY); }
     QPointF geoToScreen(double lat, double lon) const;
     static double haversineDistanceM(double lat1, double lon1, double lat2, double lon2);
 
@@ -133,6 +162,9 @@ signals:
     void viewportChanged(double lat, double lon, int zoom);
     void damClicked(const MapCore::DamPoint& dam);
     void measureModeChanged(bool active);
+    void contextMenuRequested(const QPoint& globalPos);
+    void boxSelectionCompleted(double minLat, double minLon, double maxLat, double maxLon, int count);
+    void rotationChanged(double degrees);
 
 protected:
     void paintEvent(QPaintEvent* event) override;

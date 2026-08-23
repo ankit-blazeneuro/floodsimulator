@@ -21,6 +21,7 @@
 #include "SettingsDialog.h"
 #include "TimelineWidget.h"
 #include "PropertiesPanel.h"
+#include "PieMenu.h"
 
 namespace MapUI {
 
@@ -82,6 +83,8 @@ private:
     TimelineWidget* timelineWidget; // Fully resizable bottom timeline
     LoadingOverlay* loadingOverlay;
     SettingsDialog* settingsDialog = nullptr;
+    PieMenu* pieMenu = nullptr;
+    MapTool currentTool = MapTool::Move;
 
     // Menu Bar
     QMenuBar* appMenuBar;
@@ -138,12 +141,16 @@ public:
     void applyAppSettings(const AppSettings& settings);
     static bool isSystemDarkTheme();
 
+    PieMenu* getPieMenu() const { return pieMenu; }
+    MapTool getActiveTool() const { return currentTool; }
+
 public slots:
     void openSettingsDialog();
     void togglePropertiesPanel();
     void toggleTimeline();
     void showSimulationScreen();
     void showAnalyticsScreen();
+    void setActiveTool(MapTool tool);
 
 protected:
     void resizeEvent(QResizeEvent* event) override;

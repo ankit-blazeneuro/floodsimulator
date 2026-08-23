@@ -747,6 +747,22 @@ void MainWindow::setupUi() {
     // 9. Loading Overlay
     loadingOverlay = new LoadingOverlay(mapContainer);
 
+    // 10. Blender-Style Right-Click Radial Pie Menu
+    pieMenu = new PieMenu(this);
+    pieMenu->hide();
+
+    connect(onlineMap, &OnlineTileWidget::contextMenuRequested, this, [this](const QPoint& globalPos) {
+        pieMenu->setActiveTool(currentTool);
+        pieMenu->popup(globalPos);
+    });
+
+    connect(mapWidget, &MapWidget::contextMenuRequested, this, [this](const QPoint& globalPos) {
+        pieMenu->setActiveTool(currentTool);
+        pieMenu->popup(globalPos);
+    });
+
+    connect(pieMenu, &PieMenu::toolSelected, this, &MainWindow::setActiveTool);
+
     // Wire up Signals & Slots
     connect(searchBar, &SearchBar::searchResultSelected, this, &MainWindow::onSearchResultSelected);
 
@@ -784,6 +800,7 @@ void MainWindow::setupUi() {
     });
     connect(navControls, &NavigationControls::fitExtentRequested, this, [this]() {
         if (currentMapMode == MapMode::Online) {
+            onlineMap->resetRotation();
             onlineMap->fitIndia();
         } else {
             mapWidget->fitAssam();
@@ -791,6 +808,7 @@ void MainWindow::setupUi() {
     });
     connect(navControls, &NavigationControls::resetNorthRequested, this, [this]() {
         if (currentMapMode == MapMode::Online) {
+            onlineMap->resetRotation();
             onlineMap->fitIndia();
         } else {
             mapWidget->fitAssam();
@@ -806,6 +824,12 @@ void MainWindow::setupUi() {
     });
 
     connect(onlineMap, &OnlineTileWidget::damClicked, this, [this](const MapCore::DamPoint& dam) {
+        // Open Preferences / Properties Sidebar
+        if (propertiesPanel) {
+            propertiesPanel->setVisible(true);
+            propertiesPanel->showDamDetails(dam);
+        }
+
         MapCore::FeatureInfo f;
         f.found = true;
         f.name = dam.name.toStdString();
@@ -828,6 +852,40 @@ void MainWindow::setupUi() {
         placeCard->setFeature(f);
         placeCard->show();
         updateFloatingPositions();
+    });
+
+    connect(onlineMap, &OnlineTileWidget::boxSelectionCompleted, this, [this](double minLat, double minLon, double maxLat, double maxLon, int count) {
+        // Open Preferences / Properties Sidebar
+        if (propertiesPanel) {
+            propertiesPanel->setVisible(true);
+            propertiesPanel->showDamSelectionSummary(count, minLat, minLon, maxLat, maxLon, onlineMap->getSelectedDams());
+        }
+
+        MapCore::FeatureInfo f;
+        f.found = true;
+        f.name = QString("Box Selection (%1 %2)").arg(count).arg(count == 1 ? "Dam" : "Dams").toStdString();
+        f.category = MapCore::FeatureCategory::WATER_LAKE;
+        f.geoCoord = MapCore::GeoCoord((minLat + maxLat) / 2.0, (minLon + maxLon) / 2.0);
+        f.mercatorPos = MapCore::Projection::geoToMercator(f.geoCoord);
+        f.detail = QString("Bounding Box: [%1°N, %2°E] to [%3°N, %4°E] | %5 dams selected inside region")
+            .arg(minLat, 0, 'f', 2).arg(minLon, 0, 'f', 2)
+            .arg(maxLat, 0, 'f', 2).arg(maxLon, 0, 'f', 2)
+            .arg(count).toStdString();
+
+        placeCard->setFeature(f);
+        placeCard->show();
+        updateFloatingPositions();
+    });
+
+    connect(propertiesPanel, &PropertiesPanel::centerLocationRequested, this, [this](double lat, double lon, int zoom) {
+        if (currentMapMode == MapMode::Online) {
+            onlineMap->setCenter(lat, lon);
+            onlineMap->setZoom(zoom);
+        } else {
+            MapCore::GeoCoord geo(lat, lon);
+            MapCore::Point2D merc = MapCore::Projection::geoToMercator(geo);
+            mapWidget->flyTo(merc, static_cast<float>(zoom));
+        }
     });
 
     connect(placeCard, &PlaceCard::zoomInRequested, this, [this](MapCore::Point2D pos) {
@@ -1113,6 +1171,31 @@ void MainWindow::showAnalyticsScreen() {
     }
     if (btnWorkspaceAnalytics) {
         btnWorkspaceAnalytics->setChecked(true);
+    }
+}
+
+void MainWindow::setActiveTool(MapTool tool) {
+    currentTool = tool;
+    if (pieMenu) {
+        pieMenu->setActiveTool(tool);
+    }
+    onlineMap->setTool(tool);
+
+    if (tool == MapTool::Move) {
+        mapWidget->setMeasureMode(false);
+        navControls->setMeasureActive(false);
+        mapWidget->setCursor(Qt::ArrowCursor);
+    } else if (tool == MapTool::Select) {
+        mapWidget->setMeasureMode(false);
+        navControls->setMeasureActive(false);
+        mapWidget->setCursor(Qt::CrossCursor);
+    } else if (tool == MapTool::Rotate) {
+        mapWidget->setMeasureMode(false);
+        navControls->setMeasureActive(false);
+        mapWidget->setCursor(Qt::SizeAllCursor);
+    } else if (tool == MapTool::Ruler) {
+        mapWidget->setMeasureMode(true);
+        navControls->setMeasureActive(true);
     }
 }
 
