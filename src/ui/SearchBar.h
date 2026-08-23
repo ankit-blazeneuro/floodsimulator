@@ -19,7 +19,6 @@ private:
     QPushButton* btnClear;
     QPushButton* btnSearchIcon;
     QListWidget* suggestionList;
-    QWidget* chipsWidget;
 
     const std::vector<MapCore::SearchItem>* searchIndex = nullptr;
     std::vector<MapCore::SearchItem> currentMatches;

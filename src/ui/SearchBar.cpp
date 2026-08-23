@@ -85,54 +85,7 @@ void SearchBar::setupUi() {
     cardLayout->addWidget(searchInput);
     cardLayout->addWidget(btnClear);
 
-    // 2. Filter Chips (Dark High-Contrast Pills)
-    chipsWidget = new QWidget(this);
-    auto* chipsLayout = new QHBoxLayout(chipsWidget);
-    chipsLayout->setContentsMargins(2, 0, 2, 0);
-    chipsLayout->setSpacing(6);
-
-    QString chipStyle = R"(
-        QPushButton {
-            background-color: #2D3135;
-            color: #FFFFFF;
-            border: 1px solid #5F6368;
-            border-radius: 14px;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 11px;
-            font-weight: bold;
-            padding: 5px 12px;
-        }
-        QPushButton:hover {
-            background-color: #3C4043;
-            color: #8AB4F8;
-            border-color: #8AB4F8;
-        }
-        QPushButton:pressed {
-            background-color: #1A1C1E;
-        }
-    )";
-
-    auto makeChip = [&](const QString& label, MapCore::FeatureCategory cat, const QString& searchQ = "") {
-        auto* chip = new QPushButton(label, chipsWidget);
-        chip->setStyleSheet(chipStyle);
-        connect(chip, &QPushButton::clicked, this, [this, cat, searchQ]() {
-            if (!searchQ.isEmpty()) {
-                searchInput->setText(searchQ);
-                performSearch(searchQ);
-            } else {
-                emit categoryFilterClicked(cat);
-            }
-        });
-        chipsLayout->addWidget(chip);
-    };
-
-    makeChip("Guwahati", MapCore::FeatureCategory::PLACE_CITY, "Guwahati");
-    makeChip("Dibrugarh", MapCore::FeatureCategory::PLACE_CITY, "Dibrugarh");
-    makeChip("Highways", MapCore::FeatureCategory::HIGHWAY_TRUNK, "NH");
-    makeChip("Rivers", MapCore::FeatureCategory::WATER_RIVER, "Brahmaputra");
-    makeChip("Hospitals", MapCore::FeatureCategory::POI_HOSPITAL, "Hospital");
-
-    // 3. Dropdown Suggestion List (Dark Theme)
+    // 2. Dropdown Suggestion List (Dark Theme)
     suggestionList = new QListWidget(this);
     suggestionList->setObjectName("suggestionList");
     suggestionList->setStyleSheet(R"(
@@ -168,7 +121,6 @@ void SearchBar::setupUi() {
     suggestionList->setGraphicsEffect(sListShadow);
 
     mainLayout->addWidget(cardWidget);
-    mainLayout->addWidget(chipsWidget);
     mainLayout->addWidget(suggestionList);
 
     connect(searchInput, &QLineEdit::textChanged, this, &SearchBar::onTextChanged);
