@@ -31,6 +31,19 @@ int main(int argc, char* argv[]) {
     darkPalette.setColor(QPalette::HighlightedText, QColor(9, 9, 11));
     app.setPalette(darkPalette);
 
+    app.setStyleSheet(R"(
+        QToolTip {
+            background-color: #18181B;
+            color: #FAFAFA;
+            border: 1px solid #3F3F46;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-family: 'Segoe UI', Inter, sans-serif;
+            font-size: 11px;
+            opacity: 255;
+        }
+    )");
+
     MapUI::MainWindow window;
     window.show();
 

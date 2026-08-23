@@ -93,7 +93,6 @@ class PropertiesPanel : public QWidget {
     QLabel* lblHydroDepth;
     QLabel* lblHydroVel;
     QLabel* lblHydroDischarge;
-    QProgressBar* progHydroTimeline;
 
     QDoubleSpinBox* spinDamWarningThreshold;
     QDoubleSpinBox* spinDamInflowMultiplier;

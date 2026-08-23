@@ -15,23 +15,22 @@ CollapsibleSection::CollapsibleSection(const QString& title, QWidget* parent) : 
 
     // Section Header Button with SVG Chevron
     btnHeader = new QPushButton(" " + title, this);
-    btnHeader->setIcon(IconHelper::chevronDown(QColor(200, 200, 205), 14));
+    btnHeader->setIcon(IconHelper::chevronDown(QColor(220, 220, 225), 14));
     btnHeader->setIconSize(QSize(14, 14));
     btnHeader->setStyleSheet(R"(
         QPushButton {
-            background-color: #303030;
-            color: #E6E6E6;
-            border: 1px solid #202020;
-            border-top: 1px solid #3D3D3D;
+            background-color: #1E1E22;
+            color: #FFFFFF;
+            border: 1px solid #27272A;
             border-radius: 4px;
             font-family: 'Segoe UI', Arial, sans-serif;
             font-size: 11px;
-            font-weight: bold;
+            font-weight: 600;
             text-align: left;
-            padding: 5px 8px;
+            padding: 6px 10px;
         }
         QPushButton:hover {
-            background-color: #383838;
+            background-color: #27272A;
             color: #FFFFFF;
         }
     )");
@@ -39,16 +38,13 @@ CollapsibleSection::CollapsibleSection(const QString& title, QWidget* parent) : 
     contentWidget = new QWidget(this);
     contentWidget->setStyleSheet(R"(
         QWidget {
-            background-color: #242424;
-            border: 1px solid #1E1E1E;
-            border-top: none;
-            border-bottom-left-radius: 4px;
-            border-bottom-right-radius: 4px;
+            background-color: transparent;
+            border: none;
         }
     )");
 
     contentLayout = new QVBoxLayout(contentWidget);
-    contentLayout->setContentsMargins(10, 8, 10, 8);
+    contentLayout->setContentsMargins(8, 6, 8, 6);
     contentLayout->setSpacing(6);
 
     mainLayout->addWidget(btnHeader);
@@ -81,14 +77,14 @@ void PropertiesPanel::setupUi() {
 
     setStyleSheet(R"(
         QWidget#propertiesPanel {
-            background-color: #282828;
-            border-left: 1px solid #181818;
+            background-color: #18181B;
+            border-left: 1px solid #27272A;
             font-family: 'Segoe UI', Arial, sans-serif;
             font-size: 11px;
         }
         QWidget#iconStrip {
-            background-color: #1E1E1E;
-            border-right: 1px solid #151515;
+            background-color: #121214;
+            border-right: 1px solid #27272A;
         }
         QWidget#iconStrip QPushButton {
             background-color: transparent;
@@ -101,41 +97,43 @@ void PropertiesPanel::setupUi() {
             max-height: 40px;
         }
         QWidget#iconStrip QPushButton:hover {
-            background-color: #2B2B2B;
+            background-color: #27272A;
         }
         QWidget#iconStrip QPushButton:checked {
-            background-color: #2D323A;
-            border-left: 3px solid #54D59A;
+            background-color: #27272A;
+            border-left: 3px solid #38BDF8;
         }
         QScrollArea {
             border: none;
-            background-color: #282828;
+            background-color: #18181B;
         }
         QScrollBar:vertical {
-            background: #1E1E1E;
-            width: 8px;
+            background: #121214;
+            width: 6px;
             margin: 0px;
         }
         QScrollBar::handle:vertical {
-            background: #3E3E3E;
+            background: #3F3F46;
             min-height: 20px;
-            border-radius: 4px;
+            border-radius: 3px;
         }
         QScrollBar::handle:vertical:hover {
-            background: #4E4E4E;
+            background: #52525B;
         }
         QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
             height: 0px;
         }
         QLabel {
-            color: #CCCCCC;
+            color: #FFFFFF;
+            background: transparent;
+            border: none;
         }
         QDoubleSpinBox, QSlider {
             color: #FFFFFF;
         }
         QDoubleSpinBox {
-            background-color: #181818;
-            border: 1px solid #333333;
+            background-color: #18181B;
+            border: 1px solid #27272A;
             border-radius: 4px;
             padding: 4px 6px;
             color: #FFFFFF;
@@ -143,61 +141,60 @@ void PropertiesPanel::setupUi() {
             font-size: 11px;
         }
         QDoubleSpinBox:focus {
-            border-color: #54D59A;
+            border-color: #38BDF8;
         }
         QCheckBox {
-            color: #CCCCCC;
+            color: #FFFFFF;
             font-size: 11px;
             spacing: 6px;
+            background: transparent;
+            border: none;
         }
         QCheckBox::indicator {
             width: 14px;
             height: 14px;
-            background-color: #181818;
-            border: 1px solid #3A3A3A;
+            background-color: #18181B;
+            border: 1px solid #3F3F46;
             border-radius: 3px;
         }
         QCheckBox::indicator:checked {
-            background-color: #54D59A;
-            border-color: #54D59A;
+            background-color: #38BDF8;
+            border-color: #38BDF8;
         }
         QPushButton#btnBake {
-            background-color: #E87D0D;
+            background-color: #0284C7;
             color: #FFFFFF;
-            border: 1px solid #FFA544;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-            padding: 8px 12px;
-        }
-        QPushButton#btnBake:hover {
-            background-color: #FF9426;
-        }
-        QPushButton#btnBake:pressed {
-            background-color: #C76505;
-        }
-        QPushButton#btnActionBlue {
-            background-color: #2F4D7B;
-            color: #FFFFFF;
-            border: 1px solid #4772B3;
+            border: 1px solid #0369A1;
             border-radius: 4px;
             font-size: 11px;
-            font-weight: bold;
+            font-weight: 600;
+            padding: 7px 12px;
+        }
+        QPushButton#btnBake:hover {
+            background-color: #0369A1;
+        }
+        QPushButton#btnActionBlue {
+            background-color: #27272A;
+            color: #FFFFFF;
+            border: 1px solid #3F3F46;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
             padding: 6px 10px;
         }
         QPushButton#btnActionBlue:hover {
-            background-color: #3C639D;
+            background-color: #3F3F46;
         }
         QPushButton#btnReset {
-            background-color: #303030;
-            color: #CCCCCC;
-            border: 1px solid #202020;
+            background-color: #27272A;
+            color: #FFFFFF;
+            border: 1px solid #3F3F46;
             border-radius: 4px;
             font-size: 11px;
             padding: 6px 12px;
         }
         QPushButton#btnReset:hover {
-            background-color: #3C3C3C;
+            background-color: #3F3F46;
             color: #FFFFFF;
         }
     )");
@@ -460,35 +457,35 @@ QWidget* PropertiesPanel::createTelemetryTab() {
 
     auto* secStations = new CollapsibleSection("Assam River Gauges (Live)", container);
 
-    auto makeGauge = [](const QString& name, const QString& level, const QString& status, const QString& color) {
+    auto makeGauge = [](const QString& name, const QString& level, const QString& status) {
         auto* card = new QWidget();
-        card->setStyleSheet("background-color: #1E1E1E; border: 1px solid #333333; border-radius: 4px; padding: 4px;");
+        card->setStyleSheet("background: transparent; border-bottom: 1px solid #27272A;");
         auto* cl = new QVBoxLayout(card);
-        cl->setContentsMargins(6, 4, 6, 4);
+        cl->setContentsMargins(4, 4, 4, 4);
         cl->setSpacing(2);
 
         auto* top = new QHBoxLayout();
         auto* lblName = new QLabel(name, card);
-        lblName->setStyleSheet("font-weight: bold; color: #FFFFFF; font-size: 11px;");
+        lblName->setStyleSheet("font-weight: 600; color: #FFFFFF; font-size: 11px; background: transparent; border: none;");
         auto* lblStatus = new QLabel(status, card);
-        lblStatus->setStyleSheet(QString("font-weight: bold; color: %1; font-size: 10px;").arg(color));
+        lblStatus->setStyleSheet("color: #FFFFFF; font-size: 10px; background: transparent; border: none;");
         top->addWidget(lblName);
         top->addStretch();
         top->addWidget(lblStatus);
 
         auto* lblLevel = new QLabel("Current Level: " + level, card);
-        lblLevel->setStyleSheet("color: #AAAAAA; font-size: 10px; font-family: Consolas, monospace;");
+        lblLevel->setStyleSheet("color: #FFFFFF; font-size: 10px; font-family: Consolas, monospace; background: transparent; border: none;");
 
         cl->addLayout(top);
         cl->addWidget(lblLevel);
         return card;
     };
 
-    secStations->addWidget(makeGauge("Guwahati (Brahmaputra)", "49.68 m", "ALERT (+0.68m)", "#E26D1E"));
-    secStations->addWidget(makeGauge("Dibrugarh", "104.24 m", "NORMAL", "#81C995"));
-    secStations->addWidget(makeGauge("Tezpur", "64.20 m", "NORMAL", "#81C995"));
-    secStations->addWidget(makeGauge("Dhubri", "29.10 m", "WARNING", "#FDD663"));
-    secStations->addWidget(makeGauge("Nematighat (Jorhat)", "85.90 m", "HIGH", "#E26D1E"));
+    secStations->addWidget(makeGauge("Guwahati (Brahmaputra)", "49.68 m", "ALERT (+0.68m)"));
+    secStations->addWidget(makeGauge("Dibrugarh", "104.24 m", "NORMAL"));
+    secStations->addWidget(makeGauge("Tezpur", "64.20 m", "NORMAL"));
+    secStations->addWidget(makeGauge("Dhubri", "29.10 m", "WARNING"));
+    secStations->addWidget(makeGauge("Nematighat (Jorhat)", "85.90 m", "HIGH"));
 
     layout->addWidget(secStations);
     layout->addStretch();
@@ -537,25 +534,20 @@ QWidget* PropertiesPanel::createDamTab() {
 
     // 1. Dam Header Card
     auto* headerCard = new QWidget(container);
-    headerCard->setStyleSheet(R"(
-        background-color: #1E1E22;
-        border: 1px solid #32323A;
-        border-left: 3px solid #54D59A;
-        border-radius: 5px;
-    )");
+    headerCard->setStyleSheet("background: transparent; border: none;");
     auto* hcLayout = new QVBoxLayout(headerCard);
-    hcLayout->setContentsMargins(10, 8, 10, 8);
+    hcLayout->setContentsMargins(4, 4, 4, 4);
     hcLayout->setSpacing(4);
 
     lblDamName = new QLabel("Select a Dam on Map", headerCard);
-    lblDamName->setStyleSheet("color: #FFFFFF; font-size: 13px; font-weight: bold;");
+    lblDamName->setStyleSheet("color: #FFFFFF; font-size: 13px; font-weight: bold; background: transparent; border: none;");
     lblDamName->setWordWrap(true);
 
     lblDamPic = new QLabel("National PIC: --", headerCard);
-    lblDamPic->setStyleSheet("color: #8AB4F8; font-family: Consolas, monospace; font-size: 10px; font-weight: bold;");
+    lblDamPic->setStyleSheet("color: #FFFFFF; font-size: 11px; background: transparent; border: none;");
 
-    lblDamStatus = new QLabel("● National Hydrological Asset", headerCard);
-    lblDamStatus->setStyleSheet("color: #54D59A; font-size: 10px; font-weight: bold;");
+    lblDamStatus = new QLabel("National Hydrological Asset", headerCard);
+    lblDamStatus->setStyleSheet("color: #FFFFFF; font-size: 11px; background: transparent; border: none;");
 
     hcLayout->addWidget(lblDamName);
     hcLayout->addWidget(lblDamPic);
@@ -569,10 +561,10 @@ QWidget* PropertiesPanel::createDamTab() {
         auto* hl = new QHBoxLayout(row);
         hl->setContentsMargins(0, 2, 0, 2);
         auto* lbl = new QLabel(labelText, row);
-        lbl->setStyleSheet("color: #9E9EA6; font-size: 10px;");
-        lbl->setMinimumWidth(100);
+        lbl->setStyleSheet("color: #D4D4D8; font-size: 11px; background: transparent; border: none;");
+        lbl->setMinimumWidth(110);
         valueLabel = new QLabel("--", row);
-        valueLabel->setStyleSheet("color: #E2E2E8; font-size: 11px; font-weight: 500;");
+        valueLabel->setStyleSheet("color: #FFFFFF; font-size: 11px; font-weight: normal; background: transparent; border: none;");
         valueLabel->setWordWrap(true);
         hl->addWidget(lbl);
         hl->addWidget(valueLabel, 1);
@@ -600,29 +592,6 @@ QWidget* PropertiesPanel::createDamTab() {
     // 4. Live Hydrodynamic Wave Propagation (Physical Simulation Data)
     auto* secHydro = new CollapsibleSection("Hydrodynamic Wave Propagation (60 min)", container);
 
-    progHydroTimeline = new QProgressBar(container);
-    progHydroTimeline->setRange(0, 60);
-    progHydroTimeline->setValue(0);
-    progHydroTimeline->setTextVisible(true);
-    progHydroTimeline->setFormat("T + %v min / 60 min");
-    progHydroTimeline->setStyleSheet(R"(
-        QProgressBar {
-            background-color: #16161A;
-            border: 1px solid #32323A;
-            border-radius: 4px;
-            height: 18px;
-            text-align: center;
-            color: #E2E2E8;
-            font-size: 10px;
-            font-weight: bold;
-        }
-        QProgressBar::chunk {
-            background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1E88E5, stop:1 #00E5FF);
-            border-radius: 3px;
-        }
-    )");
-    secHydro->addWidget(progHydroTimeline);
-
     secHydro->addWidget(makeDataRow("Time Elapsed:", lblHydroTime));
     secHydro->addWidget(makeDataRow("Active Depression:", lblHydroBasin));
     secHydro->addWidget(makeDataRow("Bed / Saddle Lip:", lblHydroElev));
@@ -644,7 +613,7 @@ QWidget* PropertiesPanel::createDamTab() {
         auto* hl = new QHBoxLayout(row);
         hl->setContentsMargins(0, 2, 0, 2);
         auto* lbl = new QLabel(labelText, row);
-        lbl->setStyleSheet("color: #9E9EA6; font-size: 10px;");
+        lbl->setStyleSheet("color: #D4D4D8; font-size: 11px; background: transparent; border: none;");
         lbl->setMinimumWidth(120);
         hl->addWidget(lbl);
         hl->addWidget(controlWidget, 1);
@@ -752,62 +721,46 @@ void PropertiesPanel::showDamSelectionSummary(int count, double minLat, double m
 void PropertiesPanel::updateHydrodynamicPropagation(int minute, double areaKm2, double frontDistKm, double maxDepthM, double maxVelMs, double peakDischargeQ,
                                                    const QString& basinName, double bedZ, double wse, double saddleLipZ,
                                                    bool isOvertopping, double filledPct, double totalPondedMCM) {
-    if (progHydroTimeline) {
-        progHydroTimeline->setValue(minute);
-    }
     if (lblHydroTime) {
         lblHydroTime->setText(QString("T + %1:00 (%2 min)").arg(minute, 2, 10, QChar('0')).arg(minute));
-        lblHydroTime->setStyleSheet("color: #00E5FF; font-weight: bold; font-family: Consolas, monospace;");
     }
     if (lblHydroBasin) {
         lblHydroBasin->setText(basinName.isEmpty() ? "Basin 1: Gorge Foot Depression" : basinName);
-        lblHydroBasin->setStyleSheet("color: #E2E2E8; font-weight: bold;");
     }
     if (lblHydroElev) {
         lblHydroElev->setText(QString("Bed: %1m | Saddle Lip: %2m MSL").arg(bedZ, 0, 'f', 1).arg(saddleLipZ, 0, 'f', 1));
-        lblHydroElev->setStyleSheet("color: #9E9EA6; font-size: 10px; font-weight: bold;");
     }
     if (lblHydroWSE) {
         lblHydroWSE->setText(QString("%1 m MSL (Depth: %2m)").arg(wse, 0, 'f', 2).arg(maxDepthM, 0, 'f', 2));
-        lblHydroWSE->setStyleSheet("color: #54D59A; font-weight: bold;");
     }
     if (lblHydroSpillStatus) {
         if (minute == 0) {
-            lblHydroSpillStatus->setText("⚪ Quiescent (Pre-Breach)");
-            lblHydroSpillStatus->setStyleSheet("color: #9E9EA6; font-weight: bold;");
+            lblHydroSpillStatus->setText("Quiescent (Pre-Breach)");
         } else if (isOvertopping) {
             double head = std::max(0.1, wse - saddleLipZ);
-            lblHydroSpillStatus->setText(QString("⚡ SADDLE OVERTOPPING (+%1m over lip)").arg(head, 0, 'f', 2));
-            lblHydroSpillStatus->setStyleSheet("color: #00E5FF; font-weight: bold;");
+            lblHydroSpillStatus->setText(QString("Saddle Overtopping (+%1m over lip)").arg(head, 0, 'f', 2));
         } else {
-            lblHydroSpillStatus->setText(QString("⏳ Filling Depression (%1% capacity)").arg(filledPct, 0, 'f', 0));
-            lblHydroSpillStatus->setStyleSheet("color: #FDD663; font-weight: bold;");
+            lblHydroSpillStatus->setText(QString("Filling Depression (%1% capacity)").arg(filledPct, 0, 'f', 0));
         }
     }
     if (lblHydroPondVol) {
         lblHydroPondVol->setText(QString("%1 MCM stored in basins").arg(totalPondedMCM, 0, 'f', 1));
-        lblHydroPondVol->setStyleSheet("color: #8AB4F8; font-weight: bold;");
     }
     if (lblHydroArea) {
         lblHydroArea->setText(QString("%1 km² (%2 ha)").arg(areaKm2, 0, 'f', 2).arg(areaKm2 * 100.0, 0, 'f', 0));
-        lblHydroArea->setStyleSheet("color: #8AB4F8; font-weight: bold;");
     }
     if (lblHydroFront) {
         lblHydroFront->setText(QString("%1 km downstream").arg(frontDistKm, 0, 'f', 2));
-        lblHydroFront->setStyleSheet("color: #FDD663; font-weight: bold;");
     }
     if (lblHydroDepth) {
         lblHydroDepth->setText(QString("%1 m").arg(maxDepthM, 0, 'f', 2));
-        lblHydroDepth->setStyleSheet("color: #54D59A; font-weight: bold;");
     }
     if (lblHydroVel) {
         double velKmh = maxVelMs * 3.6;
         lblHydroVel->setText(QString("%1 m/s (%2 km/h)").arg(maxVelMs, 0, 'f', 2).arg(velKmh, 0, 'f', 1));
-        lblHydroVel->setStyleSheet("color: #FFA544; font-weight: bold;");
     }
     if (lblHydroDischarge) {
         lblHydroDischarge->setText(QString("%1 m³/s").arg(peakDischargeQ, 0, 'f', 0));
-        lblHydroDischarge->setStyleSheet("color: #E2E2E8; font-weight: bold;");
     }
 }
 
