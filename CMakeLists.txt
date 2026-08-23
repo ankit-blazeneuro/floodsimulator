@@ -37,6 +37,7 @@ set(SOURCES
     src/core/OsmPbfLoader.cpp
     src/core/MapDataCache.cpp
     src/core/DamManager.cpp
+    src/core/DamFloodSimulation.cpp
     src/renderer/MapStyle.cpp
     src/renderer/MapRenderer.cpp
     src/ui/NavigationControls.cpp

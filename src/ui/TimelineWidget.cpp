@@ -598,17 +598,12 @@ void TimelineWidget::onTimerTick() {
 }
 
 QString TimelineWidget::formatTimeCode(int frame) const {
-    int totalSec = frame / fps;
-    int remFrames = frame % fps;
-    int hours = totalSec / 3600;
-    int minutes = (totalSec % 3600) / 60;
-    int seconds = totalSec % 60;
+    int hours = frame / 60;
+    int minutes = frame % 60;
 
-    return QString("%1:%2:%3.%4 (+%5h)")
+    return QString("T + %1:%2:00 (%3 min)")
         .arg(hours, 2, 10, QChar('0'))
         .arg(minutes, 2, 10, QChar('0'))
-        .arg(seconds, 2, 10, QChar('0'))
-        .arg(remFrames, 2, 10, QChar('0'))
         .arg(frame);
 }
 

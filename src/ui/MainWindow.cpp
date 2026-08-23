@@ -11,6 +11,7 @@
 #include <QWidgetAction>
 #include <QToolButton>
 #include <QButtonGroup>
+#include <QShortcut>
 #include <iostream>
 
 namespace MapUI {
@@ -119,10 +120,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     // Apply saved or default settings (Theme = System Default, Mode = Online)
     applyAppSettings(settingsDialog->getSettings());
 
-    // Initialize Indian Dam dataset and attach to map
+    // Initialize Indian Dam dataset and attach to map and search
     damManager = std::make_unique<MapCore::DamManager>();
     damManager->loadFromGeoJson("server/dam.geojson");
     onlineMap->setDamManager(damManager.get());
+    searchBar->setDamManager(damManager.get());
 
     // Guarantee default online map view
     switchToOnline();
@@ -765,6 +767,44 @@ void MainWindow::setupUi() {
 
     // Wire up Signals & Slots
     connect(searchBar, &SearchBar::searchResultSelected, this, &MainWindow::onSearchResultSelected);
+    connect(searchBar, &SearchBar::damResultSelected, this, [this](const MapCore::DamPoint& dam) {
+        if (currentMapMode == MapMode::Online) {
+            onlineMap->setCenter(dam.lat, dam.lon);
+            onlineMap->setZoom(12);
+
+            // Open Preferences / Properties Sidebar
+            if (propertiesPanel) {
+                propertiesPanel->setVisible(true);
+                propertiesPanel->showDamDetails(dam);
+            }
+
+            // Compute 60-Minute Real Physics Fluid Dynamics Dam Inundation Simulation
+            MapCore::FloodSimulationState sim = MapCore::DamFloodSimulator::compute60MinSimulation(dam);
+            onlineMap->setFloodSimulation(sim);
+
+            const auto* slice0 = MapCore::DamFloodSimulator::getTimeSlice(sim, 0);
+            if (propertiesPanel && slice0) {
+                propertiesPanel->updateHydrodynamicPropagation(0, slice0->inundatedAreaKm2, slice0->frontDistanceKm,
+                                                               slice0->maxDepthM, slice0->maxVelocityMs, sim.peakDischargeQ,
+                                                               slice0->activeBasinName, slice0->currentBedZ, slice0->currentWSE,
+                                                               slice0->saddleLipThresholdMSL, slice0->isOvertoppingActive,
+                                                               slice0->depressionFilledPct, slice0->totalPondedVolumeMCM);
+            }
+
+            // Set timeline frame to 0 without playing
+            if (timelineWidget) {
+                timelineWidget->setFrameRange(0, 60);
+                timelineWidget->setCurrentFrame(0);
+                timelineWidget->stopPlayback();
+            }
+        } else {
+            MapCore::GeoCoord geo(dam.lat, dam.lon);
+            MapCore::Point2D merc = MapCore::Projection::geoToMercator(geo);
+            mapWidget->flyTo(merc, 12.0f);
+        }
+    });
+
+    connect(searchBar, &SearchBar::cardResized, this, &MainWindow::updateFloatingPositions);
 
     connect(mapWidget, &MapWidget::featureSelected, this, &MainWindow::onFeatureSelected);
     connect(mapWidget, &MapWidget::viewportChanged, this, &MainWindow::onViewportChanged);
@@ -824,57 +864,73 @@ void MainWindow::setupUi() {
     });
 
     connect(onlineMap, &OnlineTileWidget::damClicked, this, [this](const MapCore::DamPoint& dam) {
-        // Open Preferences / Properties Sidebar
+        // 1. Open Preferences / Properties Sidebar
         if (propertiesPanel) {
             propertiesPanel->setVisible(true);
             propertiesPanel->showDamDetails(dam);
         }
 
-        MapCore::FeatureInfo f;
-        f.found = true;
-        f.name = dam.name.toStdString();
-        f.category = MapCore::FeatureCategory::WATER_LAKE;
-        f.geoCoord = MapCore::GeoCoord(dam.lat, dam.lon);
-        f.mercatorPos = MapCore::Projection::geoToMercator(f.geoCoord);
+        // 2. Compute 60-Minute Real Physics Fluid Dynamics Dam Inundation Simulation
+        MapCore::FloodSimulationState sim = MapCore::DamFloodSimulator::compute60MinSimulation(dam);
+        onlineMap->setFloodSimulation(sim);
 
-        QString detail = QString("State: %1 | District: %2").arg(dam.state.isEmpty() ? "India" : dam.state, dam.district.isEmpty() ? "N/A" : dam.district);
-        if (!dam.river.isEmpty()) {
-            detail += QString(" | River: %1").arg(dam.river);
+        // Update sidebar with initial hydrodynamic metrics
+        const auto* slice0 = MapCore::DamFloodSimulator::getTimeSlice(sim, 0);
+        if (propertiesPanel && slice0) {
+            propertiesPanel->updateHydrodynamicPropagation(0, slice0->inundatedAreaKm2, slice0->frontDistanceKm,
+                                                           slice0->maxDepthM, slice0->maxVelocityMs, sim.peakDischargeQ,
+                                                           slice0->activeBasinName, slice0->currentBedZ, slice0->currentWSE,
+                                                           slice0->saddleLipThresholdMSL, slice0->isOvertoppingActive,
+                                                           slice0->depressionFilledPct, slice0->totalPondedVolumeMCM);
         }
-        if (dam.storage > 0) {
-            detail += QString(" | Gross Storage: %1 MCM").arg(dam.storage, 0, 'f', 1);
-        }
-        if (dam.height > 0) {
-            detail += QString(" | Height: %1 m").arg(dam.height, 0, 'f', 1);
-        }
-        f.detail = detail.toStdString();
 
-        placeCard->setFeature(f);
-        placeCard->show();
-        updateFloatingPositions();
+        // 3. Center and zoom to the dam reach
+        onlineMap->setCenter(dam.lat, dam.lon);
+        if (onlineMap->getZoom() < 10) {
+            onlineMap->setZoom(10);
+        }
+
+        // 4. Configure Timeline Widget in 60-Minute Hydrodynamics Mode and auto-play
+        if (timelineWidget) {
+            timelineWidget->setFrameRange(0, 60);
+            timelineWidget->setCurrentFrame(0);
+            timelineWidget->setVisible(true);
+            timelineWidget->playForward();
+        }
     });
 
     connect(onlineMap, &OnlineTileWidget::boxSelectionCompleted, this, [this](double minLat, double minLon, double maxLat, double maxLon, int count) {
-        // Open Preferences / Properties Sidebar
+        // 1. Open Preferences / Properties Sidebar
         if (propertiesPanel) {
             propertiesPanel->setVisible(true);
             propertiesPanel->showDamSelectionSummary(count, minLat, minLon, maxLat, maxLon, onlineMap->getSelectedDams());
         }
 
-        MapCore::FeatureInfo f;
-        f.found = true;
-        f.name = QString("Box Selection (%1 %2)").arg(count).arg(count == 1 ? "Dam" : "Dams").toStdString();
-        f.category = MapCore::FeatureCategory::WATER_LAKE;
-        f.geoCoord = MapCore::GeoCoord((minLat + maxLat) / 2.0, (minLon + maxLon) / 2.0);
-        f.mercatorPos = MapCore::Projection::geoToMercator(f.geoCoord);
-        f.detail = QString("Bounding Box: [%1°N, %2°E] to [%3°N, %4°E] | %5 dams selected inside region")
-            .arg(minLat, 0, 'f', 2).arg(minLon, 0, 'f', 2)
-            .arg(maxLat, 0, 'f', 2).arg(maxLon, 0, 'f', 2)
-            .arg(count).toStdString();
+        // 2. If single dam selected via box, run simulation
+        const auto& selected = onlineMap->getSelectedDams();
+        if (selected.size() == 1 && selected[0]) {
+            const auto& dam = *selected[0];
+            MapCore::FloodSimulationState sim = MapCore::DamFloodSimulator::compute60MinSimulation(dam);
+            onlineMap->setFloodSimulation(sim);
+            onlineMap->setCenter(dam.lat, dam.lon);
+            if (onlineMap->getZoom() < 10) onlineMap->setZoom(10);
 
-        placeCard->setFeature(f);
-        placeCard->show();
-        updateFloatingPositions();
+            const auto* slice0 = MapCore::DamFloodSimulator::getTimeSlice(sim, 0);
+            if (propertiesPanel && slice0) {
+                propertiesPanel->updateHydrodynamicPropagation(0, slice0->inundatedAreaKm2, slice0->frontDistanceKm,
+                                                               slice0->maxDepthM, slice0->maxVelocityMs, sim.peakDischargeQ,
+                                                               slice0->activeBasinName, slice0->currentBedZ, slice0->currentWSE,
+                                                               slice0->saddleLipThresholdMSL, slice0->isOvertoppingActive,
+                                                               slice0->depressionFilledPct, slice0->totalPondedVolumeMCM);
+            }
+
+            if (timelineWidget) {
+                timelineWidget->setFrameRange(0, 60);
+                timelineWidget->setCurrentFrame(0);
+                timelineWidget->setVisible(true);
+                timelineWidget->playForward();
+            }
+        }
     });
 
     connect(propertiesPanel, &PropertiesPanel::centerLocationRequested, this, [this](double lat, double lon, int zoom) {
@@ -892,20 +948,17 @@ void MainWindow::setupUi() {
         if (currentMapMode == MapMode::Online) {
             MapCore::GeoCoord geo = MapCore::Projection::mercatorToGeo(pos);
             onlineMap->setCenter(geo.lat, geo.lon);
-            onlineMap->zoomIn();
-        } else {
-            mapWidget->flyTo(pos, mapWidget->getZoom() + 2.0f);
-        }
-    });
-    connect(placeCard, &PlaceCard::measureFromRequested, this, [this](MapCore::Point2D pos) {
-        if (currentMapMode == MapMode::Online) {
-            MapCore::GeoCoord geo = MapCore::Projection::mercatorToGeo(pos);
-            onlineMap->setCenter(geo.lat, geo.lon);
+            onlineMap->setZoom(onlineMap->getZoom() + 1);
             onlineMap->setMeasureMode(true);
         } else {
+            mapWidget->flyTo(pos, mapWidget->getZoom());
             mapWidget->setMeasureMode(true);
         }
         navControls->setMeasureActive(true);
+    });
+
+    connect(placeCard, &PlaceCard::cardClosed, this, [this]() {
+        placeCard->hide();
     });
 
     connect(layerPanel, &LayerPanel::themeChanged, this, [this](MapRenderer::ThemePreset theme) {
@@ -941,10 +994,62 @@ void MainWindow::setupUi() {
         }
     });
 
-    // Timeline changes
+    // Timeline changes - 60-Minute Hydrodynamic Flood Wave Propagation in Data & Sidebar Info
     connect(timelineWidget, &TimelineWidget::frameChanged, this, [this](int frame, const QString& timeCode) {
-        (void)frame;
         (void)timeCode;
+        if (currentMapMode == MapMode::Online) {
+            onlineMap->updateFloodSimulationMinute(frame);
+            const auto& sim = onlineMap->getFloodSimulation();
+            if (sim.isActive && propertiesPanel) {
+                const auto* slice = MapCore::DamFloodSimulator::getTimeSlice(sim, frame);
+                if (slice) {
+                    propertiesPanel->updateHydrodynamicPropagation(frame, slice->inundatedAreaKm2, slice->frontDistanceKm,
+                                                                   slice->maxDepthM, slice->maxVelocityMs, sim.peakDischargeQ,
+                                                                   slice->activeBasinName, slice->currentBedZ, slice->currentWSE,
+                                                                   slice->saddleLipThresholdMSL, slice->isOvertoppingActive,
+                                                                   slice->depressionFilledPct, slice->totalPondedVolumeMCM);
+                }
+            }
+        }
+    });
+
+    // Auto-trigger default dam simulation if user clicks Play on timeline without selecting a dam first
+    connect(timelineWidget, &TimelineWidget::playbackStateChanged, this, [this](bool isPlaying) {
+        if (isPlaying && currentMapMode == MapMode::Online) {
+            if (!onlineMap->getFloodSimulation().isActive) {
+                if (damManager && damManager->hasData() && !damManager->getDams().empty()) {
+                    const auto& allDams = damManager->getDams();
+                    const auto& dam = allDams[0];
+                    MapCore::FloodSimulationState sim = MapCore::DamFloodSimulator::compute60MinSimulation(dam);
+                    onlineMap->setFloodSimulation(sim);
+                    onlineMap->setCenter(dam.lat, dam.lon);
+                    if (onlineMap->getZoom() < 10) onlineMap->setZoom(10);
+                    if (propertiesPanel) {
+                        propertiesPanel->setVisible(true);
+                        propertiesPanel->showDamDetails(dam);
+                        const auto* slice0 = MapCore::DamFloodSimulator::getTimeSlice(sim, 0);
+                        if (slice0) {
+                            propertiesPanel->updateHydrodynamicPropagation(0, slice0->inundatedAreaKm2, slice0->frontDistanceKm,
+                                                                           slice0->maxDepthM, slice0->maxVelocityMs, sim.peakDischargeQ,
+                                                                           slice0->activeBasinName, slice0->currentBedZ, slice0->currentWSE,
+                                                                           slice0->saddleLipThresholdMSL, slice0->isOvertoppingActive,
+                                                                           slice0->depressionFilledPct, slice0->totalPondedVolumeMCM);
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Global Space Bar Shortcut to toggle Play / Pause on Timeline
+    auto* spaceShortcut = new QShortcut(QKeySequence(Qt::Key_Space), this);
+    spaceShortcut->setContext(Qt::ApplicationShortcut);
+    connect(spaceShortcut, &QShortcut::activated, this, [this]() {
+        // Do not toggle playback if user is actively searching / typing in search bar
+        if (searchBar && searchBar->hasFocus()) return;
+        if (timelineWidget) {
+            timelineWidget->togglePlayPause();
+        }
     });
 
     updateFloatingPositions();

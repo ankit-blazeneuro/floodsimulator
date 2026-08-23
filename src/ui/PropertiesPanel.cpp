@@ -597,7 +597,46 @@ QWidget* PropertiesPanel::createDamTab() {
     secEng->addWidget(makeDataRow("Primary Purpose:", lblDamPurpose));
     layout->addWidget(secEng);
 
-    // 4. Dam Preferences & Simulation Tuning
+    // 4. Live Hydrodynamic Wave Propagation (Physical Simulation Data)
+    auto* secHydro = new CollapsibleSection("Hydrodynamic Wave Propagation (60 min)", container);
+
+    progHydroTimeline = new QProgressBar(container);
+    progHydroTimeline->setRange(0, 60);
+    progHydroTimeline->setValue(0);
+    progHydroTimeline->setTextVisible(true);
+    progHydroTimeline->setFormat("T + %v min / 60 min");
+    progHydroTimeline->setStyleSheet(R"(
+        QProgressBar {
+            background-color: #16161A;
+            border: 1px solid #32323A;
+            border-radius: 4px;
+            height: 18px;
+            text-align: center;
+            color: #E2E2E8;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        QProgressBar::chunk {
+            background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1E88E5, stop:1 #00E5FF);
+            border-radius: 3px;
+        }
+    )");
+    secHydro->addWidget(progHydroTimeline);
+
+    secHydro->addWidget(makeDataRow("Time Elapsed:", lblHydroTime));
+    secHydro->addWidget(makeDataRow("Active Depression:", lblHydroBasin));
+    secHydro->addWidget(makeDataRow("Bed / Saddle Lip:", lblHydroElev));
+    secHydro->addWidget(makeDataRow("Water Surface (WSE):", lblHydroWSE));
+    secHydro->addWidget(makeDataRow("Saddle Spill Status:", lblHydroSpillStatus));
+    secHydro->addWidget(makeDataRow("Depression Storage:", lblHydroPondVol));
+    secHydro->addWidget(makeDataRow("Inundated Area:", lblHydroArea));
+    secHydro->addWidget(makeDataRow("Wave Front Dist:", lblHydroFront));
+    secHydro->addWidget(makeDataRow("Peak Water Depth:", lblHydroDepth));
+    secHydro->addWidget(makeDataRow("Flow Velocity:", lblHydroVel));
+    secHydro->addWidget(makeDataRow("Peak Discharge Q:", lblHydroDischarge));
+    layout->addWidget(secHydro);
+
+    // 5. Dam Preferences & Simulation Tuning
     auto* secPref = new CollapsibleSection("Preferences & Simulation", container);
 
     auto makeSpinRow = [](const QString& labelText, QWidget* controlWidget) {
@@ -708,6 +747,68 @@ void PropertiesPanel::showDamSelectionSummary(int count, double minLat, double m
 
     btnTabDam->setChecked(true);
     switchTab(4, "Dam Selection & Regional Analysis");
+}
+
+void PropertiesPanel::updateHydrodynamicPropagation(int minute, double areaKm2, double frontDistKm, double maxDepthM, double maxVelMs, double peakDischargeQ,
+                                                   const QString& basinName, double bedZ, double wse, double saddleLipZ,
+                                                   bool isOvertopping, double filledPct, double totalPondedMCM) {
+    if (progHydroTimeline) {
+        progHydroTimeline->setValue(minute);
+    }
+    if (lblHydroTime) {
+        lblHydroTime->setText(QString("T + %1:00 (%2 min)").arg(minute, 2, 10, QChar('0')).arg(minute));
+        lblHydroTime->setStyleSheet("color: #00E5FF; font-weight: bold; font-family: Consolas, monospace;");
+    }
+    if (lblHydroBasin) {
+        lblHydroBasin->setText(basinName.isEmpty() ? "Basin 1: Gorge Foot Depression" : basinName);
+        lblHydroBasin->setStyleSheet("color: #E2E2E8; font-weight: bold;");
+    }
+    if (lblHydroElev) {
+        lblHydroElev->setText(QString("Bed: %1m | Saddle Lip: %2m MSL").arg(bedZ, 0, 'f', 1).arg(saddleLipZ, 0, 'f', 1));
+        lblHydroElev->setStyleSheet("color: #9E9EA6; font-size: 10px; font-weight: bold;");
+    }
+    if (lblHydroWSE) {
+        lblHydroWSE->setText(QString("%1 m MSL (Depth: %2m)").arg(wse, 0, 'f', 2).arg(maxDepthM, 0, 'f', 2));
+        lblHydroWSE->setStyleSheet("color: #54D59A; font-weight: bold;");
+    }
+    if (lblHydroSpillStatus) {
+        if (minute == 0) {
+            lblHydroSpillStatus->setText("⚪ Quiescent (Pre-Breach)");
+            lblHydroSpillStatus->setStyleSheet("color: #9E9EA6; font-weight: bold;");
+        } else if (isOvertopping) {
+            double head = std::max(0.1, wse - saddleLipZ);
+            lblHydroSpillStatus->setText(QString("⚡ SADDLE OVERTOPPING (+%1m over lip)").arg(head, 0, 'f', 2));
+            lblHydroSpillStatus->setStyleSheet("color: #00E5FF; font-weight: bold;");
+        } else {
+            lblHydroSpillStatus->setText(QString("⏳ Filling Depression (%1% capacity)").arg(filledPct, 0, 'f', 0));
+            lblHydroSpillStatus->setStyleSheet("color: #FDD663; font-weight: bold;");
+        }
+    }
+    if (lblHydroPondVol) {
+        lblHydroPondVol->setText(QString("%1 MCM stored in basins").arg(totalPondedMCM, 0, 'f', 1));
+        lblHydroPondVol->setStyleSheet("color: #8AB4F8; font-weight: bold;");
+    }
+    if (lblHydroArea) {
+        lblHydroArea->setText(QString("%1 km² (%2 ha)").arg(areaKm2, 0, 'f', 2).arg(areaKm2 * 100.0, 0, 'f', 0));
+        lblHydroArea->setStyleSheet("color: #8AB4F8; font-weight: bold;");
+    }
+    if (lblHydroFront) {
+        lblHydroFront->setText(QString("%1 km downstream").arg(frontDistKm, 0, 'f', 2));
+        lblHydroFront->setStyleSheet("color: #FDD663; font-weight: bold;");
+    }
+    if (lblHydroDepth) {
+        lblHydroDepth->setText(QString("%1 m").arg(maxDepthM, 0, 'f', 2));
+        lblHydroDepth->setStyleSheet("color: #54D59A; font-weight: bold;");
+    }
+    if (lblHydroVel) {
+        double velKmh = maxVelMs * 3.6;
+        lblHydroVel->setText(QString("%1 m/s (%2 km/h)").arg(maxVelMs, 0, 'f', 2).arg(velKmh, 0, 'f', 1));
+        lblHydroVel->setStyleSheet("color: #FFA544; font-weight: bold;");
+    }
+    if (lblHydroDischarge) {
+        lblHydroDischarge->setText(QString("%1 m³/s").arg(peakDischargeQ, 0, 'f', 0));
+        lblHydroDischarge->setStyleSheet("color: #E2E2E8; font-weight: bold;");
+    }
 }
 
 } // namespace MapUI

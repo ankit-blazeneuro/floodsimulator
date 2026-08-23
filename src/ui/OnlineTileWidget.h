@@ -13,6 +13,7 @@
 #include <vector>
 #include <cmath>
 #include "../core/DamManager.h"
+#include "../core/DamFloodSimulation.h"
 #include "MapTool.h"
 
 namespace MapUI {
@@ -94,6 +95,11 @@ private:
     bool isRotating = false;
     double lastRotationMouseAngle = 0.0;
 
+    // 60-Minute Hydrodynamic Dam Flood Simulation & River Flow Animation
+    MapCore::FloodSimulationState floodSimulation;
+    QTimer* flowAnimTimer = nullptr;
+    int flowAnimPhase = 0;
+
     static constexpr int TILE_SIZE = 256;
 
 public:
@@ -111,6 +117,11 @@ public:
     void clearMeasure();
     void clearBoxSelection();
     const std::vector<const MapCore::DamPoint*>& getSelectedDams() const { return selectedDams; }
+
+    void setFloodSimulation(const MapCore::FloodSimulationState& sim);
+    void updateFloodSimulationMinute(int minute);
+    void clearFloodSimulation();
+    const MapCore::FloodSimulationState& getFloodSimulation() const { return floodSimulation; }
 
     void setRotation(double degrees);
     double getRotation() const { return rotationAngle; }

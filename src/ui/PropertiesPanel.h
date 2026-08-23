@@ -11,6 +11,7 @@
 #include <QHBoxLayout>
 #include <QStackedWidget>
 #include <QButtonGroup>
+#include <QProgressBar>
 #include <vector>
 
 namespace MapCore {
@@ -33,6 +34,7 @@ public:
 
     QVBoxLayout* getContentLayout() { return contentLayout; }
     void addWidget(QWidget* w);
+    void setCollapsed(bool collapsed);
 
 public slots:
     void toggleCollapse();
@@ -41,7 +43,6 @@ public slots:
 class PropertiesPanel : public QWidget {
     Q_OBJECT
 
-private:
     QWidget* iconStrip;
     QButtonGroup* tabButtonGroup;
     QStackedWidget* pageStack;
@@ -53,7 +54,7 @@ private:
     QPushButton* btnTabDisplay;
     QPushButton* btnTabDam;
 
-    // Simulation parameter inputs
+    // Fluid parameters
     QDoubleSpinBox* spinWaterRise;
     QDoubleSpinBox* spinRainfall;
     QDoubleSpinBox* spinBreachWidth;
@@ -80,6 +81,20 @@ private:
     QLabel* lblDamYear;
     QLabel* lblDamPurpose;
 
+    // Real-Time Hydrodynamic Propagation & Pond/Spill Elevation Fields
+    QLabel* lblHydroTime;
+    QLabel* lblHydroBasin;
+    QLabel* lblHydroElev;
+    QLabel* lblHydroWSE;
+    QLabel* lblHydroSpillStatus;
+    QLabel* lblHydroPondVol;
+    QLabel* lblHydroArea;
+    QLabel* lblHydroFront;
+    QLabel* lblHydroDepth;
+    QLabel* lblHydroVel;
+    QLabel* lblHydroDischarge;
+    QProgressBar* progHydroTimeline;
+
     QDoubleSpinBox* spinDamWarningThreshold;
     QDoubleSpinBox* spinDamInflowMultiplier;
     QPushButton* btnCenterOnDam;
@@ -93,6 +108,9 @@ public:
 
     void showDamDetails(const MapCore::DamPoint& dam);
     void showDamSelectionSummary(int count, double minLat, double minLon, double maxLat, double maxLon, const std::vector<const MapCore::DamPoint*>& dams);
+    void updateHydrodynamicPropagation(int minute, double areaKm2, double frontDistKm, double maxDepthM, double maxVelMs, double peakDischargeQ,
+                                       const QString& basinName = "", double bedZ = 0.0, double wse = 0.0, double saddleLipZ = 0.0,
+                                       bool isOvertopping = false, double filledPct = 0.0, double totalPondedMCM = 0.0);
 
 signals:
     void simulationBakeRequested(double waterRise, double rainfall, double breachWidth);

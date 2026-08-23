@@ -19,6 +19,16 @@ OnlineTileWidget::OnlineTileWidget(QWidget* parent) : QWidget(parent), tileCache
 
     networkManager = new QNetworkAccessManager(this);
 
+    // Continuous 30 FPS fluid animation timer for river flow & ripple dynamics
+    flowAnimTimer = new QTimer(this);
+    flowAnimTimer->setInterval(33);
+    connect(flowAnimTimer, &QTimer::timeout, this, [this]() {
+        if (floodSimulation.isActive) {
+            flowAnimPhase = (flowAnimPhase + 1) % 10000;
+            update();
+        }
+    });
+
     // Initial center on India
     centerLat = 22.0;
     centerLon = 79.0;
@@ -273,14 +283,37 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
             painter.setPen(QPen(dotBorder, 0.75));
             painter.setBrush(dotColor);
             painter.drawEllipse(QPointF(sx, sy), radius, radius);
+
+            // Render Dam Name text when zoomed in (zoom >= 8) rotated with the map (shadcn style)
+            if (zoomLevel >= 8 && !dam->name.isEmpty()) {
+                QFont damFont("Segoe UI", (zoomLevel >= 11) ? 8 : 7, QFont::DemiBold);
+                painter.setFont(damFont);
+                QFontMetricsF dfm(damFont);
+                QString dName = dam->name;
+                double tw = dfm.horizontalAdvance(dName);
+                double th = dfm.height();
+
+                QRectF textBgRect(sx + radius + 4, sy - th / 2.0 - 1, tw + 8, th + 3);
+                painter.setBrush(QColor(24, 24, 27, 235)); // shadcn zinc-900 gray
+                painter.setPen(QPen(QColor(63, 63, 70, 200), 1.0)); // shadcn zinc-700 border
+                painter.drawRoundedRect(textBgRect, 5.0, 5.0);
+
+                painter.setPen(QColor(244, 244, 245)); // shadcn zinc-100
+                painter.drawText(textBgRect, Qt::AlignCenter, dName);
+            }
         }
     }
 
-    // --- Render Selected Dams Highlight (Glow Target Rings) ---
+    // --- Render Selected Dams Highlight (Glow Target Rings & Title Labels Rotated with Map) ---
     if (!selectedDams.empty()) {
         for (const auto* dam : selectedDams) {
             if (!dam) continue;
-            QPointF sPos = geoToScreen(dam->lat, dam->lon);
+            double tileX = lonToTileX(dam->lon, zoomLevel);
+            double tileY = latToTileY(dam->lat, zoomLevel);
+            double sx = cx + (tileX - centerTileX) * TILE_SIZE;
+            double sy = cy + (tileY - centerTileY) * TILE_SIZE;
+            QPointF sPos(sx, sy);
+
             painter.setPen(QPen(QColor(253, 214, 99, 220), 1.8));
             painter.setBrush(QColor(253, 214, 99, 50));
             painter.drawEllipse(sPos, 9.0, 9.0);
@@ -288,6 +321,23 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
             painter.setPen(QPen(Qt::white, 1.5));
             painter.setBrush(QColor(253, 214, 99));
             painter.drawEllipse(sPos, 3.5, 3.5);
+
+            if (!dam->name.isEmpty()) {
+                QFont selFont("Segoe UI", 9, QFont::DemiBold);
+                painter.setFont(selFont);
+                QFontMetricsF sfm(selFont);
+                QString sName = dam->name;
+                double tw = sfm.horizontalAdvance(sName);
+                double th = sfm.height();
+
+                QRectF selBgRect(sx + 10, sy - th / 2.0 - 2, tw + 10, th + 4);
+                painter.setBrush(QColor(24, 24, 27, 245)); // shadcn zinc-900 gray
+                painter.setPen(QPen(QColor(63, 63, 70, 230), 1.0)); // shadcn zinc-700 border
+                painter.drawRoundedRect(selBgRect, 6.0, 6.0);
+
+                painter.setPen(QColor(244, 244, 245));
+                painter.drawText(selBgRect, Qt::AlignCenter, sName);
+            }
         }
     }
 
@@ -421,6 +471,235 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
         }
     }
 
+    // --- Render Hydrodynamic River Flow, Trapped Water Pools & Saddle Overtopping Cascades ---
+    if (floodSimulation.isActive) {
+        const auto* slice = MapCore::DamFloodSimulator::getTimeSlice(floodSimulation, floodSimulation.currentMinute);
+        if (slice) {
+            auto toCanvasPoint = [&](double lat, double lon) -> QPointF {
+                double tX = lonToTileX(lon, zoomLevel);
+                double tY = latToTileY(lat, zoomLevel);
+                return QPointF(cx + (tX - centerTileX) * TILE_SIZE, cy + (tY - centerTileY) * TILE_SIZE);
+            };
+
+            // 1. Full Downstream River Reach Bed (Ghost Trajectory)
+            if (!floodSimulation.rawNodes.empty()) {
+                QPainterPath fullReachPath;
+                bool first = true;
+                for (const auto& node : floodSimulation.rawNodes) {
+                    QPointF cPt = toCanvasPoint(node.lat, node.lon);
+                    if (first) {
+                        fullReachPath.moveTo(cPt);
+                        first = false;
+                    } else {
+                        fullReachPath.lineTo(cPt);
+                    }
+                }
+                painter.setPen(QPen(QColor(138, 180, 248, 55), 1.5, Qt::DotLine, Qt::RoundCap));
+                painter.drawPath(fullReachPath);
+            }
+
+            // 2. Trapped Water Pools in Topographic Basins (Depression Storage)
+            for (const auto& pool : slice->trappedPools) {
+                if (pool.poolPolygon.size() >= 3) {
+                    QPolygonF cPoly;
+                    cPoly.reserve(pool.poolPolygon.size());
+                    for (const auto& pt : pool.poolPolygon) {
+                        cPoly.append(toCanvasPoint(pt.x(), pt.y()));
+                    }
+
+                    // Outer fringe (turquoise boundary)
+                    painter.setPen(QPen(QColor(0, 229, 255, 180), 1.6, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                    painter.setBrush(QColor(0, 188, 212, 115)); // #00BCD4 Turquoise Water
+                    painter.drawPolygon(cPoly);
+
+                    // Mid-depth inner water body
+                    QPointF poolCenterScreen = toCanvasPoint(pool.centerPos.x(), pool.centerPos.y());
+                    QTransform t;
+                    t.translate(poolCenterScreen.x(), poolCenterScreen.y());
+                    t.scale(0.65, 0.65);
+                    t.translate(-poolCenterScreen.x(), -poolCenterScreen.y());
+                    QPolygonF midPoly = t.map(cPoly);
+                    painter.setPen(Qt::NoPen);
+                    painter.setBrush(QColor(24, 118, 209, 150)); // Royal blue
+                    painter.drawPolygon(midPoly);
+
+                    // Deep core
+                    t.reset();
+                    t.translate(poolCenterScreen.x(), poolCenterScreen.y());
+                    t.scale(0.35, 0.35);
+                    t.translate(-poolCenterScreen.x(), -poolCenterScreen.y());
+                    QPolygonF deepPoly = t.map(cPoly);
+                    painter.setBrush(QColor(10, 50, 140, 190)); // Deep Indigo
+                    painter.drawPolygon(deepPoly);
+
+                    // Animated expanding fluid ripple inside trapped pool
+                    double ripplePhase = std::fmod((flowAnimPhase * 0.8), 24.0);
+                    painter.setPen(QPen(QColor(255, 255, 255, std::max(0, 180 - static_cast<int>(ripplePhase * 7))), 1.0));
+                    painter.setBrush(Qt::NoBrush);
+                    painter.drawEllipse(poolCenterScreen, 6.0 + ripplePhase, 4.0 + ripplePhase * 0.7);
+
+                    // Trapped Basin Description Tooltip (shadcn tooltip style, no icons)
+                    if (zoomLevel >= 8) {
+                        QString poolLabel = QString("%1 · %2 MCM · %3m")
+                            .arg(pool.name.section(':', 0, 0))
+                            .arg(pool.volumeMCM, 0, 'f', 1)
+                            .arg(pool.depthM, 0, 'f', 1);
+
+                        QFont pFont("Segoe UI", 7, QFont::DemiBold);
+                        painter.setFont(pFont);
+                        QFontMetricsF pfm(pFont);
+                        QRectF pRect(poolCenterScreen.x() - pfm.horizontalAdvance(poolLabel) / 2.0 - 6,
+                                     poolCenterScreen.y() - pfm.height() / 2.0 - 2,
+                                     pfm.horizontalAdvance(poolLabel) + 12, pfm.height() + 4);
+                        painter.setBrush(QColor(24, 24, 27, 240)); // shadcn zinc-900 gray
+                        painter.setPen(QPen(QColor(63, 63, 70, 220), 1.0)); // shadcn zinc-700 border
+                        painter.drawRoundedRect(pRect, 5.0, 5.0);
+                        painter.setPen(QColor(244, 244, 245)); // shadcn zinc-100 text
+                        painter.drawText(pRect, Qt::AlignCenter, poolLabel);
+                    }
+
+                    // 3. Saddle Overtopping Cascade (Water spills over ridge into next reach)
+                    if (pool.isOvertopping) {
+                        QPointF spillScreen = toCanvasPoint(pool.saddleSpillPos.x(), pool.saddleSpillPos.y());
+                        // Overtopping cascade crest arc
+                        double spillPulse = std::fmod((flowAnimPhase * 1.2), 16.0);
+                        painter.setPen(QPen(QColor(0, 229, 255, 240), 2.2, Qt::SolidLine, Qt::RoundCap));
+                        painter.setBrush(Qt::NoBrush);
+                        painter.drawEllipse(spillScreen, 6.0 + spillPulse, 6.0 + spillPulse);
+
+                        painter.setPen(QPen(QColor(253, 214, 99, 230), 1.5));
+                        painter.setBrush(QColor(253, 214, 99));
+                        painter.drawEllipse(spillScreen, 3.0, 3.0);
+
+                        if (zoomLevel >= 8) {
+                            QString spillText = "Saddle Spill";
+                            QFont sFont("Segoe UI", 7, QFont::DemiBold);
+                            painter.setFont(sFont);
+                            QFontMetricsF sfm(sFont);
+                            QRectF sRect(spillScreen.x() + 8, spillScreen.y() - sfm.height() / 2.0 - 2,
+                                         sfm.horizontalAdvance(spillText) + 10, sfm.height() + 4);
+                            painter.setBrush(QColor(24, 24, 27, 240));
+                            painter.setPen(QPen(QColor(63, 63, 70, 220), 1.0));
+                            painter.drawRoundedRect(sRect, 5.0, 5.0);
+                            painter.setPen(QColor(253, 214, 99));
+                            painter.drawText(sRect, Qt::AlignCenter, spillText);
+                        }
+                    }
+                }
+            }
+
+            // 4. Animated Active Flowing River Streamline & Moving Water Particles
+            if (slice->riverStreamline.size() >= 2) {
+                QPainterPath activeReachPath;
+                bool first = true;
+                for (size_t i = 0; i < slice->riverStreamline.size(); ++i) {
+                    QPointF cPt = toCanvasPoint(slice->riverStreamline[i].x(), slice->riverStreamline[i].y());
+                    if (first) {
+                        activeReachPath.moveTo(cPt);
+                        first = false;
+                    } else {
+                        activeReachPath.lineTo(cPt);
+                    }
+                }
+
+                // Base Glowing Flow Channel
+                painter.setPen(QPen(QColor(0, 229, 255, 90), 5.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                painter.drawPath(activeReachPath);
+                painter.setPen(QPen(QColor(0, 188, 212, 220), 2.6, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                painter.drawPath(activeReachPath);
+
+                // Animated Flowing River Streamline Dashes (Flowing downstream)
+                QPen flowPen(QColor(255, 255, 255, 220), 1.8, Qt::CustomDashLine, Qt::RoundCap);
+                QList<qreal> dashes;
+                dashes << 6.0 << 6.0;
+                flowPen.setDashPattern(dashes);
+                flowPen.setDashOffset(flowAnimPhase * 1.5);
+                painter.setPen(flowPen);
+                painter.drawPath(activeReachPath);
+
+                // Flowing Fluid Particle Pulses
+                int totalPts = static_cast<int>(slice->riverStreamline.size());
+                for (int i = 0; i < totalPts; ++i) {
+                    int animIdx = (i + (flowAnimPhase / 2)) % totalPts;
+                    if (animIdx % 3 == 0) {
+                        QPointF pPt = toCanvasPoint(slice->riverStreamline[animIdx].x(), slice->riverStreamline[animIdx].y());
+                        painter.setPen(Qt::NoPen);
+                        painter.setBrush(QColor(255, 255, 255, 220));
+                        painter.drawEllipse(pPt, 2.2, 2.2);
+                        painter.setBrush(QColor(0, 229, 255, 90));
+                        painter.drawEllipse(pPt, 4.5, 4.5);
+                    }
+                }
+
+                // Milestone Distance Markers (shadcn tooltip style)
+                for (size_t i = 0; i < slice->riverStreamline.size(); ++i) {
+                    if (i > 0 && i % 8 == 0 && i < floodSimulation.rawNodes.size()) {
+                        QPointF cPt = toCanvasPoint(slice->riverStreamline[i].x(), slice->riverStreamline[i].y());
+                        double dist = floodSimulation.rawNodes[i].distanceKm;
+                        painter.setPen(QPen(QColor(253, 214, 99, 220), 1.0));
+                        painter.setBrush(QColor(253, 214, 99, 230));
+                        painter.drawEllipse(cPt, 2.8, 2.8);
+
+                        QString dLabel = QString("%1 km").arg(qRound(dist));
+                        QFont mFont("Segoe UI", 7, QFont::DemiBold);
+                        painter.setFont(mFont);
+                        QFontMetricsF mfm(mFont);
+                        QRectF mRect(cPt.x() + 6, cPt.y() - mfm.height() / 2.0 - 1, mfm.horizontalAdvance(dLabel) + 8, mfm.height() + 2);
+                        painter.setBrush(QColor(24, 24, 27, 230));
+                        painter.setPen(QPen(QColor(63, 63, 70, 200), 1.0));
+                        painter.drawRoundedRect(mRect, 4.0, 4.0);
+                        painter.setPen(QColor(228, 228, 231));
+                        painter.drawText(mRect, Qt::AlignCenter, dLabel);
+                    }
+                }
+            }
+
+            // 5. Leading Wave Front Distance Marker & Floating Tooltip (shadcn tooltip style, no icons)
+            if (slice->frontDistanceKm > 0.05) {
+                QPointF frontScreen = toCanvasPoint(slice->leadingFrontPos.x(), slice->leadingFrontPos.y());
+
+                // Pulsing target rings
+                double frontPulse = std::fmod((flowAnimPhase * 0.6), 14.0);
+                painter.setPen(QPen(QColor(0, 229, 255, 240), 2.0));
+                painter.setBrush(QColor(0, 229, 255, 40));
+                painter.drawEllipse(frontScreen, 8.0 + frontPulse, 8.0 + frontPulse);
+
+                painter.setPen(QPen(QColor(253, 214, 99), 1.5));
+                painter.setBrush(QColor(253, 214, 99));
+                painter.drawEllipse(frontScreen, 3.5, 3.5);
+
+                // shadcn gray Tooltip Badge (no icons)
+                QString frontBadge = QString("%1 km · T + %2m")
+                    .arg(slice->frontDistanceKm, 0, 'f', 1)
+                    .arg(floodSimulation.currentMinute);
+
+                QFont badgeFont("Segoe UI", 8, QFont::DemiBold);
+                painter.setFont(badgeFont);
+                QFontMetricsF bfm(badgeFont);
+                double bw = bfm.horizontalAdvance(frontBadge) + 14.0;
+                double bh = bfm.height() + 6.0;
+                QRectF bRect(frontScreen.x() - bw / 2.0, frontScreen.y() - bh - 10.0, bw, bh);
+
+                // shadcn dark gray background with subtle zinc border
+                painter.setBrush(QColor(24, 24, 27, 245)); // #18181B zinc-900
+                painter.setPen(QPen(QColor(63, 63, 70, 230), 1.0)); // #3F3F46 zinc-700
+                painter.drawRoundedRect(bRect, 6.0, 6.0);
+
+                painter.setPen(QColor(244, 244, 245)); // #F4F4F5 zinc-100
+                painter.drawText(bRect, Qt::AlignCenter, frontBadge);
+
+                // Downward pointer arrow (shadcn styled)
+                QPolygonF pointerArrow;
+                pointerArrow << QPointF(frontScreen.x() - 4, bRect.bottom())
+                             << QPointF(frontScreen.x() + 4, bRect.bottom())
+                             << QPointF(frontScreen.x(), frontScreen.y() - 1);
+                painter.setBrush(QColor(24, 24, 27, 245));
+                painter.setPen(QPen(QColor(63, 63, 70, 230), 1.0));
+                painter.drawPolygon(pointerArrow);
+            }
+        }
+    }
+
     // End Rotated Map Scene
     painter.restore();
 
@@ -542,6 +821,25 @@ void OnlineTileWidget::setTool(MapTool tool) {
         clearBoxSelection();
         setMeasureMode(true);
     }
+    update();
+}
+
+void OnlineTileWidget::setFloodSimulation(const MapCore::FloodSimulationState& sim) {
+    floodSimulation = sim;
+    update();
+}
+
+void OnlineTileWidget::updateFloodSimulationMinute(int minute) {
+    if (floodSimulation.isActive) {
+        floodSimulation.currentMinute = std::clamp(minute, 0, 60);
+        update();
+    }
+}
+
+void OnlineTileWidget::clearFloodSimulation() {
+    floodSimulation.isActive = false;
+    floodSimulation.timeSlices.clear();
+    floodSimulation.rawNodes.clear();
     update();
 }
 
