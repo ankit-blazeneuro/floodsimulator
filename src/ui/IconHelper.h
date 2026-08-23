@@ -69,8 +69,20 @@ public:
     }
 
     // Convenient Typed Icon Accessors
+    static QPixmap rotatePixmap(const QPixmap& src, double degrees) {
+        if (src.isNull()) return src;
+        QTransform t;
+        t.rotate(degrees);
+        return src.transformed(t, Qt::SmoothTransformation);
+    }
+
     static QIcon play(const QColor& color = QColor(255, 255, 255), int size = 18) {
         return get("play", color, size);
+    }
+    static QIcon playReverse(const QColor& color = QColor(212, 212, 216), int size = 18) {
+        QPixmap pix = getPixmap("play", color, size);
+        if (pix.isNull()) return QIcon();
+        return QIcon(rotatePixmap(pix, 180.0));
     }
     static QIcon pause(const QColor& color = QColor(255, 255, 255), int size = 18) {
         return get("pause", color, size);

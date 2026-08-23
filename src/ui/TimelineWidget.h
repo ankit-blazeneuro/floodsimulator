@@ -61,8 +61,7 @@ private:
     QPushButton* btnJumpStart;
     QPushButton* btnStepBack;
     QPushButton* btnPlayReverse;
-    QPushButton* btnStop;
-    QPushButton* btnPlayForward;
+    QPushButton* btnPlayPause;
     QPushButton* btnStepForward;
     QPushButton* btnJumpEnd;
     QPushButton* btnRecord;

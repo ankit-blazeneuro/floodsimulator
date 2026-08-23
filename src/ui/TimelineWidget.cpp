@@ -339,16 +339,12 @@ void TimelineWidget::setupUi() {
     btnStepBack->setToolTip("Previous Frame (Left Arrow)");
 
     btnPlayReverse = new QPushButton(controlBar);
-    btnPlayReverse->setIcon(IconHelper::rewind(QColor(212, 212, 216), 14));
-    btnPlayReverse->setToolTip("Play Reverse");
+    btnPlayReverse->setIcon(IconHelper::playReverse(QColor(212, 212, 216), 14));
+    btnPlayReverse->setToolTip("Play Reverse (Shift + Spacebar)");
 
-    btnStop = new QPushButton(controlBar);
-    btnStop->setIcon(IconHelper::pause(QColor(212, 212, 216), 14));
-    btnStop->setToolTip("Stop Playback");
-
-    btnPlayForward = new QPushButton(controlBar);
-    btnPlayForward->setIcon(IconHelper::play(Qt::white, 14));
-    btnPlayForward->setToolTip("Play Forward (Spacebar)");
+    btnPlayPause = new QPushButton(controlBar);
+    btnPlayPause->setIcon(IconHelper::play(Qt::white, 14));
+    btnPlayPause->setToolTip("Play Forward (Spacebar)");
 
     btnStepForward = new QPushButton(controlBar);
     btnStepForward->setIcon(IconHelper::forward(QColor(180, 180, 180), 12));
@@ -361,8 +357,7 @@ void TimelineWidget::setupUi() {
     controlLayout->addWidget(btnJumpStart);
     controlLayout->addWidget(btnStepBack);
     controlLayout->addWidget(btnPlayReverse);
-    controlLayout->addWidget(btnStop);
-    controlLayout->addWidget(btnPlayForward);
+    controlLayout->addWidget(btnPlayPause);
     controlLayout->addWidget(btnStepForward);
     controlLayout->addWidget(btnJumpEnd);
 
@@ -439,9 +434,14 @@ void TimelineWidget::setupUi() {
     // Wire up events
     connect(btnJumpStart, &QPushButton::clicked, this, &TimelineWidget::jumpToStart);
     connect(btnStepBack, &QPushButton::clicked, this, &TimelineWidget::stepBackward);
-    connect(btnPlayReverse, &QPushButton::clicked, this, &TimelineWidget::playReverse);
-    connect(btnStop, &QPushButton::clicked, this, &TimelineWidget::stopPlayback);
-    connect(btnPlayForward, &QPushButton::clicked, this, &TimelineWidget::playForward);
+    connect(btnPlayReverse, &QPushButton::clicked, this, [this]() {
+        if (isPlayingReverse) {
+            stopPlayback();
+        } else {
+            playReverse();
+        }
+    });
+    connect(btnPlayPause, &QPushButton::clicked, this, &TimelineWidget::togglePlayPause);
     connect(btnStepForward, &QPushButton::clicked, this, &TimelineWidget::stepForward);
     connect(btnJumpEnd, &QPushButton::clicked, this, &TimelineWidget::jumpToEnd);
     connect(btnFps, &QPushButton::clicked, this, &TimelineWidget::cycleFps);
@@ -467,7 +467,9 @@ void TimelineWidget::setFrameRange(int start, int end) {
 void TimelineWidget::playForward() {
     isPlayingForward = true;
     isPlayingReverse = false;
-    btnPlayForward->setStyleSheet("background-color: #4772B3; color: white;");
+    btnPlayPause->setIcon(IconHelper::pause(Qt::white, 14));
+    btnPlayPause->setToolTip("Pause (Spacebar)");
+    btnPlayPause->setStyleSheet("background-color: #4772B3; color: white;");
     btnPlayReverse->setStyleSheet("");
 
     int intervalMs = std::max(10, 1000 / fps);
@@ -478,8 +480,10 @@ void TimelineWidget::playForward() {
 void TimelineWidget::playReverse() {
     isPlayingReverse = true;
     isPlayingForward = false;
+    btnPlayPause->setIcon(IconHelper::pause(Qt::white, 14));
+    btnPlayPause->setToolTip("Pause (Spacebar)");
     btnPlayReverse->setStyleSheet("background-color: #4772B3; color: white;");
-    btnPlayForward->setStyleSheet("");
+    btnPlayPause->setStyleSheet("");
 
     int intervalMs = std::max(10, 1000 / fps);
     playTimer->start(intervalMs);
@@ -489,7 +493,9 @@ void TimelineWidget::playReverse() {
 void TimelineWidget::stopPlayback() {
     isPlayingForward = false;
     isPlayingReverse = false;
-    btnPlayForward->setStyleSheet("");
+    btnPlayPause->setIcon(IconHelper::play(Qt::white, 14));
+    btnPlayPause->setToolTip("Play Forward (Spacebar)");
+    btnPlayPause->setStyleSheet("");
     btnPlayReverse->setStyleSheet("");
     playTimer->stop();
     emit playbackStateChanged(false);
