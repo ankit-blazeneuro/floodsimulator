@@ -14,5 +14,12 @@
         <file alias="cloud-snowfall.svg">icons/cloud-snowfall.svg</file>
         <file alias="fog.svg">icons/fog.svg</file>
         <file alias="sun-fog.svg">icons/sun-fog.svg</file>
+        <file alias="temperature.svg">icons/temperature.svg</file>
+        <file alias="check.svg">icons/check.svg</file>
+        <file alias="chevron-down.svg">icons/chevron-down.svg</file>
+        <file alias="chevron-left.svg">icons/chevron-left.svg</file>
+        <file alias="chevron-right.svg">icons/chevron-right.svg</file>
+        <file alias="chevron-up.svg">icons/chevron-up.svg</file>
+        <file alias="loader-circle.svg">icons/loader-circle.svg</file>
     </qresource>
 </RCC>

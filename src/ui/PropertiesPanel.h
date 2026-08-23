@@ -9,7 +9,8 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QTabWidget>
+#include <QStackedWidget>
+#include <QButtonGroup>
 
 namespace MapUI {
 
@@ -36,11 +37,15 @@ class PropertiesPanel : public QWidget {
     Q_OBJECT
 
 private:
-    QTabWidget* tabWidget;
-    QWidget* tabFluid;
-    QWidget* tabTerrain;
-    QWidget* tabTelemetry;
-    QWidget* tabDisplay;
+    QWidget* iconStrip;
+    QButtonGroup* tabButtonGroup;
+    QStackedWidget* pageStack;
+    QLabel* lblPanelTitle;
+
+    QPushButton* btnTabFluid;
+    QPushButton* btnTabTerrain;
+    QPushButton* btnTabTelemetry;
+    QPushButton* btnTabDisplay;
 
     // Simulation parameter inputs
     QDoubleSpinBox* spinWaterRise;
@@ -64,6 +69,7 @@ private:
     QWidget* createTerrainTab();
     QWidget* createTelemetryTab();
     QWidget* createDisplayTab();
+    void switchTab(int index, const QString& title);
 };
 
 } // namespace MapUI

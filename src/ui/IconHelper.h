@@ -123,6 +123,15 @@ public:
     static QIcon sunFog(const QColor& color = QColor(212, 212, 216), int size = 18) {
         return get("sun-fog", color, size);
     }
+    static QIcon chevronDown(const QColor& color = QColor(212, 212, 216), int size = 14) {
+        return get("chevron-down", color, size);
+    }
+    static QIcon chevronRight(const QColor& color = QColor(212, 212, 216), int size = 14) {
+        return get("chevron-right", color, size);
+    }
+    static QIcon check(const QColor& color = QColor(129, 201, 149), int size = 16) {
+        return get("check", color, size);
+    }
 };
 
 } // namespace MapUI
