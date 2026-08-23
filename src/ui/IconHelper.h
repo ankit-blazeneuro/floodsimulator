@@ -7,6 +7,7 @@
 #include <QString>
 #include <QByteArray>
 #include <QPainter>
+#include <QRegularExpression>
 
 namespace MapUI {
 
@@ -30,23 +31,40 @@ public:
             return QPixmap();
         }
 
-        QByteArray data = file.readAll();
+        QByteArray rawData = file.readAll();
         file.close();
 
-        // Replace currentColor with target hex color
+        QString svg = QString::fromUtf8(rawData);
+
+        // 1. Preserve exact opacity provided in SVG by converting any CSS var(...) to standard SVG opacity
+        static QRegularExpression reStyleVar(R"(style="[^"]*opacity:\s*var\(--solar-secondary-opacity,\s*([0-9.]+)\)[^"]*")");
+        svg.replace(reStyleVar, "opacity=\"\\1\"");
+
+        static QRegularExpression reVarOpacity(R"(opacity:\s*var\(--solar-secondary-opacity,\s*([0-9.]+)\))");
+        svg.replace(reVarOpacity, "opacity: \\1");
+
+        // 2. Replace currentColor with the target hex color
         QString hexColor = color.name(QColor::HexRgb);
-        data.replace("currentColor", hexColor.toUtf8());
+        svg.replace("currentColor", hexColor);
+        svg.replace("var(--solar-secondary-color, currentColor)", hexColor);
 
-        // Also adjust secondary opacity styling if needed
-        data.replace("var(--solar-secondary-color, currentColor)", hexColor.toUtf8());
-
+        QByteArray data = svg.toUtf8();
         QPixmap pix;
+        if (pix.loadFromData(data, "SVG")) {
+            if (size > 0 && (pix.width() != size || pix.height() != size)) {
+                return pix.scaled(size, size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            }
+            return pix;
+        }
+
+        // Fallback without explicit format string if needed
         if (pix.loadFromData(data)) {
             if (size > 0 && (pix.width() != size || pix.height() != size)) {
                 return pix.scaled(size, size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
             }
             return pix;
         }
+
         return QPixmap();
     }
 
