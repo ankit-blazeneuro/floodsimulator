@@ -14,20 +14,20 @@ namespace MapUI {
 LoadingOverlay::LoadingOverlay(QWidget* parent) : QWidget(parent) {
     setStyleSheet(R"(
         QWidget#loadingCard {
-            background-color: #202124;
-            border: 1px solid #3C4043;
-            border-radius: 16px;
+            background-color: #242424;
+            border: 1px solid #333333;
+            border-radius: 12px;
         }
         QProgressBar {
             border: none;
-            border-radius: 4px;
-            background-color: #303134;
-            height: 8px;
+            border-radius: 3px;
+            background-color: #181818;
+            height: 6px;
             text-align: center;
         }
         QProgressBar::chunk {
-            background-color: #8AB4F8;
-            border-radius: 4px;
+            background-color: #4772B3;
+            border-radius: 3px;
         }
     )");
 
@@ -36,38 +36,38 @@ LoadingOverlay::LoadingOverlay(QWidget* parent) : QWidget(parent) {
 
     auto* card = new QWidget(this);
     card->setObjectName("loadingCard");
-    card->setFixedSize(360, 200);
+    card->setFixedSize(360, 190);
 
     auto* shadow = new QGraphicsDropShadowEffect(this);
-    shadow->setBlurRadius(28);
-    shadow->setColor(QColor(0, 0, 0, 120));
-    shadow->setOffset(0, 8);
+    shadow->setBlurRadius(24);
+    shadow->setColor(QColor(0, 0, 0, 140));
+    shadow->setOffset(0, 6);
     card->setGraphicsEffect(shadow);
 
     auto* layout = new QVBoxLayout(card);
     layout->setContentsMargins(24, 20, 24, 20);
-    layout->setSpacing(12);
+    layout->setSpacing(10);
 
-    lblLogo = new QLabel("🗺️ Assam & India Maps", card);
+    lblLogo = new QLabel("🗺️ Assam & India Flood Simulator", card);
     lblLogo->setAlignment(Qt::AlignCenter);
-    lblLogo->setStyleSheet("font-family: 'Segoe UI', Arial, sans-serif; font-size: 20px; font-weight: bold; color: #8AB4F8;");
+    lblLogo->setStyleSheet("font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; font-weight: bold; color: #FFFFFF;");
 
-    auto* lblSub = new QLabel("High Performance OpenStreetMap Engine", card);
+    auto* lblSub = new QLabel("High Performance GIS & Hydrodynamic Engine", card);
     lblSub->setAlignment(Qt::AlignCenter);
-    lblSub->setStyleSheet("font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; color: #9AA0A6;");
+    lblSub->setStyleSheet("font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; color: #888888;");
 
     progressBar = new QProgressBar(card);
     progressBar->setRange(0, 100);
     progressBar->setValue(0);
     progressBar->setTextVisible(false);
 
-    lblStatus = new QLabel("Initializing engine...", card);
+    lblStatus = new QLabel("Initializing mapping environment...", card);
     lblStatus->setAlignment(Qt::AlignCenter);
-    lblStatus->setStyleSheet("font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #E8EAED;");
+    lblStatus->setStyleSheet("font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; color: #CCCCCC;");
 
     layout->addWidget(lblLogo);
     layout->addWidget(lblSub);
-    layout->addSpacing(8);
+    layout->addSpacing(4);
     layout->addWidget(progressBar);
     layout->addWidget(lblStatus);
 
@@ -80,7 +80,6 @@ void LoadingOverlay::setProgress(float progress, const QString& status) {
 }
 
 bool MainWindow::isSystemDarkTheme() {
-    // 1. Query GNOME / FreeDesktop portal color scheme setting on Linux
     QProcess process;
     process.start("gsettings", {"get", "org.gnome.desktop.interface", "color-scheme"});
     if (process.waitForFinished(200)) {
@@ -92,20 +91,18 @@ bool MainWindow::isSystemDarkTheme() {
         }
     }
 
-    // 2. Check QPalette background luminance
     QColor winColor = QGuiApplication::palette().color(QPalette::Window);
     if (winColor.isValid()) {
         return winColor.value() < 128;
     }
 
-    // Default to dark theme for modern mapping application
     return true;
 }
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
-    setWindowTitle("Assam & India Maps");
-    resize(1280, 800);
-    setMinimumSize(800, 600);
+    setWindowTitle("Assam & India Maps - Flood Simulator");
+    resize(1380, 860);
+    setMinimumSize(920, 600);
 
     setupUi();
     setupMenuBar();
@@ -136,8 +133,13 @@ void MainWindow::applyTheme(AppTheme theme) {
         lblTheme->setText("☀️ Light");
     }
 
-    // Update Online Map mode & provider
-    onlineMap->setDarkMode(isDark);
+    // Use rich, full-color standard OpenStreetMap / OpenStreetMap_Standard by default so rivers & land are vibrant
+    if (onlineMap->getTileProvider() == OnlineTileProvider::OpenStreetMap_Dark && !isDark) {
+        onlineMap->setTileProvider(OnlineTileProvider::OpenStreetMap_Standard);
+    } else if (onlineMap->getTileProvider() != OnlineTileProvider::OpenStreetMap_Dark) {
+        // Keep vibrant full-color OSM map active
+        onlineMap->setTileProvider(OnlineTileProvider::OpenStreetMap_Standard);
+    }
 
     // Update Offline Map Style
     mapWidget->getRenderer().getStyle().setTheme(isDark ? MapRenderer::ThemePreset::GOOGLE_DARK : MapRenderer::ThemePreset::GOOGLE_LIGHT);
@@ -180,9 +182,6 @@ void MainWindow::applyAppSettings(const AppSettings& settings) {
     btnToggleMiniMap->setChecked(settings.showMinimap);
     miniMap->setVisible(settings.showMinimap);
     updateFloatingPositions();
-
-    std::cout << "[INFO] Applied app settings (Zoom sensitivity: " << static_cast<int>(settings.zoomSensitivity * 100)
-              << "%, Mode: " << (settings.startupMode == 0 ? "Online" : "Offline") << ")" << std::endl;
 }
 
 void MainWindow::openSettingsDialog() {
@@ -194,74 +193,92 @@ void MainWindow::openSettingsDialog() {
     settingsDialog->exec();
 }
 
+void MainWindow::togglePropertiesPanel() {
+    bool nextVisible = !propertiesPanel->isVisible();
+    propertiesPanel->setVisible(nextVisible);
+    if (nextVisible) {
+        mainSplitter->setSizes({ width() - 300, 300 });
+    }
+    updateFloatingPositions();
+}
+
+void MainWindow::toggleTimeline() {
+    bool nextVisible = !timelineWidget->isVisible();
+    timelineWidget->setVisible(nextVisible);
+    if (nextVisible) {
+        vSplitter->setSizes({ vSplitter->height() - 140, 140 });
+    }
+    updateFloatingPositions();
+}
+
 void MainWindow::setupMenuBar() {
-    // Style the menu bar with high contrast, bright white text
     appMenuBar = menuBar();
     appMenuBar->setStyleSheet(R"(
         QMenuBar {
-            background-color: #18181B;
-            color: #FFFFFF;
-            border-bottom: 1px solid #3F3F46;
+            background-color: #1F1F1F;
+            color: #D4D4D8;
+            border-bottom: 1px solid #141414;
             font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 13px;
-            font-weight: bold;
-            padding: 3px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 4px;
         }
         QMenuBar::item {
             background: transparent;
-            padding: 6px 14px;
-            border-radius: 4px;
-            color: #FFFFFF;
+            padding: 4px 10px;
+            border-radius: 3px;
+            color: #D4D4D8;
             font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 13px;
-            font-weight: bold;
+            font-size: 11px;
+            font-weight: 600;
         }
         QMenuBar::item:selected {
-            background-color: #27272A;
-            color: #8AB4F8;
+            background-color: #383838;
+            color: #FFFFFF;
         }
         QMenuBar::item:pressed {
-            background-color: #3F3F46;
+            background-color: #4772B3;
             color: #FFFFFF;
         }
         QMenu {
-            background-color: #18181B;
-            color: #FFFFFF;
-            border: 1px solid #3F3F46;
-            border-radius: 6px;
-            padding: 4px 0px;
+            background-color: #242424;
+            color: #E6E6E6;
+            border: 1px solid #181818;
+            border-radius: 4px;
+            padding: 3px 0px;
             font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 13px;
+            font-size: 11px;
         }
         QMenu::item {
-            padding: 8px 24px 8px 14px;
-            color: #FFFFFF;
-            font-size: 13px;
+            padding: 6px 20px 6px 12px;
+            color: #E6E6E6;
+            font-size: 11px;
             font-weight: 500;
         }
         QMenu::item:selected {
-            background-color: #27272A;
-            color: #8AB4F8;
+            background-color: #4772B3;
+            color: #FFFFFF;
+            border-radius: 2px;
         }
         QMenu::separator {
             height: 1px;
-            background-color: #3F3F46;
-            margin: 4px 8px;
+            background-color: #333333;
+            margin: 3px 6px;
         }
         QMenu::indicator {
-            width: 14px;
-            height: 14px;
-            margin-left: 6px;
+            width: 12px;
+            height: 12px;
+            margin-left: 4px;
         }
         QMenu::indicator:checked {
-            background-color: #8AB4F8;
-            border: 1px solid #8AB4F8;
-            border-radius: 3px;
+            background-color: #4772B3;
+            border: 1px solid #5680C2;
+            border-radius: 2px;
         }
         QMenu::indicator:unchecked {
-            background-color: transparent;
-            border: 1px solid #71717A;
-            border-radius: 3px;
+            background-color: #181818;
+            border: 1px solid #444444;
+            border-radius: 2px;
         }
     )");
 
@@ -281,7 +298,7 @@ void MainWindow::setupMenuBar() {
 
     actionOnline = viewMenu->addAction("🌐  Online Map (OpenStreetMap - Full India)");
     actionOnline->setCheckable(true);
-    actionOnline->setChecked(true);  // Default to online
+    actionOnline->setChecked(true);
     actionOnline->setActionGroup(mapModeGroup);
     connect(actionOnline, &QAction::triggered, this, &MainWindow::switchToOnline);
 
@@ -293,14 +310,14 @@ void MainWindow::setupMenuBar() {
 
     viewMenu->addSeparator();
 
-    // Theme Submenu (System Default, Dark, Light)
+    // Theme Submenu
     themeMenu = viewMenu->addMenu("🎨  Theme");
     auto* themeGroup = new QActionGroup(this);
     themeGroup->setExclusive(true);
 
     actionThemeSystem = themeMenu->addAction("🖥️  System Default");
     actionThemeSystem->setCheckable(true);
-    actionThemeSystem->setChecked(true); // Default to system default
+    actionThemeSystem->setChecked(true);
     actionThemeSystem->setActionGroup(themeGroup);
     connect(actionThemeSystem, &QAction::triggered, this, [this]() {
         applyTheme(AppTheme::SystemDefault);
@@ -325,23 +342,16 @@ void MainWindow::setupMenuBar() {
     auto* styleGroup = new QActionGroup(this);
     styleGroup->setExclusive(true);
 
-    actionOsmStandard = onlineStylesMenu->addAction("🗺️  OpenStreetMap Standard (Light)");
+    actionOsmStandard = onlineStylesMenu->addAction("🗺️  OpenStreetMap Standard (Vibrant Color)");
     actionOsmStandard->setCheckable(true);
+    actionOsmStandard->setChecked(true);
     actionOsmStandard->setActionGroup(styleGroup);
     connect(actionOsmStandard, &QAction::triggered, this, [this]() {
         onlineMap->setTileProvider(OnlineTileProvider::OpenStreetMap_Standard);
         switchToOnline();
     });
 
-    actionOsmDark = onlineStylesMenu->addAction("🌙  OpenStreetMap Dark Mode");
-    actionOsmDark->setCheckable(true);
-    actionOsmDark->setActionGroup(styleGroup);
-    connect(actionOsmDark, &QAction::triggered, this, [this]() {
-        onlineMap->setTileProvider(OnlineTileProvider::OpenStreetMap_Dark);
-        switchToOnline();
-    });
-
-    actionOsmVoyager = onlineStylesMenu->addAction("🌍  OpenStreetMap (Voyager Color)");
+    actionOsmVoyager = onlineStylesMenu->addAction("🌍  Carto Voyager (Rich Hydro & Terrain)");
     actionOsmVoyager->setCheckable(true);
     actionOsmVoyager->setActionGroup(styleGroup);
     connect(actionOsmVoyager, &QAction::triggered, this, [this]() {
@@ -357,6 +367,24 @@ void MainWindow::setupMenuBar() {
         switchToOnline();
     });
 
+    actionOsmDark = onlineStylesMenu->addAction("🌙  Carto Dark (Night Navigation)");
+    actionOsmDark->setCheckable(true);
+    actionOsmDark->setActionGroup(styleGroup);
+    connect(actionOsmDark, &QAction::triggered, this, [this]() {
+        onlineMap->setTileProvider(OnlineTileProvider::OpenStreetMap_Dark);
+        switchToOnline();
+    });
+
+    viewMenu->addSeparator();
+
+    actionToggleSidebar = viewMenu->addAction("📊  Toggle Properties Panel");
+    actionToggleSidebar->setShortcut(QKeySequence("Ctrl+B"));
+    connect(actionToggleSidebar, &QAction::triggered, this, &MainWindow::togglePropertiesPanel);
+
+    actionToggleTimeline = viewMenu->addAction("⏱  Toggle Timeline");
+    actionToggleTimeline->setShortcut(QKeySequence("Ctrl+T"));
+    connect(actionToggleTimeline, &QAction::triggered, this, &MainWindow::toggleTimeline);
+
     viewMenu->addSeparator();
 
     actionFullscreen = viewMenu->addAction("⛶  Toggle Fullscreen");
@@ -369,7 +397,7 @@ void MainWindow::setupMenuBar() {
         }
     });
 
-    // ---- 3. Settings Menu (Adjacent to View) ----
+    // ---- 3. Settings Menu ----
     settingsMenu = appMenuBar->addMenu("&Settings");
 
     actionOpenSettings = settingsMenu->addAction("⚙️  Configure Settings...");
@@ -378,7 +406,7 @@ void MainWindow::setupMenuBar() {
 
     settingsMenu->addSeparator();
 
-    // Quick Zoom Sensitivity Preset Actions
+    // Quick Zoom Sensitivity Presets
     auto* sensSubMenu = settingsMenu->addMenu("🔍  Zoom Sensitivity");
     auto* sensGroup = new QActionGroup(this);
     sensGroup->setExclusive(true);
@@ -416,101 +444,154 @@ void MainWindow::setupMenuBar() {
 }
 
 void MainWindow::setupUi() {
-    // 0. Create stacked widget for switching between online and offline maps
-    mapStack = new QStackedWidget(this);
+    // 0. Horizontal QSplitter for Center vs Right Properties Panel
+    mainSplitter = new QSplitter(Qt::Horizontal, this);
+    mainSplitter->setStyleSheet(R"(
+        QSplitter::handle:horizontal {
+            background-color: #1A1A1A;
+            width: 5px;
+            border-left: 1px solid #141414;
+            border-right: 1px solid #141414;
+        }
+        QSplitter::handle:horizontal:hover {
+            background-color: #4772B3;
+        }
+        QSplitter::handle:vertical {
+            background-color: #1A1A1A;
+            height: 5px;
+            border-top: 1px solid #141414;
+            border-bottom: 1px solid #141414;
+        }
+        QSplitter::handle:vertical:hover {
+            background-color: #4772B3;
+        }
+    )");
+
+    // 1. Vertical QSplitter for Map (Top) vs Resizable Timeline (Bottom)
+    vSplitter = new QSplitter(Qt::Vertical, mainSplitter);
+
+    // Map Container Widget
+    mapContainer = new QWidget(vSplitter);
+    mapContainer->installEventFilter(this);
+
+    auto* containerLayout = new QVBoxLayout(mapContainer);
+    containerLayout->setContentsMargins(0, 0, 0, 0);
+
+    // Stacked widget for switching between online and offline maps
+    mapStack = new QStackedWidget(mapContainer);
 
     // Online Map (OpenStreetMap tiles)
-    onlineMap = new OnlineTileWidget(this);
+    onlineMap = new OnlineTileWidget(mapContainer);
+    onlineMap->setTileProvider(OnlineTileProvider::OpenStreetMap_Standard);
 
     // Offline Map (custom QPainter renderer from PBF data)
-    mapWidget = new MapWidget(this);
+    mapWidget = new MapWidget(mapContainer);
     mapWidget->getRenderer().setStyle(MapRenderer::MapStyle(MapRenderer::ThemePreset::GOOGLE_DARK));
 
     mapStack->addWidget(onlineMap);   // index 0 = Online
     mapStack->addWidget(mapWidget);   // index 1 = Offline
+    containerLayout->addWidget(mapStack);
 
-    setCentralWidget(mapStack);
+    // Timeline Widget (Fully resizable via vSplitter)
+    timelineWidget = new TimelineWidget(vSplitter);
+
+    vSplitter->addWidget(mapContainer);
+    vSplitter->addWidget(timelineWidget);
+    vSplitter->setCollapsible(0, false);
+    vSplitter->setCollapsible(1, true);
+    vSplitter->setSizes({ 640, 140 });
+
+    // Right Properties Panel
+    propertiesPanel = new PropertiesPanel(mainSplitter);
+
+    mainSplitter->addWidget(vSplitter);
+    mainSplitter->addWidget(propertiesPanel);
+    mainSplitter->setCollapsible(0, false);
+    mainSplitter->setCollapsible(1, true);
+    mainSplitter->setSizes({ 1060, 300 });
+
+    setCentralWidget(mainSplitter);
 
     // 2. Floating Search Bar (Top-Left)
-    searchBar = new SearchBar(this);
+    searchBar = new SearchBar(mapContainer);
 
     // 3. Floating Place Inspector Card (Left)
-    placeCard = new PlaceCard(this);
+    placeCard = new PlaceCard(mapContainer);
     placeCard->hide();
 
     // 4. Floating Navigation Controls (Bottom-Right)
-    navControls = new NavigationControls(this);
+    navControls = new NavigationControls(mapContainer);
 
     // 5. Dynamic Scale Bar (Bottom-Right)
-    scaleBar = new ScaleBar(this);
+    scaleBar = new ScaleBar(mapContainer);
 
     // 6. Floating Layer Panel (Bottom-Left)
-    layerPanel = new LayerPanel(this);
+    layerPanel = new LayerPanel(mapContainer);
     layerPanel->hide();
 
-    btnToggleLayers = new QPushButton("🥞 Layers", this);
+    btnToggleLayers = new QPushButton("🥞 Layers", mapContainer);
     btnToggleLayers->setStyleSheet(R"(
         QPushButton {
-            background-color: #202124;
-            color: #FFFFFF;
-            border: 1px solid #5F6368;
-            border-radius: 18px;
+            background-color: #242424;
+            color: #CCCCCC;
+            border: 1px solid #383838;
+            border-radius: 16px;
             font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
-            padding: 6px 14px;
+            padding: 5px 12px;
         }
         QPushButton:hover {
-            background-color: #303134;
-            color: #8AB4F8;
-            border-color: #8AB4F8;
+            background-color: #303030;
+            color: #FFFFFF;
+            border-color: #4772B3;
         }
         QPushButton:checked {
-            background-color: #8AB4F8;
-            color: #202124;
-            border-color: #8AB4F8;
+            background-color: #4772B3;
+            color: #FFFFFF;
+            border-color: #5680C2;
         }
     )");
     btnToggleLayers->setCheckable(true);
 
-    auto* lShadow = new QGraphicsDropShadowEffect(this);
-    lShadow->setBlurRadius(14);
-    lShadow->setColor(QColor(0, 0, 0, 80));
-    lShadow->setOffset(0, 3);
+    auto* lShadow = new QGraphicsDropShadowEffect(mapContainer);
+    lShadow->setBlurRadius(12);
+    lShadow->setColor(QColor(0, 0, 0, 90));
+    lShadow->setOffset(0, 2);
     btnToggleLayers->setGraphicsEffect(lShadow);
 
-    // 7. MiniMap Overview (Bottom-Left) - Defaults to Online India Mode
-    miniMap = new MiniMap(this);
+    // 7. MiniMap Overview (Bottom-Left)
+    miniMap = new MiniMap(mapContainer);
     miniMap->hide();
 
-    btnToggleMiniMap = new QPushButton("🗺️ Minimap", this);
+    btnToggleMiniMap = new QPushButton("🗺️ Minimap", mapContainer);
     btnToggleMiniMap->setStyleSheet(btnToggleLayers->styleSheet());
     btnToggleMiniMap->setCheckable(true);
 
-    auto* mShadow = new QGraphicsDropShadowEffect(this);
-    mShadow->setBlurRadius(14);
-    mShadow->setColor(QColor(0, 0, 0, 80));
-    mShadow->setOffset(0, 3);
+    auto* mShadow = new QGraphicsDropShadowEffect(mapContainer);
+    mShadow->setBlurRadius(12);
+    mShadow->setColor(QColor(0, 0, 0, 90));
+    mShadow->setOffset(0, 2);
     btnToggleMiniMap->setGraphicsEffect(mShadow);
 
-    // 8. Status HUD (Bottom Status Bar, Dark Glass Surface)
-    statusHud = new QWidget(this);
+    // 8. Status HUD (Bottom Status Bar)
+    statusHud = new QWidget(mapContainer);
     statusHud->setStyleSheet(R"(
         QWidget {
-            background-color: rgba(32, 33, 36, 0.95);
-            border: 1px solid #3C4043;
-            border-radius: 6px;
+            background-color: rgba(28, 28, 28, 0.95);
+            border: 1px solid #333333;
+            border-radius: 4px;
         }
         QLabel {
             font-family: 'Segoe UI', Arial, sans-serif;
             font-size: 11px;
-            color: #E8EAED;
+            color: #CCCCCC;
         }
     )");
 
     auto* hudLayout = new QHBoxLayout(statusHud);
-    hudLayout->setContentsMargins(10, 3, 10, 3);
-    hudLayout->setSpacing(14);
+    hudLayout->setContentsMargins(8, 2, 8, 2);
+    hudLayout->setSpacing(12);
 
     lblCoordinates = new QLabel("22.0000° N, 79.0000° E", statusHud);
     lblZoomLevel = new QLabel("Zoom: 5", statusHud);
@@ -530,7 +611,7 @@ void MainWindow::setupUi() {
     hudLayout->addWidget(lblFps);
 
     // 9. Loading Overlay
-    loadingOverlay = new LoadingOverlay(this);
+    loadingOverlay = new LoadingOverlay(mapContainer);
 
     // Wire up Signals & Slots
     connect(searchBar, &SearchBar::searchResultSelected, this, &MainWindow::onSearchResultSelected);
@@ -540,7 +621,7 @@ void MainWindow::setupUi() {
     connect(mapWidget, &MapWidget::cursorGeoMoved, this, &MainWindow::onCursorGeoMoved);
     connect(mapWidget, &MapWidget::fpsChanged, this, &MainWindow::onFpsChanged);
 
-    // Online map viewport updates (also updates dynamic MiniMap)
+    // Online map viewport updates
     connect(onlineMap, &OnlineTileWidget::viewportChanged, this, [this](double lat, double lon, int zoom) {
         lblCoordinates->setText(QString("%1° N, %2° E")
             .arg(lat, 0, 'f', 4)
@@ -548,7 +629,7 @@ void MainWindow::setupUi() {
         lblZoomLevel->setText(QString("Zoom: %1").arg(zoom));
 
         if (currentMapMode == MapMode::Online) {
-            miniMap->setOnlineViewport(lat, lon, zoom, width(), height());
+            miniMap->setOnlineViewport(lat, lon, zoom, mapContainer->width(), mapContainer->height());
         }
     });
 
@@ -630,6 +711,12 @@ void MainWindow::setupUi() {
         }
     });
 
+    // Timeline changes
+    connect(timelineWidget, &TimelineWidget::frameChanged, this, [this](int frame, const QString& timeCode) {
+        (void)frame;
+        (void)timeCode;
+    });
+
     updateFloatingPositions();
 }
 
@@ -641,11 +728,9 @@ void MainWindow::switchToOnline() {
     lblMapMode->setText("🌐 Online");
     lblMapMode->setStyleSheet("font-weight: bold; color: #8AB4F8;");
 
-    // Configure MiniMap for Full India Mode
     miniMap->setMode(MiniMapMode::Online_India);
-    miniMap->setOnlineViewport(onlineMap->getCenterLat(), onlineMap->getCenterLon(), onlineMap->getZoom(), width(), height());
+    miniMap->setOnlineViewport(onlineMap->getCenterLat(), onlineMap->getCenterLon(), onlineMap->getZoom(), mapContainer->width(), mapContainer->height());
 
-    // Hide offline-only controls
     btnToggleLayers->setVisible(false);
     layerPanel->hide();
 
@@ -660,13 +745,11 @@ void MainWindow::switchToOffline() {
     lblMapMode->setText("💾 Offline");
     lblMapMode->setStyleSheet("font-weight: bold; color: #FDD663;");
 
-    // Configure MiniMap for Assam Offline Mode
     miniMap->setMode(MiniMapMode::Offline_Assam);
     if (mapWidget->getSpatialIndex()) {
         miniMap->setSpatialIndex(mapWidget->getSpatialIndex());
     }
 
-    // Show offline-specific controls
     btnToggleLayers->setVisible(true);
 
     updateFloatingPositions();
@@ -751,7 +834,7 @@ void MainWindow::onFeatureSelected(MapCore::FeatureInfo info) {
 }
 
 void MainWindow::onViewportChanged(MapCore::BoundingBox viewBbox, float zoomLevel, MapCore::GeoCoord centerGeo) {
-    scaleBar->updateScale(zoomLevel, centerGeo.lat, width());
+    scaleBar->updateScale(zoomLevel, centerGeo.lat, mapContainer->width());
     lblZoomLevel->setText(QString("Zoom: %1").arg(zoomLevel, 0, 'f', 1));
 
     if (currentMapMode == MapMode::Offline) {
@@ -787,12 +870,21 @@ void MainWindow::resizeEvent(QResizeEvent* /*event*/) {
     updateFloatingPositions();
 }
 
+bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
+    if (watched == mapContainer && event->type() == QEvent::Resize) {
+        updateFloatingPositions();
+    }
+    return QMainWindow::eventFilter(watched, event);
+}
+
 void MainWindow::updateFloatingPositions() {
-    int w = width();
-    int h = height();
+    if (!mapContainer) return;
+
+    int w = mapContainer->width();
+    int h = mapContainer->height();
 
     // 1. Search Bar at Top-Left
-    searchBar->move(20, 20 + appMenuBar->height());
+    searchBar->move(20, 20);
 
     // 2. Place Card below Search Bar
     if (placeCard->isVisible()) {
@@ -802,17 +894,17 @@ void MainWindow::updateFloatingPositions() {
     // 3. Navigation Controls at Bottom-Right
     int navW = navControls->sizeHint().width();
     int navH = navControls->sizeHint().height();
-    navControls->setGeometry(w - navW - 20, h - navH - 50, navW, navH);
+    navControls->setGeometry(w - navW - 20, h - navH - 45, navW, navH);
 
     // 4. Scale Bar at Bottom-Right (left of nav controls)
-    scaleBar->move(w - navW - 20 - scaleBar->width() - 15, h - 55);
+    scaleBar->move(w - navW - 20 - scaleBar->width() - 15, h - 50);
 
     // 5. Status HUD at Bottom-Center
     statusHud->adjustSize();
-    statusHud->move((w - statusHud->width()) / 2, h - statusHud->height() - 10);
+    statusHud->move((w - statusHud->width()) / 2, h - statusHud->height() - 8);
 
     // 6. Layer Panel and Minimap at Bottom-Left
-    int leftBottomY = h - 50;
+    int leftBottomY = h - 45;
 
     btnToggleLayers->adjustSize();
     btnToggleLayers->move(20, leftBottomY);
@@ -829,7 +921,7 @@ void MainWindow::updateFloatingPositions() {
         miniMap->move(20, miniY);
     }
 
-    // 7. Loading Overlay covering entire window
+    // 7. Loading Overlay covering entire map area
     loadingOverlay->setGeometry(0, 0, w, h);
 }
 

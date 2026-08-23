@@ -47,6 +47,8 @@ set(SOURCES
     src/ui/OnlineTileWidget.cpp
     src/ui/MiniMap.cpp
     src/ui/SettingsDialog.cpp
+    src/ui/TimelineWidget.cpp
+    src/ui/PropertiesPanel.cpp
 )
 
 # Application Executable Target

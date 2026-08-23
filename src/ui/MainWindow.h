@@ -9,6 +9,7 @@
 #include <QAction>
 #include <QActionGroup>
 #include <QStackedWidget>
+#include <QSplitter>
 #include "../core/SpatialIndex.h"
 #include "MapWidget.h"
 #include "OnlineTileWidget.h"
@@ -18,6 +19,8 @@
 #include "LayerPanel.h"
 #include "MiniMap.h"
 #include "SettingsDialog.h"
+#include "TimelineWidget.h"
+#include "PropertiesPanel.h"
 
 namespace MapUI {
 
@@ -52,6 +55,12 @@ private:
     MapMode currentMapMode = MapMode::Online;
     AppTheme currentTheme = AppTheme::SystemDefault;
 
+    // Resizable Splitter Layout
+    QSplitter* mainSplitter;    // Horizontal: [ Left: vSplitter | Right: PropertiesPanel ]
+    QSplitter* vSplitter;       // Vertical:   [ Top: MapContainer | Bottom: TimelineWidget ]
+    QWidget* mapContainer;
+    PropertiesPanel* propertiesPanel;
+
     // Stacked widget to switch between online/offline map views
     QStackedWidget* mapStack;
 
@@ -66,6 +75,7 @@ private:
     QPushButton* btnToggleLayers;
     MiniMap* miniMap;
     QPushButton* btnToggleMiniMap;
+    TimelineWidget* timelineWidget; // Fully resizable bottom timeline
     LoadingOverlay* loadingOverlay;
     SettingsDialog* settingsDialog = nullptr;
 
@@ -79,6 +89,8 @@ private:
 
     QAction* actionOnline;
     QAction* actionOffline;
+    QAction* actionToggleSidebar;
+    QAction* actionToggleTimeline;
 
     QAction* actionThemeSystem;
     QAction* actionThemeDark;
@@ -120,9 +132,12 @@ public:
 
 public slots:
     void openSettingsDialog();
+    void togglePropertiesPanel();
+    void toggleTimeline();
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
 private slots:
     void onMapLoaded();
