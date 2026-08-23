@@ -127,6 +127,7 @@ private:
 
     std::string dataPbfPath = "data/assam-latest.osm.pbf";
     std::string cacheFilePath = "data/assam_map.bin";
+    std::unique_ptr<MapCore::DamManager> damManager;
 
 public:
     explicit MainWindow(QWidget* parent = nullptr);

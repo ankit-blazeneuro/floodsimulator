@@ -36,6 +36,7 @@ set(SOURCES
     src/main.cpp
     src/core/OsmPbfLoader.cpp
     src/core/MapDataCache.cpp
+    src/core/DamManager.cpp
     src/renderer/MapStyle.cpp
     src/renderer/MapRenderer.cpp
     src/ui/NavigationControls.cpp

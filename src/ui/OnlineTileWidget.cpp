@@ -234,6 +234,51 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
         }
     }
 
+    // --- Render Indian Dams (#54D59A Mint Green Dots with 3D-Style Viewport Frustum Culling) ---
+    if (damManager && showDams && damManager->hasData()) {
+        const QColor dotColor(0x54, 0xD5, 0x9A); // #54D59A
+        const QColor glowColor(0x54, 0xD5, 0x9A, 90);
+        const QColor dotBorder(0x1B, 0x5E, 0x3E, 200);
+
+        // 1. Calculate Viewport Frustum Bounding Box in WGS84 with 48px pre-fetch buffer margin
+        const double bufferPx = 48.0;
+        double leftTileX = centerTileX - (w / 2.0 + bufferPx) / TILE_SIZE;
+        double rightTileX = centerTileX + (w / 2.0 + bufferPx) / TILE_SIZE;
+        double topTileY = centerTileY - (h / 2.0 + bufferPx) / TILE_SIZE;
+        double bottomTileY = centerTileY + (h / 2.0 + bufferPx) / TILE_SIZE;
+
+        double minLon = tileXToLon(leftTileX, zoomLevel);
+        double maxLon = tileXToLon(rightTileX, zoomLevel);
+        double maxLat = tileYToLat(topTileY, zoomLevel);
+        double minLat = tileYToLat(bottomTileY, zoomLevel);
+
+        // 2. Spatial Grid Frustum Query (Zero overhead, instant O(k) extraction)
+        std::vector<const MapCore::DamPoint*> visibleDams;
+        damManager->getDamsInBbox(minLat, minLon, maxLat, maxLon, visibleDams);
+
+        // 3. Dynamic scale based on zoom distance
+        double radius = (zoomLevel <= 6) ? 3.0 : std::min(5.5, 3.0 + (zoomLevel - 6) * 0.35);
+
+        // 4. Render visible culled dams with floating-point sub-pixel precision
+        for (const auto* dam : visibleDams) {
+            double tileX = lonToTileX(dam->lon, zoomLevel);
+            double tileY = latToTileY(dam->lat, zoomLevel);
+
+            double sx = w / 2.0 + (tileX - centerTileX) * TILE_SIZE;
+            double sy = h / 2.0 + (tileY - centerTileY) * TILE_SIZE;
+
+            // Subtle outer glow for visibility
+            painter.setPen(Qt::NoPen);
+            painter.setBrush(glowColor);
+            painter.drawEllipse(QPointF(sx, sy), radius + 1.2, radius + 1.2);
+
+            // Main #54D59A dot
+            painter.setPen(QPen(dotBorder, 0.75));
+            painter.setBrush(dotColor);
+            painter.drawEllipse(QPointF(sx, sy), radius, radius);
+        }
+    }
+
     // Draw center crosshair
     painter.setPen(QPen(QColor(138, 180, 248, 140), 1.5));
     painter.drawLine(w / 2 - 8, h / 2, w / 2 + 8, h / 2);

@@ -119,6 +119,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     // Apply saved or default settings (Theme = System Default, Mode = Online)
     applyAppSettings(settingsDialog->getSettings());
 
+    // Initialize Indian Dam dataset and attach to map
+    damManager = std::make_unique<MapCore::DamManager>();
+    damManager->loadFromGeoJson("server/dam.geojson");
+    onlineMap->setDamManager(damManager.get());
+
     // Guarantee default online map view
     switchToOnline();
     onlineMap->fitIndia();

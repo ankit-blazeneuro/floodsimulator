@@ -12,6 +12,7 @@
 #include <QString>
 #include <vector>
 #include <cmath>
+#include "../core/DamManager.h"
 
 namespace MapUI {
 
@@ -67,10 +68,18 @@ private:
     bool anchorZoomToCursor = true;
     bool invertScroll = false;
 
+    // Dams Layer
+    const MapCore::DamManager* damManager = nullptr;
+    bool showDams = true;
+
     static constexpr int TILE_SIZE = 256;
 
 public:
     explicit OnlineTileWidget(QWidget* parent = nullptr);
+
+    void setDamManager(const MapCore::DamManager* mgr) { damManager = mgr; update(); }
+    void setShowDams(bool show) { showDams = show; update(); }
+    bool getShowDams() const { return showDams; }
 
     void setCenter(double lat, double lon);
     void setZoom(int z);
@@ -106,6 +115,7 @@ public:
 
 signals:
     void viewportChanged(double lat, double lon, int zoom);
+    void damClicked(const MapCore::DamPoint& dam);
 
 protected:
     void paintEvent(QPaintEvent* event) override;
