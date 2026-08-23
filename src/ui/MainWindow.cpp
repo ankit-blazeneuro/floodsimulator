@@ -102,7 +102,7 @@ bool MainWindow::isSystemDarkTheme() {
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     setWindowTitle("Assam & India Maps - Flood Simulator");
-    setWindowIcon(IconHelper::logo(QColor(232, 125, 13), 32));
+    setWindowIcon(IconHelper::logo(QColor(212, 212, 216), 32));
     resize(1380, 860);
     setMinimumSize(920, 600);
 
@@ -291,13 +291,12 @@ void MainWindow::setupMenuBar() {
         }
     )");
 
-    // ---- 0. App Logo (Far Left of Menu Bar) ----
-    auto* logoMenu = appMenuBar->addMenu(IconHelper::logo(QColor(232, 125, 13), 18), "");
-    logoMenu->setToolTip("Assam & India Flood Simulator");
-    auto* actAbout = logoMenu->addAction(IconHelper::logo(QColor(232, 125, 13), 16), "About Flood Simulator");
-    auto* actSettings = logoMenu->addAction(IconHelper::radar(QColor(138, 180, 248), 16), "Preferences & Settings...");
-    connect(actAbout, &QAction::triggered, this, &MainWindow::openSettingsDialog);
-    connect(actSettings, &QAction::triggered, this, &MainWindow::openSettingsDialog);
+    // ---- 0. App Logo (Static Monochromatic Icon, Left of File) ----
+    auto* logoLabel = new QLabel(appMenuBar);
+    logoLabel->setPixmap(IconHelper::getPixmap("logo", QColor(212, 212, 216), 18));
+    logoLabel->setStyleSheet("padding: 2px 4px 2px 8px; background: transparent; border: none;");
+    logoLabel->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+    appMenuBar->setCornerWidget(logoLabel, Qt::TopLeftCorner);
 
     // ---- 1. File Menu ----
     fileMenu = appMenuBar->addMenu("&File");

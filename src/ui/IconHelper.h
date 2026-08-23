@@ -76,7 +76,7 @@ public:
         return src.transformed(t, Qt::SmoothTransformation);
     }
 
-    static QIcon logo(const QColor& color = QColor(232, 125, 13), int size = 20) {
+    static QIcon logo(const QColor& color = QColor(212, 212, 216), int size = 20) {
         return get("logo", color, size);
     }
     static QIcon play(const QColor& color = QColor(255, 255, 255), int size = 18) {
