@@ -132,6 +132,21 @@ public:
     static QIcon check(const QColor& color = QColor(129, 201, 149), int size = 16) {
         return get("check", color, size);
     }
+    static QIcon search(const QColor& color = QColor(212, 212, 216), int size = 18) {
+        return get("search", color, size);
+    }
+    static QIcon sun(const QColor& color = QColor(253, 214, 99), int size = 18) {
+        return get("sun", color, size);
+    }
+    static QIcon moon(const QColor& color = QColor(167, 139, 250), int size = 18) {
+        return get("moon", color, size);
+    }
+    static QIcon system(const QColor& color = QColor(138, 180, 248), int size = 18) {
+        return get("system", color, size);
+    }
+    static QIcon loader(const QColor& color = QColor(138, 180, 248), int size = 18) {
+        return get("loader-circle", color, size);
+    }
 };
 
 } // namespace MapUI

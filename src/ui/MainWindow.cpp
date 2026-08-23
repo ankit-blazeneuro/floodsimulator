@@ -319,11 +319,11 @@ void MainWindow::setupMenuBar() {
     viewMenu->addSeparator();
 
     // Theme Submenu
-    themeMenu = viewMenu->addMenu(IconHelper::sunFog(QColor(167, 139, 250), 16), "Theme");
+    themeMenu = viewMenu->addMenu(IconHelper::system(QColor(167, 139, 250), 16), "Theme");
     auto* themeGroup = new QActionGroup(this);
     themeGroup->setExclusive(true);
 
-    actionThemeSystem = themeMenu->addAction(IconHelper::sunFog(QColor(167, 139, 250), 16), "System Default");
+    actionThemeSystem = themeMenu->addAction(IconHelper::system(QColor(138, 180, 248), 16), "System Default");
     actionThemeSystem->setCheckable(true);
     actionThemeSystem->setChecked(true);
     actionThemeSystem->setActionGroup(themeGroup);
@@ -331,14 +331,14 @@ void MainWindow::setupMenuBar() {
         applyTheme(AppTheme::SystemDefault);
     });
 
-    actionThemeDark = themeMenu->addAction(IconHelper::fog(QColor(167, 139, 250), 16), "Dark Theme");
+    actionThemeDark = themeMenu->addAction(IconHelper::moon(QColor(167, 139, 250), 16), "Dark Theme");
     actionThemeDark->setCheckable(true);
     actionThemeDark->setActionGroup(themeGroup);
     connect(actionThemeDark, &QAction::triggered, this, [this]() {
         applyTheme(AppTheme::Dark);
     });
 
-    actionThemeLight = themeMenu->addAction(IconHelper::sunFog(QColor(253, 214, 99), 16), "Light Theme");
+    actionThemeLight = themeMenu->addAction(IconHelper::sun(QColor(253, 214, 99), 16), "Light Theme");
     actionThemeLight->setCheckable(true);
     actionThemeLight->setActionGroup(themeGroup);
     connect(actionThemeLight, &QAction::triggered, this, [this]() {
@@ -544,7 +544,7 @@ void MainWindow::setupUi() {
             background-color: #242424;
             color: #CCCCCC;
             border: 1px solid #383838;
-            border-radius: 16px;
+            border-radius: 6px;
             font-family: 'Segoe UI', Arial, sans-serif;
             font-size: 11px;
             font-weight: bold;

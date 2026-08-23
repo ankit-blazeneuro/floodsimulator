@@ -5,6 +5,7 @@
         <file alias="rewind-forward.svg">icons/rewind-forward.svg</file>
         <file alias="zoom-in.svg">icons/zoom-in.svg</file>
         <file alias="zoom-out.svg">icons/zoom-out.svg</file>
+        <file alias="search.svg">icons/search.svg</file>
         <file alias="ruler.svg">icons/ruler.svg</file>
         <file alias="map.svg">icons/map.svg</file>
         <file alias="radar.svg">icons/radar.svg</file>
@@ -14,6 +15,9 @@
         <file alias="cloud-snowfall.svg">icons/cloud-snowfall.svg</file>
         <file alias="fog.svg">icons/fog.svg</file>
         <file alias="sun-fog.svg">icons/sun-fog.svg</file>
+        <file alias="sun.svg">icons/sun.svg</file>
+        <file alias="moon.svg">icons/moon.svg</file>
+        <file alias="system.svg">icons/system.svg</file>
         <file alias="temperature.svg">icons/temperature.svg</file>
         <file alias="check.svg">icons/check.svg</file>
         <file alias="chevron-down.svg">icons/chevron-down.svg</file>

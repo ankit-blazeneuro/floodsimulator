@@ -44,7 +44,7 @@ void SearchBar::setupUi() {
     cardLayout->setSpacing(8);
 
     btnSearchIcon = new QPushButton(cardWidget);
-    btnSearchIcon->setIcon(IconHelper::zoomIn(QColor(138, 180, 248), 18));
+    btnSearchIcon->setIcon(IconHelper::search(QColor(138, 180, 248), 18));
     btnSearchIcon->setFlat(true);
     btnSearchIcon->setStyleSheet("QPushButton { border: none; }");
 
