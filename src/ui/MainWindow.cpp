@@ -796,7 +796,39 @@ void MainWindow::setupUi() {
             mapWidget->fitAssam();
         }
     });
-    connect(navControls, &NavigationControls::measureToggled, mapWidget, &MapWidget::setMeasureMode);
+    connect(navControls, &NavigationControls::measureToggled, this, [this](bool active) {
+        onlineMap->setMeasureMode(active);
+        mapWidget->setMeasureMode(active);
+    });
+
+    connect(onlineMap, &OnlineTileWidget::measureModeChanged, this, [this](bool active) {
+        navControls->setMeasureActive(active);
+    });
+
+    connect(onlineMap, &OnlineTileWidget::damClicked, this, [this](const MapCore::DamPoint& dam) {
+        MapCore::FeatureInfo f;
+        f.found = true;
+        f.name = dam.name.toStdString();
+        f.category = MapCore::FeatureCategory::WATER_LAKE;
+        f.geoCoord = MapCore::GeoCoord(dam.lat, dam.lon);
+        f.mercatorPos = MapCore::Projection::geoToMercator(f.geoCoord);
+
+        QString detail = QString("State: %1 | District: %2").arg(dam.state.isEmpty() ? "India" : dam.state, dam.district.isEmpty() ? "N/A" : dam.district);
+        if (!dam.river.isEmpty()) {
+            detail += QString(" | River: %1").arg(dam.river);
+        }
+        if (dam.storage > 0) {
+            detail += QString(" | Gross Storage: %1 MCM").arg(dam.storage, 0, 'f', 1);
+        }
+        if (dam.height > 0) {
+            detail += QString(" | Height: %1 m").arg(dam.height, 0, 'f', 1);
+        }
+        f.detail = detail.toStdString();
+
+        placeCard->setFeature(f);
+        placeCard->show();
+        updateFloatingPositions();
+    });
 
     connect(placeCard, &PlaceCard::zoomInRequested, this, [this](MapCore::Point2D pos) {
         if (currentMapMode == MapMode::Online) {
@@ -808,7 +840,13 @@ void MainWindow::setupUi() {
         }
     });
     connect(placeCard, &PlaceCard::measureFromRequested, this, [this](MapCore::Point2D pos) {
-        mapWidget->setMeasureMode(true);
+        if (currentMapMode == MapMode::Online) {
+            MapCore::GeoCoord geo = MapCore::Projection::mercatorToGeo(pos);
+            onlineMap->setCenter(geo.lat, geo.lon);
+            onlineMap->setMeasureMode(true);
+        } else {
+            mapWidget->setMeasureMode(true);
+        }
         navControls->setMeasureActive(true);
     });
 

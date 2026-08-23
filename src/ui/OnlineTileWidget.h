@@ -72,6 +72,13 @@ private:
     const MapCore::DamManager* damManager = nullptr;
     bool showDams = true;
 
+    // Measurement Tool (Ruler)
+    bool measureMode = false;
+    std::vector<QPointF> measurePoints; // stored as (lat, lon)
+    QPoint liveMousePos;
+    bool hasLiveMouse = false;
+    QPoint pressMousePos;
+
     static constexpr int TILE_SIZE = 256;
 
 public:
@@ -80,6 +87,15 @@ public:
     void setDamManager(const MapCore::DamManager* mgr) { damManager = mgr; update(); }
     void setShowDams(bool show) { showDams = show; update(); }
     bool getShowDams() const { return showDams; }
+
+    void setMeasureMode(bool active);
+    bool isMeasureMode() const { return measureMode; }
+    void clearMeasure();
+
+    double screenToLon(double screenX) const;
+    double screenToLat(double screenY) const;
+    QPointF geoToScreen(double lat, double lon) const;
+    static double haversineDistanceM(double lat1, double lon1, double lat2, double lon2);
 
     void setCenter(double lat, double lon);
     void setZoom(int z);
@@ -116,6 +132,7 @@ public:
 signals:
     void viewportChanged(double lat, double lon, int zoom);
     void damClicked(const MapCore::DamPoint& dam);
+    void measureModeChanged(bool active);
 
 protected:
     void paintEvent(QPaintEvent* event) override;
@@ -126,6 +143,7 @@ protected:
     void wheelEvent(QWheelEvent* event) override;
     void resizeEvent(QResizeEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
+    void leaveEvent(QEvent* event) override;
 
 private:
     static double lonToTileX(double lon, int zoom);
