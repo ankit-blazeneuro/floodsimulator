@@ -111,8 +111,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     settingsDialog = new SettingsDialog(this);
     connect(settingsDialog, &SettingsDialog::settingsApplied, this, &MainWindow::applyAppSettings);
 
-    // Apply saved or default settings
+    // Apply saved or default settings (Theme = System Default, Mode = Online)
     applyAppSettings(settingsDialog->getSettings());
+
+    // Guarantee default online map view
+    switchToOnline();
+    onlineMap->fitIndia();
 
     // Start async offline data load in background
     startAsyncLoad();
@@ -125,20 +129,23 @@ void MainWindow::applyTheme(AppTheme theme) {
     if (theme == AppTheme::SystemDefault) {
         isDark = isSystemDarkTheme();
         lblTheme->setText(isDark ? "🖥️ System (Dark)" : "🖥️ System (Light)");
+        if (actionThemeSystem) actionThemeSystem->setChecked(true);
     } else if (theme == AppTheme::Dark) {
         isDark = true;
         lblTheme->setText("🌙 Dark");
+        if (actionThemeDark) actionThemeDark->setChecked(true);
     } else {
         isDark = false;
         lblTheme->setText("☀️ Light");
+        if (actionThemeLight) actionThemeLight->setChecked(true);
     }
 
-    // Use rich, full-color standard OpenStreetMap / OpenStreetMap_Standard by default so rivers & land are vibrant
-    if (onlineMap->getTileProvider() == OnlineTileProvider::OpenStreetMap_Dark && !isDark) {
-        onlineMap->setTileProvider(OnlineTileProvider::OpenStreetMap_Standard);
-    } else if (onlineMap->getTileProvider() != OnlineTileProvider::OpenStreetMap_Dark) {
-        // Keep vibrant full-color OSM map active
-        onlineMap->setTileProvider(OnlineTileProvider::OpenStreetMap_Standard);
+    // Set online map mode & dark mode based on theme
+    onlineMap->setDarkMode(isDark);
+    if (isDark) {
+        if (actionOsmDark) actionOsmDark->setChecked(true);
+    } else {
+        if (actionOsmStandard) actionOsmStandard->setChecked(true);
     }
 
     // Update Offline Map Style
