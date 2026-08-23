@@ -1,4 +1,5 @@
 #include "NavigationControls.h"
+#include "IconHelper.h"
 #include <QPainter>
 #include <QGraphicsDropShadowEffect>
 #include <cmath>
@@ -20,9 +21,6 @@ void NavigationControls::setupUi() {
             color: #E8EAED;
             border: 1px solid #3C4043;
             border-radius: 20px;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 16px;
-            font-weight: bold;
             min-width: 40px;
             max-width: 40px;
             min-height: 40px;
@@ -30,20 +28,20 @@ void NavigationControls::setupUi() {
         }
         QPushButton:hover {
             background-color: #303134;
-            color: #8AB4F8;
             border-color: #8AB4F8;
         }
         QPushButton:pressed {
             background-color: #282A2D;
         }
         QPushButton:checked {
-            background-color: #8AB4F8;
-            color: #202124;
-            border-color: #8AB4F8;
+            background-color: #4772B3;
+            border-color: #5680C2;
         }
     )";
 
-    btnResetNorth = new QPushButton("🧭", this);
+    btnResetNorth = new QPushButton(this);
+    btnResetNorth->setIcon(IconHelper::radar(QColor(220, 220, 225), 20));
+    btnResetNorth->setIconSize(QSize(20, 20));
     btnResetNorth->setToolTip("Reset Orientation (North Up)");
     btnResetNorth->setStyleSheet(btnStyle);
     auto* shadow0 = new QGraphicsDropShadowEffect(this);
@@ -52,8 +50,10 @@ void NavigationControls::setupUi() {
     shadow0->setOffset(0, 3);
     btnResetNorth->setGraphicsEffect(shadow0);
 
-    btnFitExtent = new QPushButton("🗺️", this);
-    btnFitExtent->setToolTip("Fit Full Assam Extent");
+    btnFitExtent = new QPushButton(this);
+    btnFitExtent->setIcon(IconHelper::map(QColor(220, 220, 225), 20));
+    btnFitExtent->setIconSize(QSize(20, 20));
+    btnFitExtent->setToolTip("Fit Full Extent");
     btnFitExtent->setStyleSheet(btnStyle);
     auto* shadow1 = new QGraphicsDropShadowEffect(this);
     shadow1->setBlurRadius(10);
@@ -61,7 +61,9 @@ void NavigationControls::setupUi() {
     shadow1->setOffset(0, 3);
     btnFitExtent->setGraphicsEffect(shadow1);
 
-    btnMeasure = new QPushButton("📏", this);
+    btnMeasure = new QPushButton(this);
+    btnMeasure->setIcon(IconHelper::ruler(QColor(220, 220, 225), 20));
+    btnMeasure->setIconSize(QSize(20, 20));
     btnMeasure->setCheckable(true);
     btnMeasure->setToolTip("Measure Distance (Click points on map)");
     btnMeasure->setStyleSheet(btnStyle);
@@ -71,7 +73,9 @@ void NavigationControls::setupUi() {
     shadow2->setOffset(0, 3);
     btnMeasure->setGraphicsEffect(shadow2);
 
-    btnZoomIn = new QPushButton("+", this);
+    btnZoomIn = new QPushButton(this);
+    btnZoomIn->setIcon(IconHelper::zoomIn(QColor(220, 220, 225), 20));
+    btnZoomIn->setIconSize(QSize(20, 20));
     btnZoomIn->setToolTip("Zoom In");
     btnZoomIn->setStyleSheet(btnStyle);
     auto* shadow3 = new QGraphicsDropShadowEffect(this);
@@ -80,7 +84,9 @@ void NavigationControls::setupUi() {
     shadow3->setOffset(0, 3);
     btnZoomIn->setGraphicsEffect(shadow3);
 
-    btnZoomOut = new QPushButton("−", this);
+    btnZoomOut = new QPushButton(this);
+    btnZoomOut->setIcon(IconHelper::zoomOut(QColor(220, 220, 225), 20));
+    btnZoomOut->setIconSize(QSize(20, 20));
     btnZoomOut->setToolTip("Zoom Out");
     btnZoomOut->setStyleSheet(btnStyle);
     auto* shadow4 = new QGraphicsDropShadowEffect(this);

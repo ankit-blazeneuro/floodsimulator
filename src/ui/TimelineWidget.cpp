@@ -1,4 +1,5 @@
 #include "TimelineWidget.h"
+#include "IconHelper.h"
 #include <QPainter>
 #include <QPolygonF>
 #include <cmath>
@@ -79,11 +80,11 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
     };
 
     std::vector<TrackInfo> tracks = {
-        {"🌊 Inundation Level", {0, 12, 24, 36, 48, 60, 72}, QColor(71, 114, 179)},
-        {"🌧 Precipitation Rate", {0, 6, 18, 30, 42, 54, 66}, QColor(94, 186, 125)},
-        {"⚡ Breach Dynamics", {24, 36, 48}, QColor(226, 109, 30)},
-        {"📊 River Discharge", {0, 24, 48, 72}, QColor(167, 139, 250)},
-        {"🚨 Evacuation Status", {12, 24, 48}, QColor(248, 113, 113)}
+        {"Inundation Level", {0, 12, 24, 36, 48, 60, 72}, QColor(71, 114, 179)},
+        {"Precipitation Rate", {0, 6, 18, 30, 42, 54, 66}, QColor(94, 186, 125)},
+        {"Breach Dynamics", {24, 36, 48}, QColor(226, 109, 30)},
+        {"River Discharge", {0, 24, 48, 72}, QColor(167, 139, 250)},
+        {"Evacuation Status", {12, 24, 48}, QColor(248, 113, 113)}
     };
 
     int trackH = 22;
@@ -324,30 +325,37 @@ void TimelineWidget::setupUi() {
     controlLayout->setContentsMargins(8, 2, 8, 2);
     controlLayout->setSpacing(5);
 
-    auto* lblHeaderTitle = new QLabel("⏱ Timeline", controlBar);
+    auto* lblHeaderTitle = new QLabel("Timeline", controlBar);
     lblHeaderTitle->setStyleSheet("color: #E26D1E; font-weight: bold; font-size: 11px; margin-right: 4px;");
     controlLayout->addWidget(lblHeaderTitle);
 
-    // Playback Buttons
-    btnJumpStart = new QPushButton("⏮", controlBar);
+    // Playback Buttons with SVG icons
+    btnJumpStart = new QPushButton(controlBar);
+    btnJumpStart->setIcon(IconHelper::rewind(QColor(212, 212, 216), 14));
     btnJumpStart->setToolTip("Jump to Start (Shift + Left)");
 
-    btnStepBack = new QPushButton("⮜", controlBar);
+    btnStepBack = new QPushButton(controlBar);
+    btnStepBack->setIcon(IconHelper::rewind(QColor(180, 180, 180), 12));
     btnStepBack->setToolTip("Previous Frame (Left Arrow)");
 
-    btnPlayReverse = new QPushButton("◀", controlBar);
+    btnPlayReverse = new QPushButton(controlBar);
+    btnPlayReverse->setIcon(IconHelper::rewind(QColor(212, 212, 216), 14));
     btnPlayReverse->setToolTip("Play Reverse");
 
-    btnStop = new QPushButton("⏹", controlBar);
+    btnStop = new QPushButton(controlBar);
+    btnStop->setIcon(IconHelper::pause(QColor(212, 212, 216), 14));
     btnStop->setToolTip("Stop Playback");
 
-    btnPlayForward = new QPushButton("▶", controlBar);
+    btnPlayForward = new QPushButton(controlBar);
+    btnPlayForward->setIcon(IconHelper::play(Qt::white, 14));
     btnPlayForward->setToolTip("Play Forward (Spacebar)");
 
-    btnStepForward = new QPushButton("⮞", controlBar);
+    btnStepForward = new QPushButton(controlBar);
+    btnStepForward->setIcon(IconHelper::forward(QColor(180, 180, 180), 12));
     btnStepForward->setToolTip("Next Frame (Right Arrow)");
 
-    btnJumpEnd = new QPushButton("⏭", controlBar);
+    btnJumpEnd = new QPushButton(controlBar);
+    btnJumpEnd->setIcon(IconHelper::forward(QColor(212, 212, 216), 14));
     btnJumpEnd->setToolTip("Jump to End (Shift + Right)");
 
     controlLayout->addWidget(btnJumpStart);
@@ -360,7 +368,8 @@ void TimelineWidget::setupUi() {
 
     controlLayout->addSpacing(8);
 
-    btnRecord = new QPushButton("⏺", controlBar);
+    btnRecord = new QPushButton(controlBar);
+    btnRecord->setIcon(IconHelper::radar(QColor(212, 212, 216), 14));
     btnRecord->setObjectName("btnRecord");
     btnRecord->setCheckable(true);
     btnRecord->setToolTip("Automatic Simulation Keyframe Recording");
@@ -413,7 +422,7 @@ void TimelineWidget::setupUi() {
     controlLayout->addWidget(btnFps);
 
     // Loop Toggle
-    btnLoop = new QPushButton("🔁", controlBar);
+    btnLoop = new QPushButton("Loop", controlBar);
     btnLoop->setCheckable(true);
     btnLoop->setChecked(true);
     btnLoop->setToolTip("Toggle Playback Loop");

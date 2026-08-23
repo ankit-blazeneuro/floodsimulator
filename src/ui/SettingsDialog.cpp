@@ -1,12 +1,13 @@
 #include "SettingsDialog.h"
+#include "IconHelper.h"
 #include <QGraphicsDropShadowEffect>
 
 namespace MapUI {
 
 SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
-    setWindowTitle("Settings & Preferences");
+    setWindowTitle("Settings - Map & Simulation");
+    resize(480, 520);
     setModal(true);
-    setFixedSize(480, 520);
 
     setupUi();
     loadSettings();
@@ -15,30 +16,55 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
 void SettingsDialog::setupUi() {
     setStyleSheet(R"(
         QDialog {
-            background-color: #18181B;
-            color: #FAFAFA;
+            background-color: #202124;
+            color: #E8EAED;
             font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 13px;
+            font-size: 12px;
         }
         QGroupBox {
-            background-color: #202124;
+            background-color: #28292C;
             border: 1px solid #3C4043;
             border-radius: 8px;
-            margin-top: 14px;
-            padding: 12px 14px;
             font-weight: bold;
-            font-size: 13px;
+            font-size: 12px;
             color: #8AB4F8;
+            margin-top: 10px;
+            padding-top: 14px;
         }
         QGroupBox::title {
             subcontrol-origin: margin;
             subcontrol-position: top left;
-            padding: 0 6px;
-            color: #8AB4F8;
+            left: 10px;
+            padding: 0 4px;
         }
         QLabel {
             color: #E8EAED;
             font-size: 12px;
+        }
+        QCheckBox, QRadioButton {
+            color: #E8EAED;
+            font-size: 12px;
+            spacing: 8px;
+        }
+        QCheckBox::indicator, QRadioButton::indicator {
+            width: 16px;
+            height: 16px;
+        }
+        QCheckBox::indicator:checked, QRadioButton::indicator:checked {
+            background-color: #8AB4F8;
+            border: 1px solid #8AB4F8;
+            border-radius: 3px;
+        }
+        QRadioButton::indicator:checked {
+            border-radius: 8px;
+        }
+        QCheckBox::indicator:unchecked, QRadioButton::indicator:unchecked {
+            background-color: #202124;
+            border: 1px solid #5F6368;
+            border-radius: 3px;
+        }
+        QRadioButton::indicator:unchecked {
+            border-radius: 8px;
         }
         QSlider::groove:horizontal {
             height: 6px;
@@ -50,91 +76,41 @@ void SettingsDialog::setupUi() {
             border-radius: 3px;
         }
         QSlider::handle:horizontal {
-            background: #FFFFFF;
+            background: #E8EAED;
             border: 2px solid #8AB4F8;
             width: 16px;
-            margin-top: -6px;
-            margin-bottom: -6px;
+            margin-top: -5px;
+            margin-bottom: -5px;
             border-radius: 8px;
         }
-        QSlider::handle:horizontal:hover {
-            background: #8AB4F8;
-            border-color: #FFFFFF;
-        }
-        QRadioButton {
-            color: #FAFAFA;
-            font-size: 12px;
-            spacing: 6px;
-        }
-        QRadioButton::indicator {
-            width: 14px;
-            height: 14px;
-        }
-        QRadioButton::indicator:checked {
-            background-color: #8AB4F8;
-            border: 2px solid #FFFFFF;
-            border-radius: 7px;
-        }
-        QRadioButton::indicator:unchecked {
-            background-color: #27272A;
-            border: 1px solid #71717A;
-            border-radius: 7px;
-        }
-        QCheckBox {
-            color: #FAFAFA;
-            font-size: 12px;
-            spacing: 6px;
-        }
-        QCheckBox::indicator {
-            width: 14px;
-            height: 14px;
-            border-radius: 3px;
-            border: 1px solid #71717A;
-            background-color: #27272A;
-        }
-        QCheckBox::indicator:checked {
-            background-color: #8AB4F8;
-            border-color: #8AB4F8;
-        }
         QComboBox {
-            background-color: #27272A;
-            color: #FAFAFA;
-            border: 1px solid #3C4043;
-            border-radius: 6px;
-            padding: 4px 10px;
-            font-size: 12px;
-        }
-        QComboBox::drop-down {
-            border: none;
-        }
-        QComboBox QAbstractItemView {
-            background-color: #202124;
-            color: #FAFAFA;
-            selection-background-color: #3C4043;
-            selection-color: #8AB4F8;
-            border: 1px solid #3C4043;
+            background-color: #303134;
+            border: 1px solid #5F6368;
+            border-radius: 4px;
+            padding: 4px 8px;
+            color: #E8EAED;
         }
         QPushButton {
-            background-color: #27272A;
-            color: #FAFAFA;
-            border: 1px solid #3C4043;
+            background-color: #303134;
+            color: #E8EAED;
+            border: 1px solid #5F6368;
             border-radius: 6px;
+            padding: 6px 16px;
             font-weight: bold;
             font-size: 12px;
-            padding: 8px 18px;
         }
         QPushButton:hover {
             background-color: #3C4043;
-            color: #8AB4F8;
             border-color: #8AB4F8;
+            color: #8AB4F8;
         }
         QPushButton#btnSave {
-            background-color: #8AB4F8;
-            color: #18181B;
-            border-color: #8AB4F8;
+            background-color: #4772B3;
+            color: #FFFFFF;
+            border: 1px solid #5680C2;
         }
         QPushButton#btnSave:hover {
-            background-color: #A8C7FA;
+            background-color: #5680C2;
         }
     )");
 
@@ -143,12 +119,12 @@ void SettingsDialog::setupUi() {
     mainLayout->setSpacing(12);
 
     // Dialog Header
-    auto* headerLabel = new QLabel("⚙️ Application Settings", this);
+    auto* headerLabel = new QLabel("Application Settings", this);
     headerLabel->setStyleSheet("font-size: 17px; font-weight: bold; color: #FFFFFF;");
     mainLayout->addWidget(headerLabel);
 
     // 1. Group: Zoom & Navigation Controls
-    auto* grpZoom = new QGroupBox("🔍 Zoom & Touchpad Sensitivity", this);
+    auto* grpZoom = new QGroupBox("Zoom & Touchpad Sensitivity", this);
     auto* zoomLayout = new QVBoxLayout(grpZoom);
     zoomLayout->setSpacing(10);
 
@@ -183,7 +159,7 @@ void SettingsDialog::setupUi() {
     mainLayout->addWidget(grpZoom);
 
     // 2. Group: Default Map & Theme
-    auto* grpPreferences = new QGroupBox("🌐 Startup Preferences", this);
+    auto* grpPreferences = new QGroupBox("Startup Preferences", this);
     auto* prefLayout = new QVBoxLayout(grpPreferences);
     prefLayout->setSpacing(8);
 
@@ -192,8 +168,8 @@ void SettingsDialog::setupUi() {
     prefLayout->addWidget(lblMode);
 
     auto* modeRow = new QHBoxLayout();
-    radModeOnline = new QRadioButton("🌐 Online Map (Full India)", grpPreferences);
-    radModeOffline = new QRadioButton("💾 Offline Map (Assam Local)", grpPreferences);
+    radModeOnline = new QRadioButton("Online Map (Full India)", grpPreferences);
+    radModeOffline = new QRadioButton("Offline Map (Assam Local)", grpPreferences);
     modeRow->addWidget(radModeOnline);
     modeRow->addWidget(radModeOffline);
     prefLayout->addLayout(modeRow);
@@ -203,9 +179,9 @@ void SettingsDialog::setupUi() {
     prefLayout->addWidget(lblTheme);
 
     auto* themeRow = new QHBoxLayout();
-    radThemeSystem = new QRadioButton("🖥️ System Default", grpPreferences);
-    radThemeDark = new QRadioButton("🌙 Dark Theme", grpPreferences);
-    radThemeLight = new QRadioButton("☀️ Light Theme", grpPreferences);
+    radThemeSystem = new QRadioButton("System Default", grpPreferences);
+    radThemeDark = new QRadioButton("Dark Theme", grpPreferences);
+    radThemeLight = new QRadioButton("Light Theme", grpPreferences);
     themeRow->addWidget(radThemeSystem);
     themeRow->addWidget(radThemeDark);
     themeRow->addWidget(radThemeLight);
@@ -214,7 +190,7 @@ void SettingsDialog::setupUi() {
     mainLayout->addWidget(grpPreferences);
 
     // 3. Group: Performance & Memory
-    auto* grpPerf = new QGroupBox("⚡ Performance & Display", this);
+    auto* grpPerf = new QGroupBox("Performance & Display", this);
     auto* perfLayout = new QHBoxLayout(grpPerf);
 
     auto* lblCache = new QLabel("Tile Memory Cache:", grpPerf);
@@ -237,9 +213,11 @@ void SettingsDialog::setupUi() {
     auto* buttonRow = new QHBoxLayout();
     buttonRow->setSpacing(10);
 
-    btnReset = new QPushButton("🔄 Reset Defaults", this);
+    btnReset = new QPushButton("Reset Defaults", this);
+    btnReset->setIcon(IconHelper::rewind(QColor(212, 212, 216), 14));
     btnClose = new QPushButton("Cancel", this);
-    btnSave = new QPushButton("💾 Save & Apply", this);
+    btnSave = new QPushButton("Save & Apply", this);
+    btnSave->setIcon(IconHelper::radar(Qt::white, 14));
     btnSave->setObjectName("btnSave");
 
     buttonRow->addWidget(btnReset);

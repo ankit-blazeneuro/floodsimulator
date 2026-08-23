@@ -1,4 +1,5 @@
 #include "PlaceCard.h"
+#include "IconHelper.h"
 #include <QGraphicsDropShadowEffect>
 #include <QHeaderView>
 #include <QClipboard>
@@ -148,7 +149,8 @@ void PlaceCard::setupUi() {
     auto* actionLayout = new QHBoxLayout();
     actionLayout->setSpacing(8);
 
-    btnZoomIn = new QPushButton("🔍 Zoom In", container);
+    btnZoomIn = new QPushButton("Zoom In", container);
+    btnZoomIn->setIcon(IconHelper::zoomIn(QColor(32, 33, 36), 16));
     btnZoomIn->setStyleSheet(R"(
         QPushButton {
             background-color: #8AB4F8;
@@ -168,7 +170,8 @@ void PlaceCard::setupUi() {
         }
     )");
 
-    btnMeasure = new QPushButton("📏 Measure", container);
+    btnMeasure = new QPushButton("Measure", container);
+    btnMeasure->setIcon(IconHelper::ruler(QColor(138, 180, 248), 16));
     btnMeasure->setStyleSheet(R"(
         QPushButton {
             background-color: #303134;

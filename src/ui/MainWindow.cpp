@@ -1,4 +1,5 @@
 #include "MainWindow.h"
+#include "IconHelper.h"
 #include "../core/OsmPbfLoader.h"
 #include "../core/MapDataCache.h"
 #include <QtConcurrent/QtConcurrent>
@@ -48,7 +49,7 @@ LoadingOverlay::LoadingOverlay(QWidget* parent) : QWidget(parent) {
     layout->setContentsMargins(24, 20, 24, 20);
     layout->setSpacing(10);
 
-    lblLogo = new QLabel("🗺️ Assam & India Flood Simulator", card);
+    lblLogo = new QLabel("Assam & India Flood Simulator", card);
     lblLogo->setAlignment(Qt::AlignCenter);
     lblLogo->setStyleSheet("font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; font-weight: bold; color: #FFFFFF;");
 
@@ -128,15 +129,15 @@ void MainWindow::applyTheme(AppTheme theme) {
 
     if (theme == AppTheme::SystemDefault) {
         isDark = isSystemDarkTheme();
-        lblTheme->setText(isDark ? "🖥️ System (Dark)" : "🖥️ System (Light)");
+        lblTheme->setText(isDark ? "System (Dark)" : "System (Light)");
         if (actionThemeSystem) actionThemeSystem->setChecked(true);
     } else if (theme == AppTheme::Dark) {
         isDark = true;
-        lblTheme->setText("🌙 Dark");
+        lblTheme->setText("Dark");
         if (actionThemeDark) actionThemeDark->setChecked(true);
     } else {
         isDark = false;
-        lblTheme->setText("☀️ Light");
+        lblTheme->setText("Light");
         if (actionThemeLight) actionThemeLight->setChecked(true);
     }
 
@@ -303,13 +304,13 @@ void MainWindow::setupMenuBar() {
     auto* mapModeGroup = new QActionGroup(this);
     mapModeGroup->setExclusive(true);
 
-    actionOnline = viewMenu->addAction("🌐  Online Map (OpenStreetMap - Full India)");
+    actionOnline = viewMenu->addAction(IconHelper::map(QColor(138, 180, 248), 16), "Online Map (OpenStreetMap - Full India)");
     actionOnline->setCheckable(true);
     actionOnline->setChecked(true);
     actionOnline->setActionGroup(mapModeGroup);
     connect(actionOnline, &QAction::triggered, this, &MainWindow::switchToOnline);
 
-    actionOffline = viewMenu->addAction("💾  Offline Map (Local MBTiles - Assam)");
+    actionOffline = viewMenu->addAction(IconHelper::map(QColor(253, 214, 99), 16), "Offline Map (Local MBTiles - Assam)");
     actionOffline->setCheckable(true);
     actionOffline->setChecked(false);
     actionOffline->setActionGroup(mapModeGroup);
@@ -318,11 +319,11 @@ void MainWindow::setupMenuBar() {
     viewMenu->addSeparator();
 
     // Theme Submenu
-    themeMenu = viewMenu->addMenu("🎨  Theme");
+    themeMenu = viewMenu->addMenu(IconHelper::sunFog(QColor(167, 139, 250), 16), "Theme");
     auto* themeGroup = new QActionGroup(this);
     themeGroup->setExclusive(true);
 
-    actionThemeSystem = themeMenu->addAction("🖥️  System Default");
+    actionThemeSystem = themeMenu->addAction(IconHelper::sunFog(QColor(167, 139, 250), 16), "System Default");
     actionThemeSystem->setCheckable(true);
     actionThemeSystem->setChecked(true);
     actionThemeSystem->setActionGroup(themeGroup);
@@ -330,14 +331,14 @@ void MainWindow::setupMenuBar() {
         applyTheme(AppTheme::SystemDefault);
     });
 
-    actionThemeDark = themeMenu->addAction("🌙  Dark Theme");
+    actionThemeDark = themeMenu->addAction(IconHelper::fog(QColor(167, 139, 250), 16), "Dark Theme");
     actionThemeDark->setCheckable(true);
     actionThemeDark->setActionGroup(themeGroup);
     connect(actionThemeDark, &QAction::triggered, this, [this]() {
         applyTheme(AppTheme::Dark);
     });
 
-    actionThemeLight = themeMenu->addAction("☀️  Light Theme");
+    actionThemeLight = themeMenu->addAction(IconHelper::sunFog(QColor(253, 214, 99), 16), "Light Theme");
     actionThemeLight->setCheckable(true);
     actionThemeLight->setActionGroup(themeGroup);
     connect(actionThemeLight, &QAction::triggered, this, [this]() {
@@ -345,11 +346,11 @@ void MainWindow::setupMenuBar() {
     });
 
     // Online Map Style Submenu
-    onlineStylesMenu = viewMenu->addMenu("🗺️  Tile Style Presets");
+    onlineStylesMenu = viewMenu->addMenu(IconHelper::map(QColor(138, 180, 248), 16), "Tile Style Presets");
     auto* styleGroup = new QActionGroup(this);
     styleGroup->setExclusive(true);
 
-    actionOsmStandard = onlineStylesMenu->addAction("🗺️  OpenStreetMap Standard (Vibrant Color)");
+    actionOsmStandard = onlineStylesMenu->addAction(IconHelper::map(QColor(138, 180, 248), 16), "OpenStreetMap Standard (Vibrant Color)");
     actionOsmStandard->setCheckable(true);
     actionOsmStandard->setChecked(true);
     actionOsmStandard->setActionGroup(styleGroup);
@@ -358,7 +359,7 @@ void MainWindow::setupMenuBar() {
         switchToOnline();
     });
 
-    actionOsmVoyager = onlineStylesMenu->addAction("🌍  Carto Voyager (Rich Hydro & Terrain)");
+    actionOsmVoyager = onlineStylesMenu->addAction(IconHelper::map(QColor(138, 180, 248), 16), "Carto Voyager (Rich Hydro & Terrain)");
     actionOsmVoyager->setCheckable(true);
     actionOsmVoyager->setActionGroup(styleGroup);
     connect(actionOsmVoyager, &QAction::triggered, this, [this]() {
@@ -366,7 +367,7 @@ void MainWindow::setupMenuBar() {
         switchToOnline();
     });
 
-    actionOsmDe = onlineStylesMenu->addAction("🇩🇪  OpenStreetMap (Fast Mirror)");
+    actionOsmDe = onlineStylesMenu->addAction(IconHelper::map(QColor(138, 180, 248), 16), "OpenStreetMap (Fast Mirror)");
     actionOsmDe->setCheckable(true);
     actionOsmDe->setActionGroup(styleGroup);
     connect(actionOsmDe, &QAction::triggered, this, [this]() {
@@ -374,7 +375,7 @@ void MainWindow::setupMenuBar() {
         switchToOnline();
     });
 
-    actionOsmDark = onlineStylesMenu->addAction("🌙  Carto Dark (Night Navigation)");
+    actionOsmDark = onlineStylesMenu->addAction(IconHelper::fog(QColor(138, 180, 248), 16), "Carto Dark (Night Navigation)");
     actionOsmDark->setCheckable(true);
     actionOsmDark->setActionGroup(styleGroup);
     connect(actionOsmDark, &QAction::triggered, this, [this]() {
@@ -384,17 +385,17 @@ void MainWindow::setupMenuBar() {
 
     viewMenu->addSeparator();
 
-    actionToggleSidebar = viewMenu->addAction("📊  Toggle Properties Panel");
+    actionToggleSidebar = viewMenu->addAction(IconHelper::graph(QColor(138, 180, 248), 16), "Toggle Properties Panel");
     actionToggleSidebar->setShortcut(QKeySequence("Ctrl+B"));
     connect(actionToggleSidebar, &QAction::triggered, this, &MainWindow::togglePropertiesPanel);
 
-    actionToggleTimeline = viewMenu->addAction("⏱  Toggle Timeline");
+    actionToggleTimeline = viewMenu->addAction(IconHelper::ruler(QColor(138, 180, 248), 16), "Toggle Timeline");
     actionToggleTimeline->setShortcut(QKeySequence("Ctrl+T"));
     connect(actionToggleTimeline, &QAction::triggered, this, &MainWindow::toggleTimeline);
 
     viewMenu->addSeparator();
 
-    actionFullscreen = viewMenu->addAction("⛶  Toggle Fullscreen");
+    actionFullscreen = viewMenu->addAction("Toggle Fullscreen");
     actionFullscreen->setShortcut(QKeySequence("F11"));
     connect(actionFullscreen, &QAction::triggered, this, [this]() {
         if (isFullScreen()) {
@@ -407,14 +408,14 @@ void MainWindow::setupMenuBar() {
     // ---- 3. Settings Menu ----
     settingsMenu = appMenuBar->addMenu("&Settings");
 
-    actionOpenSettings = settingsMenu->addAction("⚙️  Configure Settings...");
+    actionOpenSettings = settingsMenu->addAction(IconHelper::radar(QColor(138, 180, 248), 16), "Configure Settings...");
     actionOpenSettings->setShortcut(QKeySequence("Ctrl+,"));
     connect(actionOpenSettings, &QAction::triggered, this, &MainWindow::openSettingsDialog);
 
     settingsMenu->addSeparator();
 
     // Quick Zoom Sensitivity Presets
-    auto* sensSubMenu = settingsMenu->addMenu("🔍  Zoom Sensitivity");
+    auto* sensSubMenu = settingsMenu->addMenu(IconHelper::zoomIn(QColor(138, 180, 248), 16), "Zoom Sensitivity");
     auto* sensGroup = new QActionGroup(this);
     sensGroup->setExclusive(true);
 
@@ -536,7 +537,8 @@ void MainWindow::setupUi() {
     layerPanel = new LayerPanel(mapContainer);
     layerPanel->hide();
 
-    btnToggleLayers = new QPushButton("🥞 Layers", mapContainer);
+    btnToggleLayers = new QPushButton("Layers", mapContainer);
+    btnToggleLayers->setIcon(IconHelper::map(QColor(200, 200, 205), 16));
     btnToggleLayers->setStyleSheet(R"(
         QPushButton {
             background-color: #242424;
@@ -571,7 +573,8 @@ void MainWindow::setupUi() {
     miniMap = new MiniMap(mapContainer);
     miniMap->hide();
 
-    btnToggleMiniMap = new QPushButton("🗺️ Minimap", mapContainer);
+    btnToggleMiniMap = new QPushButton("Minimap", mapContainer);
+    btnToggleMiniMap->setIcon(IconHelper::radar(QColor(200, 200, 205), 16));
     btnToggleMiniMap->setStyleSheet(btnToggleLayers->styleSheet());
     btnToggleMiniMap->setCheckable(true);
 
@@ -605,9 +608,9 @@ void MainWindow::setupUi() {
     lblFeatureCount = new QLabel("Loading...", statusHud);
     lblFps = new QLabel("60 FPS", statusHud);
     lblFps->setStyleSheet("font-weight: bold; color: #81C995;");
-    lblMapMode = new QLabel("🌐 Online", statusHud);
+    lblMapMode = new QLabel("Online", statusHud);
     lblMapMode->setStyleSheet("font-weight: bold; color: #8AB4F8;");
-    lblTheme = new QLabel("🖥️ System", statusHud);
+    lblTheme = new QLabel("System", statusHud);
     lblTheme->setStyleSheet("font-weight: bold; color: #A78BFA;");
 
     hudLayout->addWidget(lblMapMode);
@@ -732,7 +735,7 @@ void MainWindow::switchToOnline() {
     mapStack->setCurrentIndex(0);
     actionOnline->setChecked(true);
 
-    lblMapMode->setText("🌐 Online");
+    lblMapMode->setText("Online");
     lblMapMode->setStyleSheet("font-weight: bold; color: #8AB4F8;");
 
     miniMap->setMode(MiniMapMode::Online_India);
@@ -749,7 +752,7 @@ void MainWindow::switchToOffline() {
     mapStack->setCurrentIndex(1);
     actionOffline->setChecked(true);
 
-    lblMapMode->setText("💾 Offline");
+    lblMapMode->setText("Offline");
     lblMapMode->setStyleSheet("font-weight: bold; color: #FDD663;");
 
     miniMap->setMode(MiniMapMode::Offline_Assam);

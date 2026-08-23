@@ -49,6 +49,7 @@ set(SOURCES
     src/ui/SettingsDialog.cpp
     src/ui/TimelineWidget.cpp
     src/ui/PropertiesPanel.cpp
+    src/assets/resources.qrc
 )
 
 # Application Executable Target

@@ -1,4 +1,5 @@
 #include "PropertiesPanel.h"
+#include "IconHelper.h"
 
 namespace MapUI {
 
@@ -200,12 +201,12 @@ void PropertiesPanel::setupUi() {
 
     rootLayout->addWidget(topHeader);
 
-    // Tab Widget
+    // Tab Widget with SVG Icons
     tabWidget = new QTabWidget(this);
-    tabWidget->addTab(createFluidTab(), "🌊 Fluid");
-    tabWidget->addTab(createTerrainTab(), "🏔️ Terrain");
-    tabWidget->addTab(createTelemetryTab(), "📊 Gauges");
-    tabWidget->addTab(createDisplayTab(), "👁️ View");
+    tabWidget->addTab(createFluidTab(), IconHelper::rain(QColor(138, 180, 248), 16), "Fluid");
+    tabWidget->addTab(createTerrainTab(), IconHelper::sunFog(QColor(129, 201, 149), 16), "Terrain");
+    tabWidget->addTab(createTelemetryTab(), IconHelper::radar(QColor(253, 214, 99), 16), "Gauges");
+    tabWidget->addTab(createDisplayTab(), IconHelper::map(QColor(167, 139, 250), 16), "View");
 
     rootLayout->addWidget(tabWidget, 1);
 }
@@ -278,11 +279,13 @@ QWidget* PropertiesPanel::createFluidTab() {
     // Section 3: Bake & Execution
     auto* secBake = new CollapsibleSection("Bake Simulation", container);
 
-    btnBakeSim = new QPushButton("🌊 Bake Simulation (Assam)", container);
+    btnBakeSim = new QPushButton("Bake Simulation (Assam)", container);
+    btnBakeSim->setIcon(IconHelper::rain(Qt::white, 16));
     btnBakeSim->setObjectName("btnBake");
     secBake->addWidget(btnBakeSim);
 
-    btnResetSim = new QPushButton("🔄 Clear Cache & Reset", container);
+    btnResetSim = new QPushButton("Clear Cache & Reset", container);
+    btnResetSim->setIcon(IconHelper::rewind(QColor(212, 212, 216), 14));
     btnResetSim->setObjectName("btnReset");
     secBake->addWidget(btnResetSim);
 
@@ -364,11 +367,11 @@ QWidget* PropertiesPanel::createTelemetryTab() {
         return card;
     };
 
-    secStations->addWidget(makeGauge("📍 Guwahati (Brahmaputra)", "49.68 m", "▲ ALERT (+0.68m)", "#E26D1E"));
-    secStations->addWidget(makeGauge("📍 Dibrugarh", "104.24 m", "● NORMAL", "#81C995"));
-    secStations->addWidget(makeGauge("📍 Tezpur", "64.20 m", "● NORMAL", "#81C995"));
-    secStations->addWidget(makeGauge("📍 Dhubri", "29.10 m", "▲ WARNING", "#FDD663"));
-    secStations->addWidget(makeGauge("📍 Nematighat (Jorhat)", "85.90 m", "▲ HIGH", "#E26D1E"));
+    secStations->addWidget(makeGauge("Guwahati (Brahmaputra)", "49.68 m", "ALERT (+0.68m)", "#E26D1E"));
+    secStations->addWidget(makeGauge("Dibrugarh", "104.24 m", "NORMAL", "#81C995"));
+    secStations->addWidget(makeGauge("Tezpur", "64.20 m", "NORMAL", "#81C995"));
+    secStations->addWidget(makeGauge("Dhubri", "29.10 m", "WARNING", "#FDD663"));
+    secStations->addWidget(makeGauge("Nematighat (Jorhat)", "85.90 m", "HIGH", "#E26D1E"));
 
     layout->addWidget(secStations);
     layout->addStretch();

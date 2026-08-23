@@ -1,4 +1,5 @@
 #include "SearchBar.h"
+#include "IconHelper.h"
 #include <QGraphicsDropShadowEffect>
 #include <QLabel>
 #include <QKeyEvent>
@@ -15,7 +16,7 @@ void SearchBar::setSearchIndex(const std::vector<MapCore::SearchItem>& index) {
 }
 
 void SearchBar::setupUi() {
-    setFixedWidth(380);
+    setFixedWidth(440);
 
     auto* mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(0, 0, 0, 0);
@@ -42,9 +43,10 @@ void SearchBar::setupUi() {
     cardLayout->setContentsMargins(12, 6, 8, 6);
     cardLayout->setSpacing(8);
 
-    btnSearchIcon = new QPushButton("🔍", cardWidget);
+    btnSearchIcon = new QPushButton(cardWidget);
+    btnSearchIcon->setIcon(IconHelper::zoomIn(QColor(138, 180, 248), 18));
     btnSearchIcon->setFlat(true);
-    btnSearchIcon->setStyleSheet("QPushButton { border: none; font-size: 15px; color: #FFFFFF; font-weight: bold; }");
+    btnSearchIcon->setStyleSheet("QPushButton { border: none; }");
 
     searchInput = new QLineEdit(cardWidget);
     searchInput->setPlaceholderText("Search places, cities, highways (e.g. Guwahati, Delhi, NH 27)...");
@@ -124,11 +126,11 @@ void SearchBar::setupUi() {
         chipsLayout->addWidget(chip);
     };
 
-    makeChip("🏙️ Guwahati", MapCore::FeatureCategory::PLACE_CITY, "Guwahati");
-    makeChip("🏙️ Dibrugarh", MapCore::FeatureCategory::PLACE_CITY, "Dibrugarh");
-    makeChip("🛣️ Highways", MapCore::FeatureCategory::HIGHWAY_TRUNK, "NH");
-    makeChip("🌊 Rivers", MapCore::FeatureCategory::WATER_RIVER, "Brahmaputra");
-    makeChip("🏥 Hospitals", MapCore::FeatureCategory::POI_HOSPITAL, "Hospital");
+    makeChip("Guwahati", MapCore::FeatureCategory::PLACE_CITY, "Guwahati");
+    makeChip("Dibrugarh", MapCore::FeatureCategory::PLACE_CITY, "Dibrugarh");
+    makeChip("Highways", MapCore::FeatureCategory::HIGHWAY_TRUNK, "NH");
+    makeChip("Rivers", MapCore::FeatureCategory::WATER_RIVER, "Brahmaputra");
+    makeChip("Hospitals", MapCore::FeatureCategory::POI_HOSPITAL, "Hospital");
 
     // 3. Dropdown Suggestion List (Dark Theme)
     suggestionList = new QListWidget(this);
