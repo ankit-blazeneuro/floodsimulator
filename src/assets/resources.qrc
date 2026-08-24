@@ -28,6 +28,7 @@
         <file alias="compass.svg">icons/compass.svg</file>
         <file alias="info.svg">icons/info.svg</file>
         <file alias="danger.svg">icons/danger.svg</file>
+        <file alias="target.svg">icons/target.svg</file>
         <file alias="loader-circle.svg">icons/loader-circle.svg</file>
     </qresource>
 </RCC>

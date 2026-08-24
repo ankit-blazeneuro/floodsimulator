@@ -177,6 +177,9 @@ public:
     static QIcon alert(const QColor& color = QColor(244, 63, 94), int size = 18) {
         return get("danger", color, size);
     }
+    static QIcon target(const QColor& color = QColor(244, 244, 245), int size = 16) {
+        return get("target", color, size);
+    }
 };
 
 } // namespace MapUI

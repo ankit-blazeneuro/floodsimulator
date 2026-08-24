@@ -808,8 +808,10 @@ QWidget* PropertiesPanel::createDamTab() {
     spinDamInflowMultiplier->setSuffix(" x");
     secPref->addWidget(makeSpinRow("Inflow Multiplier:", spinDamInflowMultiplier));
 
-    btnCenterOnDam = new QPushButton("🎯 Center Map on Dam", container);
+    btnCenterOnDam = new QPushButton(" Center Map on Dam", container);
     btnCenterOnDam->setObjectName("btnActionBlue");
+    btnCenterOnDam->setIcon(IconHelper::target(QColor(244, 244, 245), 16));
+    btnCenterOnDam->setIconSize(QSize(16, 16));
     secPref->addWidget(btnCenterOnDam);
 
     btnSimulateDam = new QPushButton("🌊 Run Localized Inundation", container);
@@ -1204,9 +1206,11 @@ void PropertiesPanel::updateDangerZones(const std::vector<MapCore::DangerZone>& 
         addCardRow("Critical Assets:", z.criticalInfrastructure);
         addCardRow("Action Advice:", z.evacuationAdvice, isInundated ? "#EF4444" : "#FFFFFF");
 
-        // Locate Button (Same button styling as btnCenterOnDam in Info tab)
-        auto* btnLocate = new QPushButton("🎯 Locate Zone on Map", card);
+        // Locate Button with target.svg icon
+        auto* btnLocate = new QPushButton(" Locate Zone on Map", card);
         btnLocate->setObjectName("btnActionBlue");
+        btnLocate->setIcon(IconHelper::target(QColor(244, 244, 245), 16));
+        btnLocate->setIconSize(QSize(16, 16));
         double zLat = z.lat;
         double zLon = z.lon;
         connect(btnLocate, &QPushButton::clicked, this, [this, zLat, zLon]() {
