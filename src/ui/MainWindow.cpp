@@ -225,7 +225,7 @@ void MainWindow::toggleTimeline() {
     bool nextVisible = !timelineWidget->isVisible();
     timelineWidget->setVisible(nextVisible);
     if (nextVisible) {
-        vSplitter->setSizes({ vSplitter->height() - 140, 140 });
+        vSplitter->setSizes({ vSplitter->height() - 188, 188 });
     }
     updateFloatingPositions();
 }
@@ -571,29 +571,27 @@ void MainWindow::setupMenuBar() {
 void MainWindow::setupUi() {
     // 0. Horizontal QSplitter for Center vs Right Properties Panel
     mainSplitter = new QSplitter(Qt::Horizontal, this);
+    mainSplitter->setHandleWidth(2);
     mainSplitter->setStyleSheet(R"(
         QSplitter::handle:horizontal {
-            background-color: #1A1A1A;
-            width: 5px;
-            border-left: 1px solid #141414;
-            border-right: 1px solid #141414;
+            background-color: #27272A;
+            width: 2px;
         }
         QSplitter::handle:horizontal:hover {
-            background-color: #4772B3;
+            background-color: #38BDF8;
         }
         QSplitter::handle:vertical {
-            background-color: #1A1A1A;
-            height: 5px;
-            border-top: 1px solid #141414;
-            border-bottom: 1px solid #141414;
+            background-color: #27272A;
+            height: 2px;
         }
         QSplitter::handle:vertical:hover {
-            background-color: #4772B3;
+            background-color: #38BDF8;
         }
     )");
 
     // 1. Vertical QSplitter for Map (Top) vs Resizable Timeline (Bottom)
     vSplitter = new QSplitter(Qt::Vertical, mainSplitter);
+    vSplitter->setHandleWidth(2);
 
     // Map Container Widget
     mapContainer = new QWidget(vSplitter);
@@ -624,7 +622,7 @@ void MainWindow::setupUi() {
     vSplitter->addWidget(timelineWidget);
     vSplitter->setCollapsible(0, false);
     vSplitter->setCollapsible(1, true);
-    vSplitter->setSizes({ 640, 140 });
+    vSplitter->setSizes({ 592, 188 });
 
     // Right Properties Panel
     propertiesPanel = new PropertiesPanel(mainSplitter);

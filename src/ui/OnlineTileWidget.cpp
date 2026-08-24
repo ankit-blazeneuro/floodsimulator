@@ -7,6 +7,7 @@
 #include <QResizeEvent>
 #include <cmath>
 #include <algorithm>
+#include <functional>
 #include <iostream>
 
 namespace MapUI {
@@ -246,6 +247,9 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
         }
     }
 
+    // Container for Highest Z-Index Tooltips & Floating Badges (Rendered over all geometry)
+    std::vector<std::function<void(QPainter&)>> topTooltips;
+
     // --- Render Indian Dams (#54D59A Mint Green Dots with 3D-Style Viewport Frustum Culling) ---
     if (damManager && showDams && damManager->hasData()) {
         const QColor dotColor(0x54, 0xD5, 0x9A); // #54D59A
@@ -284,22 +288,23 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
             painter.setBrush(dotColor);
             painter.drawEllipse(QPointF(sx, sy), radius, radius);
 
-            // Render Dam Name text when zoomed in (zoom >= 8) rotated with the map (shadcn style)
+            // Defer Dam Name Tooltip to Top Z-Index Layer
             if (zoomLevel >= 8 && !dam->name.isEmpty()) {
-                QFont damFont("Segoe UI", (zoomLevel >= 11) ? 8 : 7, QFont::DemiBold);
-                painter.setFont(damFont);
-                QFontMetricsF dfm(damFont);
-                QString dName = dam->name;
-                double tw = dfm.horizontalAdvance(dName);
-                double th = dfm.height();
+                topTooltips.push_back([sx, sy, radius, zoom = zoomLevel, dName = dam->name](QPainter& p) {
+                    QFont damFont("Segoe UI", (zoom >= 11) ? 8 : 7, QFont::DemiBold);
+                    p.setFont(damFont);
+                    QFontMetricsF dfm(damFont);
+                    double tw = dfm.horizontalAdvance(dName);
+                    double th = dfm.height();
 
-                QRectF textBgRect(sx + radius + 4, sy - th / 2.0 - 1, tw + 8, th + 3);
-                painter.setBrush(QColor(24, 24, 27, 255)); // 100% opacity solid gray
-                painter.setPen(QPen(QColor(63, 63, 70, 255), 1.0)); // shadcn zinc-700 border
-                painter.drawRoundedRect(textBgRect, 5.0, 5.0);
+                    QRectF textBgRect(sx + radius + 4, sy - th / 2.0 - 1, tw + 8, th + 3);
+                    p.setBrush(QColor(24, 24, 27, 255)); // 100% opacity solid gray
+                    p.setPen(QPen(QColor(63, 63, 70, 255), 1.0)); // shadcn zinc-700 border
+                    p.drawRoundedRect(textBgRect, 5.0, 5.0);
 
-                painter.setPen(QColor(244, 244, 245)); // shadcn zinc-100
-                painter.drawText(textBgRect, Qt::AlignCenter, dName);
+                    p.setPen(QColor(244, 244, 245)); // shadcn zinc-100
+                    p.drawText(textBgRect, Qt::AlignCenter, dName);
+                });
             }
         }
     }
@@ -323,20 +328,21 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
             painter.drawEllipse(sPos, 3.5, 3.5);
 
             if (!dam->name.isEmpty()) {
-                QFont selFont("Segoe UI", 9, QFont::DemiBold);
-                painter.setFont(selFont);
-                QFontMetricsF sfm(selFont);
-                QString sName = dam->name;
-                double tw = sfm.horizontalAdvance(sName);
-                double th = sfm.height();
+                topTooltips.push_back([sx, sy, sName = dam->name](QPainter& p) {
+                    QFont selFont("Segoe UI", 9, QFont::DemiBold);
+                    p.setFont(selFont);
+                    QFontMetricsF sfm(selFont);
+                    double tw = sfm.horizontalAdvance(sName);
+                    double th = sfm.height();
 
-                QRectF selBgRect(sx + 10, sy - th / 2.0 - 2, tw + 10, th + 4);
-                painter.setBrush(QColor(24, 24, 27, 255)); // 100% opacity solid gray
-                painter.setPen(QPen(QColor(63, 63, 70, 255), 1.0)); // shadcn zinc-700 border
-                painter.drawRoundedRect(selBgRect, 6.0, 6.0);
+                    QRectF selBgRect(sx + 10, sy - th / 2.0 - 2, tw + 10, th + 4);
+                    p.setBrush(QColor(24, 24, 27, 255)); // 100% opacity solid gray
+                    p.setPen(QPen(QColor(63, 63, 70, 255), 1.0)); // shadcn zinc-700 border
+                    p.drawRoundedRect(selBgRect, 6.0, 6.0);
 
-                painter.setPen(QColor(244, 244, 245));
-                painter.drawText(selBgRect, Qt::AlignCenter, sName);
+                    p.setPen(QColor(244, 244, 245));
+                    p.drawText(selBgRect, Qt::AlignCenter, sName);
+                });
             }
         }
     }
@@ -372,18 +378,20 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
             ? QString("%1 × %2 px").arg(qRound(boxRect.width())).arg(qRound(boxRect.height()))
             : QString("%1 dams (%2 × %3 px)").arg(previewDams.size()).arg(qRound(boxRect.width())).arg(qRound(boxRect.height()));
 
-        QFont badgeFont("Segoe UI", 8, QFont::Bold);
-        painter.setFont(badgeFont);
-        QFontMetricsF bfm(badgeFont);
-        QRectF badgeRect(boxRect.right() - bfm.horizontalAdvance(badgeText) - 10, boxRect.bottom() + 4,
-                         bfm.horizontalAdvance(badgeText) + 10, bfm.height() + 4);
+        topTooltips.push_back([boxRect, badgeText](QPainter& p) {
+            QFont badgeFont("Segoe UI", 8, QFont::Bold);
+            p.setFont(badgeFont);
+            QFontMetricsF bfm(badgeFont);
+            QRectF badgeRect(boxRect.right() - bfm.horizontalAdvance(badgeText) - 10, boxRect.bottom() + 4,
+                             bfm.horizontalAdvance(badgeText) + 10, bfm.height() + 4);
 
-        painter.setBrush(QColor(20, 20, 24, 230));
-        painter.setPen(QPen(QColor(138, 180, 248, 180), 1.0));
-        painter.drawRoundedRect(badgeRect, 3.0, 3.0);
+            p.setBrush(QColor(20, 20, 24, 230));
+            p.setPen(QPen(QColor(138, 180, 248, 180), 1.0));
+            p.drawRoundedRect(badgeRect, 3.0, 3.0);
 
-        painter.setPen(QColor(240, 240, 245));
-        painter.drawText(badgeRect, Qt::AlignCenter, badgeText);
+            p.setPen(QColor(240, 240, 245));
+            p.drawText(badgeRect, Qt::AlignCenter, badgeText);
+        });
     }
 
     // --- Render Distance Measurement Path & Pins (Ruler Tool) ---
@@ -422,17 +430,19 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                 ? QString("+%1 m").arg(qRound(segDistM))
                 : QString("+%1 km").arg(segDistM / 1000.0, 0, 'f', 2);
 
-            QFont liveFont("Segoe UI", 8, QFont::Bold);
-            painter.setFont(liveFont);
-            QFontMetricsF lfm(liveFont);
-            QRectF liveRect(cursorPt.x() + 12, cursorPt.y() - 10, lfm.horizontalAdvance(liveText) + 12, lfm.height() + 4);
+            topTooltips.push_back([cursorPt, liveText, rulerLineColor](QPainter& p) {
+                QFont liveFont("Segoe UI", 8, QFont::Bold);
+                p.setFont(liveFont);
+                QFontMetricsF lfm(liveFont);
+                QRectF liveRect(cursorPt.x() + 12, cursorPt.y() - 10, lfm.horizontalAdvance(liveText) + 12, lfm.height() + 4);
 
-            painter.setBrush(QColor(24, 24, 27, 230));
-            painter.setPen(QPen(rulerLineColor, 1.0));
-            painter.drawRoundedRect(liveRect, 4, 4);
+                p.setBrush(QColor(24, 24, 27, 255));
+                p.setPen(QPen(rulerLineColor, 1.0));
+                p.drawRoundedRect(liveRect, 4, 4);
 
-            painter.setPen(QColor(220, 220, 225));
-            painter.drawText(liveRect, Qt::AlignCenter, liveText);
+                p.setPen(QColor(220, 220, 225));
+                p.drawText(liveRect, Qt::AlignCenter, liveText);
+            });
         }
 
         // 3. Draw Waypoint Pins & Cumulative Distance Badges
@@ -457,17 +467,19 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                 ? QString("%1 m").arg(qRound(totalDistM))
                 : QString("%1 km").arg(totalDistM / 1000.0, 0, 'f', 2));
 
-            QFont badgeFont("Segoe UI", 9, QFont::Bold);
-            painter.setFont(badgeFont);
-            QFontMetricsF bfm(badgeFont);
-            QRectF badgeRect(ptScreen.x() + 10, ptScreen.y() - 12, bfm.horizontalAdvance(distText) + 14, bfm.height() + 5);
+            topTooltips.push_back([ptScreen, distText](QPainter& p) {
+                QFont badgeFont("Segoe UI", 9, QFont::Bold);
+                p.setFont(badgeFont);
+                QFontMetricsF bfm(badgeFont);
+                QRectF badgeRect(ptScreen.x() + 10, ptScreen.y() - 12, bfm.horizontalAdvance(distText) + 14, bfm.height() + 5);
 
-            painter.setBrush(QColor(24, 24, 27, 240));
-            painter.setPen(QPen(QColor(255, 255, 255, 180), 1.0));
-            painter.drawRoundedRect(badgeRect, 4, 4);
+                p.setBrush(QColor(24, 24, 27, 255));
+                p.setPen(QPen(QColor(255, 255, 255, 180), 1.0));
+                p.drawRoundedRect(badgeRect, 4, 4);
 
-            painter.setPen(Qt::white);
-            painter.drawText(badgeRect, Qt::AlignCenter, distText);
+                p.setPen(Qt::white);
+                p.drawText(badgeRect, Qt::AlignCenter, distText);
+            });
         }
     }
 
@@ -573,24 +585,26 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                     painter.setBrush(Qt::NoBrush);
                     painter.drawEllipse(poolCenterScreen, 6.0 + ripplePhase, 4.0 + ripplePhase * 0.7);
 
-                    // Trapped Basin Description Tooltip (shadcn tooltip style, no icons)
+                    // Defer Trapped Basin Tooltip to Top Z-Index Layer
                     if (zoomLevel >= 8) {
                         QString poolLabel = QString("%1 · %2 MCM · %3m")
                             .arg(pool.name.section(':', 0, 0))
                             .arg(pool.volumeMCM, 0, 'f', 1)
                             .arg(pool.depthM, 0, 'f', 1);
 
-                        QFont pFont("Segoe UI", 7, QFont::DemiBold);
-                        painter.setFont(pFont);
-                        QFontMetricsF pfm(pFont);
-                        QRectF pRect(poolCenterScreen.x() - pfm.horizontalAdvance(poolLabel) / 2.0 - 6,
-                                     poolCenterScreen.y() - pfm.height() / 2.0 - 2,
-                                     pfm.horizontalAdvance(poolLabel) + 12, pfm.height() + 4);
-                        painter.setBrush(QColor(24, 24, 27, 255)); // 100% opacity solid gray
-                        painter.setPen(QPen(QColor(63, 63, 70, 255), 1.0));
-                        painter.drawRoundedRect(pRect, 5.0, 5.0);
-                        painter.setPen(QColor(244, 244, 245)); // shadcn zinc-100 text
-                        painter.drawText(pRect, Qt::AlignCenter, poolLabel);
+                        topTooltips.push_back([poolCenterScreen, poolLabel](QPainter& p) {
+                            QFont pFont("Segoe UI", 7, QFont::DemiBold);
+                            p.setFont(pFont);
+                            QFontMetricsF pfm(pFont);
+                            QRectF pRect(poolCenterScreen.x() - pfm.horizontalAdvance(poolLabel) / 2.0 - 6,
+                                         poolCenterScreen.y() - pfm.height() / 2.0 - 2,
+                                         pfm.horizontalAdvance(poolLabel) + 12, pfm.height() + 4);
+                            p.setBrush(QColor(24, 24, 27, 255)); // 100% opacity solid gray
+                            p.setPen(QPen(QColor(63, 63, 70, 255), 1.0));
+                            p.drawRoundedRect(pRect, 5.0, 5.0);
+                            p.setPen(QColor(244, 244, 245)); // shadcn zinc-100 text
+                            p.drawText(pRect, Qt::AlignCenter, poolLabel);
+                        });
                     }
 
                     // 3. Saddle Overtopping Cascade (Water spills over ridge into next reach)
@@ -608,16 +622,18 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
 
                         if (zoomLevel >= 8) {
                             QString spillText = "Saddle Spill";
-                            QFont sFont("Segoe UI", 7, QFont::DemiBold);
-                            painter.setFont(sFont);
-                            QFontMetricsF sfm(sFont);
-                            QRectF sRect(spillScreen.x() + 8, spillScreen.y() - sfm.height() / 2.0 - 2,
-                                         sfm.horizontalAdvance(spillText) + 10, sfm.height() + 4);
-                            painter.setBrush(QColor(24, 24, 27, 255)); // 100% opacity solid gray
-                            painter.setPen(QPen(QColor(63, 63, 70, 255), 1.0));
-                            painter.drawRoundedRect(sRect, 5.0, 5.0);
-                            painter.setPen(QColor(253, 214, 99));
-                            painter.drawText(sRect, Qt::AlignCenter, spillText);
+                            topTooltips.push_back([spillScreen, spillText](QPainter& p) {
+                                QFont sFont("Segoe UI", 7, QFont::DemiBold);
+                                p.setFont(sFont);
+                                QFontMetricsF sfm(sFont);
+                                QRectF sRect(spillScreen.x() + 8, spillScreen.y() - sfm.height() / 2.0 - 2,
+                                             sfm.horizontalAdvance(spillText) + 10, sfm.height() + 4);
+                                p.setBrush(QColor(24, 24, 27, 255)); // 100% opacity solid gray
+                                p.setPen(QPen(QColor(63, 63, 70, 255), 1.0));
+                                p.drawRoundedRect(sRect, 5.0, 5.0);
+                                p.setPen(QColor(253, 214, 99));
+                                p.drawText(sRect, Qt::AlignCenter, spillText);
+                            });
                         }
                     }
                 }
@@ -709,7 +725,7 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                     }
                 }
 
-                // Milestone Distance Markers (100% opacity solid badge)
+                // Defer Milestone Distance Markers to Top Z-Index Layer
                 for (size_t i = 0; i < activePts.size(); ++i) {
                     if (i > 0 && i % 8 == 0 && i < floodSimulation.rawNodes.size()) {
                         QPointF cPt = activePts[i];
@@ -719,20 +735,22 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                         painter.drawEllipse(cPt, 2.8, 2.8);
 
                         QString dLabel = QString("%1 km").arg(qRound(dist));
-                        QFont mFont("Segoe UI", 7, QFont::DemiBold);
-                        painter.setFont(mFont);
-                        QFontMetricsF mfm(mFont);
-                        QRectF mRect(cPt.x() + 6, cPt.y() - mfm.height() / 2.0 - 1, mfm.horizontalAdvance(dLabel) + 8, mfm.height() + 2);
-                        painter.setBrush(QColor(24, 24, 27, 255)); // 100% opacity solid gray
-                        painter.setPen(QPen(QColor(63, 63, 70, 255), 1.0));
-                        painter.drawRoundedRect(mRect, 4.0, 4.0);
-                        painter.setPen(QColor(228, 228, 231));
-                        painter.drawText(mRect, Qt::AlignCenter, dLabel);
+                        topTooltips.push_back([cPt, dLabel](QPainter& p) {
+                            QFont mFont("Segoe UI", 7, QFont::DemiBold);
+                            p.setFont(mFont);
+                            QFontMetricsF mfm(mFont);
+                            QRectF mRect(cPt.x() + 6, cPt.y() - mfm.height() / 2.0 - 1, mfm.horizontalAdvance(dLabel) + 8, mfm.height() + 2);
+                            p.setBrush(QColor(24, 24, 27, 255)); // 100% opacity solid gray
+                            p.setPen(QPen(QColor(63, 63, 70, 255), 1.0));
+                            p.drawRoundedRect(mRect, 4.0, 4.0);
+                            p.setPen(QColor(228, 228, 231));
+                            p.drawText(mRect, Qt::AlignCenter, dLabel);
+                        });
                     }
                 }
             }
 
-            // 5. Leading Wave Front Distance Marker & Floating Tooltip (100% opacity solid gray)
+            // 5. Leading Wave Front Distance Marker & Floating Tooltip (Top Z-Index Layer)
             if (slice->frontDistanceKm > 0.05) {
                 QPointF frontScreen = toCanvasPoint(slice->leadingFrontPos.x(), slice->leadingFrontPos.y());
 
@@ -746,35 +764,42 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                 painter.setBrush(QColor(253, 214, 99));
                 painter.drawEllipse(frontScreen, 3.5, 3.5);
 
-                // shadcn 100% opacity gray Tooltip Badge
+                // Defer shadcn Tooltip Badge to Top Z-Index Layer
                 QString frontBadge = QString("%1 km · T + %2m")
                     .arg(slice->frontDistanceKm, 0, 'f', 1)
                     .arg(floodSimulation.currentMinute);
 
-                QFont badgeFont("Segoe UI", 8, QFont::DemiBold);
-                painter.setFont(badgeFont);
-                QFontMetricsF bfm(badgeFont);
-                double bw = bfm.horizontalAdvance(frontBadge) + 14.0;
-                double bh = bfm.height() + 6.0;
-                QRectF bRect(frontScreen.x() - bw / 2.0, frontScreen.y() - bh - 10.0, bw, bh);
+                topTooltips.push_back([frontScreen, frontBadge](QPainter& p) {
+                    QFont badgeFont("Segoe UI", 8, QFont::DemiBold);
+                    p.setFont(badgeFont);
+                    QFontMetricsF bfm(badgeFont);
+                    double bw = bfm.horizontalAdvance(frontBadge) + 14.0;
+                    double bh = bfm.height() + 6.0;
+                    QRectF bRect(frontScreen.x() - bw / 2.0, frontScreen.y() - bh - 10.0, bw, bh);
 
-                painter.setBrush(QColor(24, 24, 27, 255)); // 100% opacity solid gray
-                painter.setPen(QPen(QColor(63, 63, 70, 255), 1.0));
-                painter.drawRoundedRect(bRect, 6.0, 6.0);
+                    p.setBrush(QColor(24, 24, 27, 255)); // 100% opacity solid gray
+                    p.setPen(QPen(QColor(63, 63, 70, 255), 1.0));
+                    p.drawRoundedRect(bRect, 6.0, 6.0);
 
-                painter.setPen(QColor(244, 244, 245)); // #F4F4F5 zinc-100
-                painter.drawText(bRect, Qt::AlignCenter, frontBadge);
+                    p.setPen(QColor(244, 244, 245)); // #F4F4F5 zinc-100
+                    p.drawText(bRect, Qt::AlignCenter, frontBadge);
 
-                // Downward pointer arrow (100% opacity)
-                QPolygonF pointerArrow;
-                pointerArrow << QPointF(frontScreen.x() - 4, bRect.bottom())
-                             << QPointF(frontScreen.x() + 4, bRect.bottom())
-                             << QPointF(frontScreen.x(), frontScreen.y() - 1);
-                painter.setBrush(QColor(24, 24, 27, 255));
-                painter.setPen(QPen(QColor(63, 63, 70, 255), 1.0));
-                painter.drawPolygon(pointerArrow);
+                    // Downward pointer arrow (100% opacity)
+                    QPolygonF pointerArrow;
+                    pointerArrow << QPointF(frontScreen.x() - 4, bRect.bottom())
+                                 << QPointF(frontScreen.x() + 4, bRect.bottom())
+                                 << QPointF(frontScreen.x(), frontScreen.y() - 1);
+                    p.setBrush(QColor(24, 24, 27, 255));
+                    p.setPen(QPen(QColor(63, 63, 70, 255), 1.0));
+                    p.drawPolygon(pointerArrow);
+                });
             }
         }
+    }
+
+    // --- Render All Tooltips & Badges at Highest Z-Index (Above all paths, dots, and polygons) ---
+    for (const auto& renderTooltip : topTooltips) {
+        renderTooltip(painter);
     }
 
     // End Rotated Map Scene

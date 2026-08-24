@@ -122,7 +122,7 @@ void SearchBar::focusInput() {
 }
 
 void SearchBar::setupUi() {
-    setFixedWidth(460);
+    setFixedWidth(308);
 
     auto* mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(0, 0, 0, 0);
@@ -149,17 +149,17 @@ void SearchBar::setupUi() {
     setGraphicsEffect(shadow);
 
     auto* cardLayout = new QHBoxLayout(cardWidget);
-    cardLayout->setContentsMargins(12, 6, 10, 6);
-    cardLayout->setSpacing(8);
+    cardLayout->setContentsMargins(10, 6, 8, 6);
+    cardLayout->setSpacing(6);
 
     btnSearchIcon = new QPushButton(cardWidget);
     btnSearchIcon->setIcon(IconHelper::search(QColor(161, 161, 170), 16)); // zinc-400
     btnSearchIcon->setFlat(true);
-    btnSearchIcon->setFixedSize(22, 22);
+    btnSearchIcon->setFixedSize(20, 20);
     btnSearchIcon->setStyleSheet("QPushButton { border: none; background: transparent; }");
 
     searchInput = new QLineEdit(cardWidget);
-    searchInput->setPlaceholderText("Search places, dams, rivers (Ctrl+K)...");
+    searchInput->setPlaceholderText("Search places, dams...");
     searchInput->setStyleSheet(R"(
         QLineEdit {
             border: none;
@@ -268,6 +268,7 @@ void SearchBar::setupUi() {
     suggestionList->hide();
     suggestionList->setMaximumHeight(340);
     suggestionList->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    suggestionList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     mainLayout->addWidget(cardWidget);
     mainLayout->addWidget(suggestionList);
@@ -282,42 +283,34 @@ QWidget* SearchBar::createItemWidget(const SearchResultItem& res) {
     auto* itemWidget = new QWidget();
     itemWidget->setStyleSheet("background: transparent;");
 
-    auto* rowLayout = new QHBoxLayout(itemWidget);
-    rowLayout->setContentsMargins(14, 4, 12, 4);
-    rowLayout->setSpacing(10);
+    auto* mainCol = new QVBoxLayout(itemWidget);
+    mainCol->setContentsMargins(10, 4, 10, 4);
+    mainCol->setSpacing(2);
 
-    // 1. Text Column (Title + Subtitle) - No leading icon
-    auto* textLayout = new QVBoxLayout();
-    textLayout->setContentsMargins(0, 0, 0, 0);
-    textLayout->setSpacing(2);
+    // 1. Top Row: Title + Type Badge (Placed directly to the right of title)
+    auto* titleRow = new QHBoxLayout();
+    titleRow->setContentsMargins(0, 0, 0, 0);
+    titleRow->setSpacing(6);
 
     auto* lblTitle = new QLabel(res.title, itemWidget);
-    lblTitle->setStyleSheet("color: #F4F4F5; font-family: 'Segoe UI', Inter, -apple-system, sans-serif; font-size: 13px; font-weight: 500;");
+    lblTitle->setStyleSheet("color: #F4F4F5; font-family: 'Segoe UI', Inter, -apple-system, sans-serif; font-size: 12px; font-weight: 600;");
 
-    auto* lblSub = new QLabel(res.subtitle, itemWidget);
-    lblSub->setStyleSheet("color: #71717A; font-family: 'Segoe UI', Inter, -apple-system, sans-serif; font-size: 11px; font-weight: 400;");
-
-    textLayout->addWidget(lblTitle);
-    textLayout->addWidget(lblSub);
-    rowLayout->addLayout(textLayout, 1);
-
-    // 2. Right shadcn Badge (Compact height 18px with exact full rounded pill corners)
     auto* lblBadge = new QLabel(itemWidget);
-    lblBadge->setFixedHeight(18);
+    lblBadge->setFixedHeight(16);
     if (res.isDam) {
         lblBadge->setText("Dam");
         lblBadge->setStyleSheet(R"(
             QLabel {
                 color: #38BDF8;
-                background-color: rgba(2, 132, 199, 0.18);
-                border: 1px solid rgba(56, 189, 248, 0.35);
-                border-radius: 9px;
-                padding: 0px 8px;
-                min-height: 18px;
-                max-height: 18px;
+                background-color: rgba(2, 132, 199, 0.22);
+                border: 1px solid rgba(56, 189, 248, 0.4);
+                border-radius: 8px;
+                padding: 0px 6px;
+                min-height: 16px;
+                max-height: 16px;
                 font-family: 'Segoe UI', Inter, -apple-system, sans-serif;
-                font-size: 10px;
-                font-weight: 600;
+                font-size: 9px;
+                font-weight: 700;
             }
         )");
     } else if (res.category == MapCore::FeatureCategory::WATER_RIVER) {
@@ -325,15 +318,15 @@ QWidget* SearchBar::createItemWidget(const SearchResultItem& res) {
         lblBadge->setStyleSheet(R"(
             QLabel {
                 color: #34D399;
-                background-color: rgba(5, 150, 105, 0.18);
-                border: 1px solid rgba(52, 211, 153, 0.35);
-                border-radius: 9px;
-                padding: 0px 8px;
-                min-height: 18px;
-                max-height: 18px;
+                background-color: rgba(5, 150, 105, 0.22);
+                border: 1px solid rgba(52, 211, 153, 0.4);
+                border-radius: 8px;
+                padding: 0px 6px;
+                min-height: 16px;
+                max-height: 16px;
                 font-family: 'Segoe UI', Inter, -apple-system, sans-serif;
-                font-size: 10px;
-                font-weight: 600;
+                font-size: 9px;
+                font-weight: 700;
             }
         )");
     } else {
@@ -343,18 +336,28 @@ QWidget* SearchBar::createItemWidget(const SearchResultItem& res) {
                 color: #E4E4E7;
                 background-color: #27272A;
                 border: 1px solid #3F3F46;
-                border-radius: 9px;
-                padding: 0px 8px;
-                min-height: 18px;
-                max-height: 18px;
+                border-radius: 8px;
+                padding: 0px 6px;
+                min-height: 16px;
+                max-height: 16px;
                 font-family: 'Segoe UI', Inter, -apple-system, sans-serif;
-                font-size: 10px;
-                font-weight: 500;
+                font-size: 9px;
+                font-weight: 600;
             }
         )");
     }
     lblBadge->setAlignment(Qt::AlignCenter);
-    rowLayout->addWidget(lblBadge);
+
+    titleRow->addWidget(lblTitle);
+    titleRow->addWidget(lblBadge);
+    titleRow->addStretch(1);
+
+    // 2. Subtitle underneath
+    auto* lblSub = new QLabel(res.subtitle, itemWidget);
+    lblSub->setStyleSheet("color: #71717A; font-family: 'Segoe UI', Inter, -apple-system, sans-serif; font-size: 11px; font-weight: 400;");
+
+    mainCol->addLayout(titleRow);
+    mainCol->addWidget(lblSub);
 
     return itemWidget;
 }
@@ -365,7 +368,7 @@ void SearchBar::populateList() {
         const auto& res = currentResults[i];
 
         auto* listItem = new QListWidgetItem(suggestionList);
-        listItem->setSizeHint(QSize(440, 44));
+        listItem->setSizeHint(QSize(288, 44));
         listItem->setData(Qt::UserRole, static_cast<int>(i));
 
         auto* widget = createItemWidget(res);
