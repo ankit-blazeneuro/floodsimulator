@@ -9,7 +9,8 @@
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
 
-    app.setApplicationName("Assam Maps - Dark Edition");
+    app.setApplicationName("RedR");
+    app.setApplicationDisplayName("RedR");
     app.setOrganizationName("SIH");
     app.setApplicationVersion("1.0.0");
 
@@ -47,7 +48,7 @@ int main(int argc, char* argv[]) {
     MapUI::MainWindow window;
     window.show();
 
-    std::cout << "[INFO] Assam Maps - Dark Edition started successfully." << std::endl;
+    std::cout << "[INFO] RedR - Hydrodynamic Flood Simulation System started successfully." << std::endl;
     std::cout << "[INFO] Default mode: Online (OpenStreetMap tiles)" << std::endl;
     std::cout << "[INFO] Use View menu to switch between Online and Offline map modes." << std::endl;
 

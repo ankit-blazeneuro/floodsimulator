@@ -117,6 +117,12 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
     float xStart = frameToX(startFrame);
     float xEnd = frameToX(endFrame);
 
+    // Active Range Background (Behind tracks)
+    if (xEnd > xStart) {
+        QRectF activeRangeRect(xStart, 0, xEnd - xStart, h);
+        painter.fillRect(activeRangeRect, QColor(26, 26, 30));
+    }
+
     // 3. Render Continuous Tracks
     struct SimTrack {
         QString channelName;
@@ -160,7 +166,7 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
     for (size_t i = 0; i < tracks.size() && (curY + trackH) <= h; ++i) {
         const auto& tr = tracks[i];
 
-        // Row background
+        // Row background (Dark neutral gray)
         QColor rowBg = (i % 2 == 0) ? QColor(26, 26, 29) : QColor(22, 22, 25);
         painter.fillRect(QRect(0, curY, w, trackH), rowBg);
 
@@ -191,11 +197,11 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
         painter.setPen(QPen(tr.borderColor, 1.0));
         painter.drawRoundedRect(clipRect, 4.0, 4.0);
 
-        // Simulation Progress Fill inside Track Bar (20% Opacity Gray during playback: alpha 51 / 255 = 20%)
+        // Simulation Progress Fill inside Track Bar (Translucent progress sheen)
         if (currentFrame > startFrame) {
             float progW = frameToX(currentFrame) - xStart;
             QRectF progRect(clipX, curY + 2, progW, trackH - 4);
-            painter.setBrush(QColor(255, 255, 255, 51)); // 20% opacity progress fill
+            painter.setBrush(QColor(255, 255, 255, 45)); // Subtle progress highlight inside clip
             painter.setPen(Qt::NoPen);
             painter.drawRoundedRect(progRect, 4.0, 4.0);
         }
@@ -208,20 +214,7 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
         curY += trackH;
     }
 
-    // Start-to-End Active Displacement Area (20% Opacity Gray under area: alpha 51 / 255 = 20%)
-    if (xEnd > xStart) {
-        QRectF activeRangeRect(xStart, 0, xEnd - xStart, h);
-        painter.fillRect(activeRangeRect, QColor(255, 255, 255, 51)); // 20% opacity gray
-    }
-
-    // Elapsed Playback Displacement from Start to Current Frame (20% Opacity Gray while playing)
-    float curX = frameToX(currentFrame);
-    if (curX > xStart) {
-        QRectF elapsedRangeRect(xStart, 0, curX - xStart, h);
-        painter.fillRect(elapsedRangeRect, QColor(255, 255, 255, 51)); // 20% opacity gray
-    }
-
-    // Inactive Outside Range Shading
+    // Inactive Outside Range Shading (Gray out areas other than the timeline media range)
     if (xStart > 135) {
         painter.fillRect(QRectF(135, 0, xStart - 135, h), QColor(0, 0, 0, 95));
     }
@@ -270,6 +263,7 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
     }
 
     // 6. Playhead Indicator (Blender-Style Player Line & Frame Tag)
+    float curX = frameToX(currentFrame);
     if (curX >= 135) {
         // A. Subtle Drop Shadow / Glow behind vertical player line for crisp contrast over tracks
         painter.setPen(QPen(QColor(0, 0, 0, 95), 3.0));

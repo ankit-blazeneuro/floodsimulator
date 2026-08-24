@@ -481,20 +481,55 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                 return QPointF(cx + (tX - centerTileX) * TILE_SIZE, cy + (tY - centerTileY) * TILE_SIZE);
             };
 
-            // 1. Full Downstream River Reach Bed (Ghost Trajectory)
-            if (!floodSimulation.rawNodes.empty()) {
-                QPainterPath fullReachPath;
-                bool first = true;
+            // 1. Full Downstream River Reach Bed & Area under Distance Curve (10% Opacity)
+            if (floodSimulation.rawNodes.size() >= 2) {
+                std::vector<QPointF> reachPts;
+                reachPts.reserve(floodSimulation.rawNodes.size());
                 for (const auto& node : floodSimulation.rawNodes) {
-                    QPointF cPt = toCanvasPoint(node.lat, node.lon);
-                    if (first) {
-                        fullReachPath.moveTo(cPt);
-                        first = false;
-                    } else {
-                        fullReachPath.lineTo(cPt);
+                    reachPts.push_back(toCanvasPoint(node.lat, node.lon));
+                }
+
+                // Area under full downstream distance curve (10% Opacity)
+                QPolygonF reachEnvelope;
+                float reachWidth = 14.0f;
+                for (size_t i = 0; i < reachPts.size(); ++i) {
+                    QPointF dir;
+                    if (i == 0) dir = reachPts[1] - reachPts[0];
+                    else if (i + 1 == reachPts.size()) dir = reachPts[i] - reachPts[i - 1];
+                    else dir = reachPts[i + 1] - reachPts[i - 1];
+
+                    float len = std::hypot(dir.x(), dir.y());
+                    if (len > 0.001f) {
+                        QPointF norm(-dir.y() / len, dir.x() / len);
+                        reachEnvelope.append(reachPts[i] + norm * (reachWidth / 2.0f));
                     }
                 }
-                painter.setPen(QPen(QColor(138, 180, 248, 51), 1.5, Qt::DotLine, Qt::RoundCap)); // 20% opacity
+                for (int i = static_cast<int>(reachPts.size()) - 1; i >= 0; --i) {
+                    QPointF dir;
+                    if (i == 0) dir = reachPts[1] - reachPts[0];
+                    else if (i + 1 == static_cast<int>(reachPts.size())) dir = reachPts[i] - reachPts[i - 1];
+                    else dir = reachPts[i + 1] - reachPts[i - 1];
+
+                    float len = std::hypot(dir.x(), dir.y());
+                    if (len > 0.001f) {
+                        QPointF norm(-dir.y() / len, dir.x() / len);
+                        reachEnvelope.append(reachPts[i] - norm * (reachWidth / 2.0f));
+                    }
+                }
+
+                if (reachEnvelope.size() >= 3) {
+                    painter.setBrush(QColor(138, 180, 248, 26)); // 10% opacity area under distance curve
+                    painter.setPen(QPen(QColor(138, 180, 248, 45), 1.0, Qt::DotLine));
+                    painter.drawPolygon(reachEnvelope);
+                }
+
+                // Distance trajectory center path
+                QPainterPath fullReachPath;
+                fullReachPath.moveTo(reachPts[0]);
+                for (size_t i = 1; i < reachPts.size(); ++i) {
+                    fullReachPath.lineTo(reachPts[i]);
+                }
+                painter.setPen(QPen(QColor(138, 180, 248, 65), 1.2, Qt::DotLine, Qt::RoundCap));
                 painter.drawPath(fullReachPath);
             }
 
@@ -507,9 +542,9 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                         cPoly.append(toCanvasPoint(pt.x(), pt.y()));
                     }
 
-                    // Outer fringe (turquoise boundary)
+                    // Outer fringe (turquoise water boundary)
                     painter.setPen(QPen(QColor(0, 229, 255, 180), 1.6, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-                    painter.setBrush(QColor(0, 188, 212, 115)); // #00BCD4 Turquoise Water
+                    painter.setBrush(QColor(0, 188, 212, 115)); // Turquoise Water
                     painter.drawPolygon(cPoly);
 
                     // Mid-depth inner water body
@@ -588,24 +623,67 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                 }
             }
 
-            // 4. Animated Active Flowing River Streamline & Moving Water Particles
+            // 4. Area under Active Flood Displacement Line & Streamline Flow (10% Opacity)
             if (slice->riverStreamline.size() >= 2) {
-                QPainterPath activeReachPath;
-                bool first = true;
+                std::vector<QPointF> activePts;
+                activePts.reserve(slice->riverStreamline.size());
                 for (size_t i = 0; i < slice->riverStreamline.size(); ++i) {
-                    QPointF cPt = toCanvasPoint(slice->riverStreamline[i].x(), slice->riverStreamline[i].y());
-                    if (first) {
-                        activeReachPath.moveTo(cPt);
-                        first = false;
-                    } else {
-                        activeReachPath.lineTo(cPt);
+                    activePts.push_back(toCanvasPoint(slice->riverStreamline[i].x(), slice->riverStreamline[i].y()));
+                }
+
+                // A. Continuous Flood Inundation Area under the displacement line (10% opacity)
+                QPolygonF displacementAreaPoly;
+                float baseDisplacementW = std::clamp(22.0f + static_cast<float>(slice->maxDepthM) * 1.8f, 16.0f, 64.0f);
+
+                for (size_t i = 0; i < activePts.size(); ++i) {
+                    QPointF dir;
+                    if (i == 0) dir = activePts[1] - activePts[0];
+                    else if (i + 1 == activePts.size()) dir = activePts[i] - activePts[i - 1];
+                    else dir = activePts[i + 1] - activePts[i - 1];
+
+                    float len = std::hypot(dir.x(), dir.y());
+                    if (len > 0.001f) {
+                        float taper = 1.0f - 0.35f * (static_cast<float>(i) / static_cast<float>(activePts.size()));
+                        float w = baseDisplacementW * taper;
+                        QPointF norm(-dir.y() / len, dir.x() / len);
+                        displacementAreaPoly.append(activePts[i] + norm * (w / 2.0f));
                     }
                 }
 
-                // Base Glowing Flow Channel
-                painter.setPen(QPen(QColor(0, 229, 255, 90), 5.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-                painter.drawPath(activeReachPath);
-                painter.setPen(QPen(QColor(0, 188, 212, 220), 2.6, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                // Leading front displacement cap
+                if (!activePts.empty()) {
+                    displacementAreaPoly.append(activePts.back());
+                }
+
+                for (int i = static_cast<int>(activePts.size()) - 1; i >= 0; --i) {
+                    QPointF dir;
+                    if (i == 0) dir = activePts[1] - activePts[0];
+                    else if (i + 1 == static_cast<int>(activePts.size())) dir = activePts[i] - activePts[i - 1];
+                    else dir = activePts[i + 1] - activePts[i - 1];
+
+                    float len = std::hypot(dir.x(), dir.y());
+                    if (len > 0.001f) {
+                        float taper = 1.0f - 0.35f * (static_cast<float>(i) / static_cast<float>(activePts.size()));
+                        float w = baseDisplacementW * taper;
+                        QPointF norm(-dir.y() / len, dir.x() / len);
+                        displacementAreaPoly.append(activePts[i] - norm * (w / 2.0f));
+                    }
+                }
+
+                if (displacementAreaPoly.size() >= 3) {
+                    painter.setBrush(QColor(0, 210, 255, 26)); // 10% opacity area under displacement line
+                    painter.setPen(QPen(QColor(0, 229, 255, 75), 1.2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                    painter.drawPolygon(displacementAreaPoly);
+                }
+
+                // B. Animated Flowing River Streamline & Moving Particles
+                QPainterPath activeReachPath;
+                activeReachPath.moveTo(activePts[0]);
+                for (size_t i = 1; i < activePts.size(); ++i) {
+                    activeReachPath.lineTo(activePts[i]);
+                }
+
+                painter.setPen(QPen(QColor(0, 188, 212, 220), 2.4, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
                 painter.drawPath(activeReachPath);
 
                 // Animated Flowing River Streamline Dashes (Flowing downstream)
@@ -618,11 +696,11 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                 painter.drawPath(activeReachPath);
 
                 // Flowing Fluid Particle Pulses
-                int totalPts = static_cast<int>(slice->riverStreamline.size());
+                int totalPts = static_cast<int>(activePts.size());
                 for (int i = 0; i < totalPts; ++i) {
                     int animIdx = (i + (flowAnimPhase / 2)) % totalPts;
                     if (animIdx % 3 == 0) {
-                        QPointF pPt = toCanvasPoint(slice->riverStreamline[animIdx].x(), slice->riverStreamline[animIdx].y());
+                        QPointF pPt = activePts[animIdx];
                         painter.setPen(Qt::NoPen);
                         painter.setBrush(QColor(255, 255, 255, 220));
                         painter.drawEllipse(pPt, 2.2, 2.2);
@@ -632,9 +710,9 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                 }
 
                 // Milestone Distance Markers (100% opacity solid badge)
-                for (size_t i = 0; i < slice->riverStreamline.size(); ++i) {
+                for (size_t i = 0; i < activePts.size(); ++i) {
                     if (i > 0 && i % 8 == 0 && i < floodSimulation.rawNodes.size()) {
-                        QPointF cPt = toCanvasPoint(slice->riverStreamline[i].x(), slice->riverStreamline[i].y());
+                        QPointF cPt = activePts[i];
                         double dist = floodSimulation.rawNodes[i].distanceKm;
                         painter.setPen(QPen(QColor(253, 214, 99, 220), 1.0));
                         painter.setBrush(QColor(253, 214, 99, 230));

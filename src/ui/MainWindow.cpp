@@ -105,7 +105,7 @@ bool MainWindow::isSystemDarkTheme() {
 }
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
-    setWindowTitle("Assam & India Maps - Flood Simulator");
+    setWindowTitle("RedR - Flood Simulator");
     setWindowIcon(IconHelper::logo(QColor(212, 212, 216), 32));
     resize(1380, 860);
     setMinimumSize(920, 600);

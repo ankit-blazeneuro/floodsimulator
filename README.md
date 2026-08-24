@@ -1,6 +1,6 @@
-# 🗺️ MapLibre Dark Explorer - High Performance Vector Map (FastAPI + Qt 6 QML)
+# 🌊 RedR - Hydrodynamic Flood Simulation & High-Performance Vector Map Engine (FastAPI + Qt 6)
 
-A high-performance, full-stack mapping platform featuring:
+A high-performance, full-stack disaster risk & hydrodynamic flood simulation mapping platform featuring:
 1. **FastAPI Vector Tile Server**: Asynchronous MBTiles reader built on `aiosqlite` with TileJSON 3.0, XYZ-to-TMS coordinate projection, gzip encoding, and dark style generation.
 2. **C++ Qt 6 & Qt Quick (QML) Desktop Client**: Modern desktop UI inspired by the minimalist dark aesthetic of **`shadcn/ui`** (zinc/slate color tokens, `#18181B` translucent surfaces, `#27272A` borders, `#FAFAFA` typography, custom toggles, and buttons).
 3. **MapLibre Native for Qt Engine**: Hardware-accelerated GPU vector tile rendering with pitch, bearing, and zoom controls.

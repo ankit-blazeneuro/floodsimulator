@@ -2,7 +2,7 @@
 set -e
 
 # ==============================================================================
-#  Assam Maps - Full Dark Edition Launcher
+#  RedR - Hydrodynamic Flood Simulation & Real-time Risk Engine
 #  Starts FastAPI Vector Tile Server and the C++ Qt 6 Desktop Map Application
 # ==============================================================================
 
@@ -20,7 +20,7 @@ NC="\033[0m"
 
 echo -e "${CYAN}${BOLD}"
 echo "=================================================================="
-echo "         🗺️  ASSAM MAPS - FULL DARK EDITION LAUNCHER             "
+echo "         🌊  RedR - FLOOD SIMULATOR & RISK ENGINE LAUNCHER        "
 echo "=================================================================="
 echo -e "${NC}"
 
@@ -85,9 +85,9 @@ fi
 # ------------------------------------------------------------------------------
 # 3. Build & Launch C++ Qt 6 Desktop Map Client
 # ------------------------------------------------------------------------------
-echo -e "${BLUE}[3/3] Preparing C++ Qt 6 Desktop Map Application...${NC}"
+echo -e "${BLUE}[3/3] Preparing RedR Desktop Application...${NC}"
 
-if [ ! -f "build/assam_map" ]; then
+if [ ! -f "build/RedR" ] && [ ! -f "build/assam_map" ]; then
     echo -e "      Building application with CMake..."
     mkdir -p build
     cd build
@@ -96,14 +96,19 @@ if [ ! -f "build/assam_map" ]; then
     cd "$PROJECT_DIR"
 fi
 
-echo -e "${GREEN}${BOLD}[✓] Launching Desktop Map Application (Full Dark Theme)...${NC}"
+echo -e "${GREEN}${BOLD}[✓] Launching RedR Desktop Application (Full Dark Theme)...${NC}"
 echo -e "${CYAN}    Controls:${NC}"
 echo -e "    - Pan            : Left Click + Drag / Arrow keys / W, A, S, D"
 echo -e "    - Zoom           : Mouse Wheel / Double Click / + / -"
-echo -e "    - Inspect Feature: Click on any road, city, river, or POI"
+echo -e "    - Inspect Feature: Click on any dam, road, city, river, or POI"
 echo -e "    - Search         : Floating search bar at top-left"
 echo -e "    - Measurement    : Click 📏 button"
 echo -e "=================================================================="
 
 # Execute Desktop App
-./build/assam_map
+if [ -f "./build/RedR" ]; then
+    ./build/RedR
+else
+    ./build/assam_map
+fi
+

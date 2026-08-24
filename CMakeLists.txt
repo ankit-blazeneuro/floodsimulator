@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(MapLibreDarkExplorer VERSION 1.0.0 LANGUAGES CXX)
+project(RedR VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -56,14 +56,14 @@ set(SOURCES
 )
 
 # Application Executable Target
-add_executable(assam_map ${SOURCES})
+add_executable(RedR ${SOURCES})
 
-target_include_directories(assam_map PRIVATE
+target_include_directories(RedR PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/third_party/include
 )
 
-target_link_libraries(assam_map PRIVATE
+target_link_libraries(RedR PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Widgets
@@ -74,7 +74,12 @@ target_link_libraries(assam_map PRIVATE
     ZLIB::ZLIB
 )
 
-set_target_properties(assam_map PROPERTIES
-    OUTPUT_NAME "assam_map"
+set_target_properties(RedR PROPERTIES
+    OUTPUT_NAME "RedR"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+# Compatibility alias for build scripts
+add_custom_target(assam_map ALL DEPENDS RedR
+    COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE:RedR> ${CMAKE_BINARY_DIR}/assam_map
 )
