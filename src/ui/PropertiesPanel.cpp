@@ -1,6 +1,7 @@
 #include "PropertiesPanel.h"
 #include "IconHelper.h"
 #include "../core/DamManager.h"
+#include <QSplitter>
 
 namespace MapUI {
 
@@ -82,11 +83,11 @@ void PropertiesPanel::setupUi() {
             font-family: 'Segoe UI', Arial, sans-serif;
             font-size: 11px;
         }
-        QWidget#iconStrip {
+        QWidget#iconStrip, QWidget#topIconStrip, QWidget#bottomIconStrip {
             background-color: #121214;
             border-right: 1px solid #27272A;
         }
-        QWidget#iconStrip QPushButton {
+        QWidget#iconStrip QPushButton, QWidget#topIconStrip QPushButton, QWidget#bottomIconStrip QPushButton {
             background-color: transparent;
             border: none;
             border-left: 3px solid transparent;
@@ -96,12 +97,68 @@ void PropertiesPanel::setupUi() {
             min-height: 40px;
             max-height: 40px;
         }
-        QWidget#iconStrip QPushButton:hover {
-            background-color: #27272A;
+
+        /* 1. Fluid & Hydrodynamics Tab (Sky Blue Theme) */
+        QPushButton#btnTabFluid:hover {
+            background-color: rgba(56, 189, 248, 0.10);
         }
-        QWidget#iconStrip QPushButton:checked {
-            background-color: #27272A;
+        QPushButton#btnTabFluid:checked {
+            background-color: rgba(56, 189, 248, 0.18);
             border-left: 3px solid #38BDF8;
+        }
+
+        /* 2. Terrain & Embankments Tab (Emerald Theme) */
+        QPushButton#btnTabTerrain:hover {
+            background-color: rgba(52, 211, 153, 0.10);
+        }
+        QPushButton#btnTabTerrain:checked {
+            background-color: rgba(52, 211, 153, 0.18);
+            border-left: 3px solid #34D399;
+        }
+
+        /* 3. Telemetry Tab (Amber Theme) */
+        QPushButton#btnTabTelemetry:hover {
+            background-color: rgba(253, 214, 99, 0.10);
+        }
+        QPushButton#btnTabTelemetry:checked {
+            background-color: rgba(253, 214, 99, 0.18);
+            border-left: 3px solid #FDD663;
+        }
+
+        /* 4. Display / Overlays Tab (Purple Theme) */
+        QPushButton#btnTabDisplay:hover {
+            background-color: rgba(167, 139, 250, 0.10);
+        }
+        QPushButton#btnTabDisplay:checked {
+            background-color: rgba(167, 139, 250, 0.18);
+            border-left: 3px solid #A78BFA;
+        }
+
+        /* 5. Dam Specifications Tab (Red Theme) */
+        QPushButton#btnTabDam:hover {
+            background-color: rgba(239, 68, 68, 0.10);
+        }
+        QPushButton#btnTabDam:checked {
+            background-color: rgba(239, 68, 68, 0.18);
+            border-left: 3px solid #EF4444;
+        }
+
+        /* 6. Danger & Impact Zones Tab (Rose-Pink-Red Theme) */
+        QPushButton#btnTabDanger:hover {
+            background-color: rgba(244, 63, 94, 0.12);
+        }
+        QPushButton#btnTabDanger:checked {
+            background-color: rgba(244, 63, 94, 0.20);
+            border-left: 3px solid #F43F5E;
+        }
+
+        /* 7. Logs Tab (Gray Theme) */
+        QPushButton#btnTabTerminal:hover {
+            background-color: rgba(161, 161, 170, 0.10);
+        }
+        QPushButton#btnTabTerminal:checked {
+            background-color: rgba(161, 161, 170, 0.18);
+            border-left: 3px solid #A1A1AA;
         }
         QScrollArea {
             border: none;
@@ -201,74 +258,109 @@ void PropertiesPanel::setupUi() {
 
     setObjectName("propertiesPanel");
 
-    auto* mainLayout = new QHBoxLayout(this);
+    auto* mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
 
-    // 1. Vertical Icon Tab Bar (Left Edge of Sidebar)
-    iconStrip = new QWidget(this);
-    iconStrip->setObjectName("iconStrip");
-    iconStrip->setFixedWidth(42);
-
-    auto* isLayout = new QVBoxLayout(iconStrip);
-    isLayout->setContentsMargins(0, 4, 0, 4);
-    isLayout->setSpacing(2);
+    sidebarSplitter = new QSplitter(Qt::Vertical, this);
+    sidebarSplitter->setObjectName("sidebarSplitter");
+    sidebarSplitter->setHandleWidth(2);
+    sidebarSplitter->setChildrenCollapsible(false);
+    sidebarSplitter->setStyleSheet(R"(
+        QSplitter#sidebarSplitter::handle:vertical {
+            background-color: #27272A;
+            height: 2px;
+        }
+        QSplitter#sidebarSplitter::handle:vertical:hover {
+            background-color: #38BDF8;
+        }
+    )");
 
     tabButtonGroup = new QButtonGroup(this);
     tabButtonGroup->setExclusive(true);
 
-    btnTabFluid = new QPushButton(iconStrip);
-    btnTabFluid->setIcon(IconHelper::rain(QColor(138, 180, 248), 22));
+    // =========================================================================
+    // 1. TOP PART (Top Tool Tabs Strip + Top Header & Stacked Property Pages)
+    // =========================================================================
+    auto* topWidget = new QWidget(sidebarSplitter);
+    auto* topLayout = new QHBoxLayout(topWidget);
+    topLayout->setContentsMargins(0, 0, 0, 0);
+    topLayout->setSpacing(0);
+
+    // 1.1 Top Vertical Icon Strip (Tabs 0-4)
+    auto* topIconStrip = new QWidget(topWidget);
+    topIconStrip->setObjectName("topIconStrip");
+    topIconStrip->setFixedWidth(42);
+
+    auto* topIsLayout = new QVBoxLayout(topIconStrip);
+    topIsLayout->setContentsMargins(0, 4, 0, 4);
+    topIsLayout->setSpacing(2);
+
+    btnTabFluid = new QPushButton(topIconStrip);
+    btnTabFluid->setObjectName("btnTabFluid");
+    btnTabFluid->setIcon(IconHelper::rain(QColor(56, 189, 248), 22));
     btnTabFluid->setIconSize(QSize(22, 22));
     btnTabFluid->setCheckable(true);
     btnTabFluid->setToolTip("Fluid & Hydrodynamics");
     tabButtonGroup->addButton(btnTabFluid, 0);
-    isLayout->addWidget(btnTabFluid);
+    topIsLayout->addWidget(btnTabFluid);
 
-    btnTabTerrain = new QPushButton(iconStrip);
-    btnTabTerrain->setIcon(IconHelper::sunFog(QColor(129, 201, 149), 22));
+    btnTabTerrain = new QPushButton(topIconStrip);
+    btnTabTerrain->setObjectName("btnTabTerrain");
+    btnTabTerrain->setIcon(IconHelper::sunFog(QColor(52, 211, 153), 22));
     btnTabTerrain->setIconSize(QSize(22, 22));
     btnTabTerrain->setCheckable(true);
     btnTabTerrain->setToolTip("Terrain & Embankments");
     tabButtonGroup->addButton(btnTabTerrain, 1);
-    isLayout->addWidget(btnTabTerrain);
+    topIsLayout->addWidget(btnTabTerrain);
 
-    btnTabTelemetry = new QPushButton(iconStrip);
+    btnTabTelemetry = new QPushButton(topIconStrip);
+    btnTabTelemetry->setObjectName("btnTabTelemetry");
     btnTabTelemetry->setIcon(IconHelper::radar(QColor(253, 214, 99), 22));
     btnTabTelemetry->setIconSize(QSize(22, 22));
     btnTabTelemetry->setCheckable(true);
     btnTabTelemetry->setToolTip("Assam River Gauges Telemetry");
     tabButtonGroup->addButton(btnTabTelemetry, 2);
-    isLayout->addWidget(btnTabTelemetry);
+    topIsLayout->addWidget(btnTabTelemetry);
 
-    btnTabDisplay = new QPushButton(iconStrip);
+    btnTabDisplay = new QPushButton(topIconStrip);
+    btnTabDisplay->setObjectName("btnTabDisplay");
     btnTabDisplay->setIcon(IconHelper::map(QColor(167, 139, 250), 22));
     btnTabDisplay->setIconSize(QSize(22, 22));
     btnTabDisplay->setCheckable(true);
     btnTabDisplay->setToolTip("Viewport Overlays & Heatmaps");
     tabButtonGroup->addButton(btnTabDisplay, 3);
-    isLayout->addWidget(btnTabDisplay);
+    topIsLayout->addWidget(btnTabDisplay);
 
-    btnTabDam = new QPushButton(iconStrip);
-    btnTabDam->setIcon(IconHelper::info(QColor(84, 213, 154), 22));
+    btnTabDam = new QPushButton(topIconStrip);
+    btnTabDam->setObjectName("btnTabDam");
+    btnTabDam->setIcon(IconHelper::info(QColor(239, 68, 68), 22));
     btnTabDam->setIconSize(QSize(22, 22));
     btnTabDam->setCheckable(true);
     btnTabDam->setToolTip("Dam Specifications & Preferences");
     tabButtonGroup->addButton(btnTabDam, 4);
-    isLayout->addWidget(btnTabDam);
+    topIsLayout->addWidget(btnTabDam);
 
-    isLayout->addStretch();
+    btnTabDanger = new QPushButton(topIconStrip);
+    btnTabDanger->setObjectName("btnTabDanger");
+    btnTabDanger->setIcon(IconHelper::danger(QColor(244, 63, 94), 22));
+    btnTabDanger->setIconSize(QSize(22, 22));
+    btnTabDanger->setCheckable(true);
+    btnTabDanger->setToolTip("Danger & Vulnerable Impact Zones");
+    tabButtonGroup->addButton(btnTabDanger, 5);
+    topIsLayout->addWidget(btnTabDanger);
 
-    mainLayout->addWidget(iconStrip);
+    topIsLayout->addStretch(1);
+    topLayout->addWidget(topIconStrip);
 
-    // 2. Right Content Area (Header + Stacked Pages)
-    auto* contentArea = new QWidget(this);
-    auto* caLayout = new QVBoxLayout(contentArea);
-    caLayout->setContentsMargins(0, 0, 0, 0);
-    caLayout->setSpacing(0);
+    // 1.2 Top Content Area (Header + Stacked Pages)
+    auto* topContentArea = new QWidget(topWidget);
+    auto* tcaLayout = new QVBoxLayout(topContentArea);
+    tcaLayout->setContentsMargins(0, 0, 0, 0);
+    tcaLayout->setSpacing(0);
 
     // Header Strip
-    auto* topHeader = new QWidget(contentArea);
+    auto* topHeader = new QWidget(topContentArea);
     topHeader->setStyleSheet("background-color: #242424; border-bottom: 1px solid #1D1D1D;");
     auto* thLayout = new QHBoxLayout(topHeader);
     thLayout->setContentsMargins(12, 8, 12, 8);
@@ -278,18 +370,65 @@ void PropertiesPanel::setupUi() {
     thLayout->addWidget(lblPanelTitle);
     thLayout->addStretch();
 
-    caLayout->addWidget(topHeader);
+    tcaLayout->addWidget(topHeader);
 
     // Page Stack
-    pageStack = new QStackedWidget(contentArea);
+    pageStack = new QStackedWidget(topContentArea);
     pageStack->addWidget(createFluidTab());
     pageStack->addWidget(createTerrainTab());
     pageStack->addWidget(createTelemetryTab());
     pageStack->addWidget(createDisplayTab());
     pageStack->addWidget(createDamTab());
+    pageStack->addWidget(createDangerTab());
 
-    caLayout->addWidget(pageStack, 1);
-    mainLayout->addWidget(contentArea, 1);
+    tcaLayout->addWidget(pageStack, 1);
+    topLayout->addWidget(topContentArea, 1);
+    sidebarSplitter->addWidget(topWidget);
+
+    // =========================================================================
+    // 2. BOTTOM PART (Terminal Tab Icon Strip + Bottom xterm.js Terminal Console)
+    // =========================================================================
+    bottomWidget = new QWidget(sidebarSplitter);
+    auto* bottomLayout = new QHBoxLayout(bottomWidget);
+    bottomLayout->setContentsMargins(0, 0, 0, 0);
+    bottomLayout->setSpacing(0);
+
+    // 2.1 Bottom Icon Strip (Holds Cyan Terminal tab, matching terminal height)
+    auto* bottomIconStrip = new QWidget(bottomWidget);
+    bottomIconStrip->setObjectName("bottomIconStrip");
+    bottomIconStrip->setFixedWidth(42);
+
+    auto* bottomIsLayout = new QVBoxLayout(bottomIconStrip);
+    bottomIsLayout->setContentsMargins(0, 2, 0, 2);
+    bottomIsLayout->setSpacing(0);
+
+    btnTabTerminal = new QPushButton(bottomIconStrip);
+    btnTabTerminal->setObjectName("btnTabTerminal");
+    btnTabTerminal->setIcon(IconHelper::terminal(QColor(161, 161, 170), 22));
+    btnTabTerminal->setIconSize(QSize(22, 22));
+    btnTabTerminal->setCheckable(true);
+    btnTabTerminal->setChecked(false);
+    btnTabTerminal->setToolTip("Logs");
+    tabButtonGroup->addButton(btnTabTerminal, 6);
+    bottomIsLayout->addWidget(btnTabTerminal);
+    bottomIsLayout->addStretch(1);
+
+    bottomLayout->addWidget(bottomIconStrip);
+
+    // 2.2 Bottom Right Terminal Console
+    terminalWidget = new SidebarTerminal(bottomWidget);
+    bottomLayout->addWidget(terminalWidget, 1);
+
+    sidebarSplitter->addWidget(bottomWidget);
+
+    sidebarSplitter->setStretchFactor(0, 3);
+    sidebarSplitter->setStretchFactor(1, 2);
+    sidebarSplitter->setSizes({ 460, 230 });
+
+    // Hidden by default
+    bottomWidget->setVisible(false);
+
+    mainLayout->addWidget(sidebarSplitter, 1);
 
     // Connect Tab Buttons
     connect(btnTabFluid, &QPushButton::clicked, this, [this]() {
@@ -307,9 +446,44 @@ void PropertiesPanel::setupUi() {
     connect(btnTabDam, &QPushButton::clicked, this, [this]() {
         switchTab(4, "Dam Specifications & Preferences");
     });
+    connect(btnTabDanger, &QPushButton::clicked, this, [this]() {
+        switchTab(5, "Danger & Impact Assessment");
+    });
+    connect(btnTabTerminal, &QPushButton::clicked, this, [this]() {
+        toggleTerminal();
+    });
 
     btnTabFluid->setChecked(true);
     switchTab(0, "Fluid & Hydrodynamics");
+}
+
+void PropertiesPanel::toggleTerminal() {
+    if (bottomWidget) {
+        bool nextVis = !bottomWidget->isVisible();
+        bottomWidget->setVisible(nextVis);
+        if (btnTabTerminal) {
+            btnTabTerminal->setChecked(nextVis);
+        }
+        if (nextVis && sidebarSplitter) {
+            sidebarSplitter->setSizes({ std::max(100, height() - 230), 230 });
+        }
+    }
+}
+
+void PropertiesPanel::setTerminalVisible(bool visible) {
+    if (bottomWidget) {
+        bottomWidget->setVisible(visible);
+        if (btnTabTerminal) {
+            btnTabTerminal->setChecked(visible);
+        }
+        if (visible && sidebarSplitter) {
+            sidebarSplitter->setSizes({ std::max(100, height() - 230), 230 });
+        }
+    }
+}
+
+bool PropertiesPanel::isTerminalVisible() const {
+    return bottomWidget && bottomWidget->isVisible();
 }
 
 void PropertiesPanel::switchTab(int index, const QString& title) {
@@ -683,6 +857,10 @@ void PropertiesPanel::showDamDetails(const MapCore::DamPoint& dam) {
     if (lblDamYear) lblDamYear->setText(dam.year > 0 ? QString("%1").arg(dam.year) : "Historical");
     if (lblDamPurpose) lblDamPurpose->setText(dam.purpose.isEmpty() ? "Irrigation & Flood Moderation" : dam.purpose);
 
+    if (terminalWidget) {
+        terminalWidget->appendLog("DAM", QString("Selected asset: %1 (PIC: %2, River: %3)").arg(dam.name, dam.pic, dam.river), "#EF4444");
+    }
+
     btnTabDam->setChecked(true);
     switchTab(4, "Dam Specifications & Preferences");
 }
@@ -761,6 +939,339 @@ void PropertiesPanel::updateHydrodynamicPropagation(int minute, double areaKm2, 
     }
     if (lblHydroDischarge) {
         lblHydroDischarge->setText(QString("%1 m³/s").arg(peakDischargeQ, 0, 'f', 0));
+    }
+
+    // Milestone logging to xterm.js terminal
+    if (terminalWidget && (minute % 15 == 0 || isOvertopping)) {
+        if (isOvertopping) {
+            terminalWidget->appendLog("OVERTOP", QString("Saddle overtopping at %1 (WSE: %2m)").arg(basinName).arg(wse, 0, 'f', 1), "#EF4444");
+        } else {
+            terminalWidget->appendLog("HYDRO", QString("T+%1m: Front %2km · Area %3km² · Peak Q: %4 m³/s").arg(minute).arg(frontDistKm, 0, 'f', 1).arg(areaKm2, 0, 'f', 1).arg(peakDischargeQ, 0, 'f', 0), "#38BDF8");
+        }
+    }
+}
+
+QWidget* PropertiesPanel::createDangerTab() {
+    auto* scroll = new QScrollArea();
+    scroll->setWidgetResizable(true);
+
+    auto* container = new QWidget();
+    auto* layout = new QVBoxLayout(container);
+    layout->setContentsMargins(8, 8, 8, 8);
+    layout->setSpacing(8);
+
+    // 1. Danger Header Card (Same styling as Dam Header Card in Info tab)
+    auto* headerCard = new QWidget(container);
+    headerCard->setStyleSheet("background: transparent; border: none;");
+    auto* hcLayout = new QVBoxLayout(headerCard);
+    hcLayout->setContentsMargins(4, 4, 4, 4);
+    hcLayout->setSpacing(4);
+
+    lblDangerThreatLevel = new QLabel("Downstream Flood Hazard & Vulnerability", headerCard);
+    lblDangerThreatLevel->setStyleSheet("color: #FFFFFF; font-size: 13px; font-weight: bold; background: transparent; border: none;");
+    lblDangerThreatLevel->setWordWrap(true);
+
+    lblDangerSubStatus = new QLabel("Impact Assessment: Standby (Ready for Simulation)", headerCard);
+    lblDangerSubStatus->setStyleSheet("color: #FFFFFF; font-size: 11px; background: transparent; border: none;");
+
+    lblDangerActionNotice = new QLabel("● Downstream Population & Infrastructure Risk", headerCard);
+    lblDangerActionNotice->setStyleSheet("color: #FFFFFF; font-size: 11px; background: transparent; border: none;");
+
+    hcLayout->addWidget(lblDangerThreatLevel);
+    hcLayout->addWidget(lblDangerSubStatus);
+    hcLayout->addWidget(lblDangerActionNotice);
+    layout->addWidget(headerCard);
+
+    // 2. Threat Overview & Impact Summary (Same format as Info tab sections)
+    auto* secOverview = new CollapsibleSection("Threat Overview & Impact Summary", container);
+    auto makeDataRow = [](const QString& labelText, QLabel*& valueLabel) {
+        auto* row = new QWidget();
+        auto* hl = new QHBoxLayout(row);
+        hl->setContentsMargins(0, 2, 0, 2);
+        auto* lbl = new QLabel(labelText, row);
+        lbl->setStyleSheet("color: #D4D4D8; font-size: 11px; background: transparent; border: none;");
+        lbl->setMinimumWidth(125);
+        valueLabel = new QLabel("--", row);
+        valueLabel->setStyleSheet("color: #FFFFFF; font-size: 11px; font-weight: normal; background: transparent; border: none;");
+        valueLabel->setWordWrap(true);
+        hl->addWidget(lbl);
+        hl->addWidget(valueLabel, 1);
+        return row;
+    };
+
+    secOverview->addWidget(makeDataRow("Threat Status:", lblDangerStatusText));
+    secOverview->addWidget(makeDataRow("At-Risk Population:", lblDangerPopulationCount));
+    secOverview->addWidget(makeDataRow("Inundated Zones:", lblDangerInundatedCount));
+    secOverview->addWidget(makeDataRow("Next Wave ETA:", lblDangerFrontEta));
+    secOverview->addWidget(makeDataRow("Downstream Reach:", lblDangerReachDist));
+    layout->addWidget(secOverview);
+
+    // 3. Downstream Vulnerable Areas & Infrastructure
+    auto* secZones = new CollapsibleSection("Downstream Vulnerable Areas & Infrastructure", container);
+    dangerCardsContainer = new QWidget(secZones);
+    dangerCardsLayout = new QVBoxLayout(dangerCardsContainer);
+    dangerCardsLayout->setContentsMargins(0, 0, 0, 0);
+    dangerCardsLayout->setSpacing(8);
+
+    auto* lblEmpty = new QLabel("No active flood simulation loaded.\nSelect a dam on the map to evaluate downstream danger zones.", dangerCardsContainer);
+    lblEmpty->setObjectName("lblEmptyDanger");
+    lblEmpty->setStyleSheet("color: #D4D4D8; font-size: 11px; background: transparent; border: none; padding: 12px;");
+    lblEmpty->setAlignment(Qt::AlignCenter);
+    dangerCardsLayout->addWidget(lblEmpty);
+
+    secZones->addWidget(dangerCardsContainer);
+    layout->addWidget(secZones);
+
+    layout->addStretch();
+    scroll->setWidget(container);
+    return scroll;
+}
+
+void PropertiesPanel::updateDangerZones(const std::vector<MapCore::DangerZone>& zones, int currentMinute, double frontDistKm) {
+    currentDangerZones = zones;
+    if (!dangerCardsLayout) return;
+
+    // Clear previous danger cards
+    QLayoutItem* item;
+    while ((item = dangerCardsLayout->takeAt(0)) != nullptr) {
+        if (item->widget()) {
+            item->widget()->deleteLater();
+        }
+        delete item;
+    }
+
+    if (zones.empty()) {
+        auto* lblEmpty = new QLabel("No active flood simulation loaded.\nSelect a dam on the map to evaluate downstream danger zones.", dangerCardsContainer);
+        lblEmpty->setStyleSheet("color: #D4D4D8; font-size: 11px; background: transparent; border: none; padding: 12px;");
+        lblEmpty->setAlignment(Qt::AlignCenter);
+        dangerCardsLayout->addWidget(lblEmpty);
+
+        if (lblDangerThreatLevel) lblDangerThreatLevel->setText("Downstream Flood Hazard & Vulnerability");
+        if (lblDangerSubStatus) lblDangerSubStatus->setText("Impact Assessment: Standby (Ready for Simulation)");
+        if (lblDangerStatusText) lblDangerStatusText->setText("Standby");
+        if (lblDangerPopulationCount) lblDangerPopulationCount->setText("0 residents");
+        if (lblDangerInundatedCount) lblDangerInundatedCount->setText("0 / 0 settlements");
+        if (lblDangerFrontEta) lblDangerFrontEta->setText("T + 0 min (Standby)");
+        if (lblDangerReachDist) lblDangerReachDist->setText("0.0 km");
+        return;
+    }
+
+    int totalPop = 0;
+    int inundatedCount = 0;
+    double nextEta = -1.0;
+    QString nextZoneName = "";
+
+    for (const auto& z : zones) {
+        totalPop += z.estimatedPopulation;
+        bool isInundated = (frontDistKm >= z.distanceKm && currentMinute > 0);
+        if (isInundated) {
+            inundatedCount++;
+        } else if (nextEta < 0 && z.arrivalTimeMin >= currentMinute) {
+            nextEta = z.arrivalTimeMin;
+            nextZoneName = z.name.section('-', -1).trimmed();
+        }
+
+        // Card Container (Same card theme as Info tab)
+        auto* card = new QWidget(dangerCardsContainer);
+        card->setStyleSheet(QString(R"(
+            QWidget {
+                background-color: #1E1E22;
+                border: 1px solid %1;
+                border-radius: 4px;
+            }
+        )").arg(isInundated ? "#EF4444" : "#27272A"));
+
+        auto* cLayout = new QVBoxLayout(card);
+        cLayout->setContentsMargins(8, 8, 8, 8);
+        cLayout->setSpacing(4);
+
+        // Header: Name + Danger Level Badge
+        auto* hRow = new QHBoxLayout();
+        hRow->setContentsMargins(0, 0, 0, 0);
+
+        auto* lblName = new QLabel(z.name, card);
+        lblName->setStyleSheet("color: #FFFFFF; font-size: 12px; font-weight: bold; background: transparent; border: none;");
+        lblName->setWordWrap(true);
+        hRow->addWidget(lblName, 1);
+
+        auto* lblBadge = new QLabel(z.riskLevel, card);
+        lblBadge->setFixedHeight(16);
+        lblBadge->setAlignment(Qt::AlignCenter);
+
+        if (z.riskLevel == "CRITICAL") {
+            lblBadge->setStyleSheet(R"(
+                QLabel {
+                    color: #FB7185;
+                    background-color: rgba(244, 63, 94, 0.22);
+                    border: 1px solid rgba(244, 63, 94, 0.45);
+                    border-radius: 8px;
+                    padding: 0px 6px;
+                    min-height: 16px;
+                    max-height: 16px;
+                    font-family: 'Segoe UI', Inter, -apple-system, sans-serif;
+                    font-size: 9px;
+                    font-weight: 700;
+                }
+            )");
+        } else if (z.riskLevel == "HIGH") {
+            lblBadge->setStyleSheet(R"(
+                QLabel {
+                    color: #FB923C;
+                    background-color: rgba(234, 88, 12, 0.22);
+                    border: 1px solid rgba(251, 146, 60, 0.45);
+                    border-radius: 8px;
+                    padding: 0px 6px;
+                    min-height: 16px;
+                    max-height: 16px;
+                    font-family: 'Segoe UI', Inter, -apple-system, sans-serif;
+                    font-size: 9px;
+                    font-weight: 700;
+                }
+            )");
+        } else if (z.riskLevel == "MODERATE") {
+            lblBadge->setStyleSheet(R"(
+                QLabel {
+                    color: #FCD34D;
+                    background-color: rgba(217, 119, 6, 0.22);
+                    border: 1px solid rgba(251, 191, 36, 0.45);
+                    border-radius: 8px;
+                    padding: 0px 6px;
+                    min-height: 16px;
+                    max-height: 16px;
+                    font-family: 'Segoe UI', Inter, -apple-system, sans-serif;
+                    font-size: 9px;
+                    font-weight: 700;
+                }
+            )");
+        } else {
+            lblBadge->setStyleSheet(R"(
+                QLabel {
+                    color: #38BDF8;
+                    background-color: rgba(2, 132, 199, 0.22);
+                    border: 1px solid rgba(56, 189, 248, 0.40);
+                    border-radius: 8px;
+                    padding: 0px 6px;
+                    min-height: 16px;
+                    max-height: 16px;
+                    font-family: 'Segoe UI', Inter, -apple-system, sans-serif;
+                    font-size: 9px;
+                    font-weight: 700;
+                }
+            )");
+        }
+        hRow->addWidget(lblBadge, 0);
+        cLayout->addLayout(hRow);
+
+        // Dynamic Inundation Status Line (Matching Info tab typography)
+        auto* lblStatus = new QLabel(card);
+        if (isInundated) {
+            double curDepth = std::max(0.5, z.peakDepthM * std::min(1.0, 1.0 - 0.01 * (currentMinute - z.arrivalTimeMin)));
+            lblStatus->setText(QString("🔴 Inundated (Current Depth: %1m)").arg(curDepth, 0, 'f', 1));
+            lblStatus->setStyleSheet("color: #EF4444; font-size: 11px; font-weight: bold; background: transparent; border: none;");
+        } else if (currentMinute > 0 && currentMinute < z.arrivalTimeMin) {
+            int remMin = static_cast<int>(std::round(z.arrivalTimeMin - currentMinute));
+            lblStatus->setText(QString("⚠️ Impending Wave · ETA: T + %1m (In %2 min)").arg(qRound(z.arrivalTimeMin)).arg(remMin));
+            lblStatus->setStyleSheet("color: #FFFFFF; font-size: 11px; font-weight: bold; background: transparent; border: none;");
+        } else {
+            lblStatus->setText(QString("⏳ Projected Arrival ETA: T + %1 min").arg(qRound(z.arrivalTimeMin)));
+            lblStatus->setStyleSheet("color: #D4D4D8; font-size: 11px; background: transparent; border: none;");
+        }
+        cLayout->addWidget(lblStatus);
+
+        // Details Rows (Formatted with exact same color tokens as createDamTab in Info tab)
+        auto addCardRow = [&](const QString& labelText, const QString& valText, const QString& valColor = "#FFFFFF") {
+            auto* row = new QWidget(card);
+            row->setStyleSheet("background: transparent; border: none;");
+            auto* hl = new QHBoxLayout(row);
+            hl->setContentsMargins(0, 1, 0, 1);
+            auto* lbl = new QLabel(labelText, row);
+            lbl->setStyleSheet("color: #D4D4D8; font-size: 11px; background: transparent; border: none;");
+            lbl->setMinimumWidth(115);
+            auto* val = new QLabel(valText, row);
+            val->setStyleSheet(QString("color: %1; font-size: 11px; font-weight: normal; background: transparent; border: none;").arg(valColor));
+            val->setWordWrap(true);
+            hl->addWidget(lbl);
+            hl->addWidget(val, 1);
+            cLayout->addWidget(row);
+        };
+
+        addCardRow("Zone Type:", z.zoneType);
+        addCardRow("Coordinates:", QString("%1° N, %2° E").arg(z.lat, 0, 'f', 4).arg(z.lon, 0, 'f', 4));
+        addCardRow("Ground Elevation:", QString("%1 m MSL").arg(z.elevationMSL, 0, 'f', 1));
+        addCardRow("Breach Distance:", QString("%1 km downstream").arg(z.distanceKm, 0, 'f', 1));
+        addCardRow("Peak Inundation:", QString("%1 m depth (Flow Vel: %2 m/s)").arg(z.peakDepthM, 0, 'f', 1).arg(z.peakVelocityMs, 0, 'f', 1));
+        addCardRow("At-Risk Population:", QString("%1 residents").arg(QLocale(QLocale::English).toString(z.estimatedPopulation)));
+        addCardRow("Critical Assets:", z.criticalInfrastructure);
+        addCardRow("Action Advice:", z.evacuationAdvice, isInundated ? "#EF4444" : "#FFFFFF");
+
+        // Locate Button (Same button styling as btnCenterOnDam in Info tab)
+        auto* btnLocate = new QPushButton("🎯 Locate Zone on Map", card);
+        btnLocate->setObjectName("btnActionBlue");
+        double zLat = z.lat;
+        double zLon = z.lon;
+        connect(btnLocate, &QPushButton::clicked, this, [this, zLat, zLon]() {
+            emit centerLocationRequested(zLat, zLon, 13);
+        });
+        cLayout->addWidget(btnLocate);
+
+        dangerCardsLayout->addWidget(card);
+    }
+
+    // Update Overview Header & Stats
+    if (lblDangerThreatLevel) {
+        if (inundatedCount > 0) {
+            lblDangerThreatLevel->setText("CRITICAL FLOOD INUNDATION ACTIVE");
+        } else if (currentMinute > 0) {
+            lblDangerThreatLevel->setText("FLOOD WAVE ADVANCING DOWNSTREAM");
+        } else {
+            lblDangerThreatLevel->setText("Downstream Flood Hazard & Vulnerability");
+        }
+    }
+
+    if (lblDangerSubStatus) {
+        if (inundatedCount > 0) {
+            lblDangerSubStatus->setText(QString("Inundation Impact: %1 of %2 Downstream Zones Breached").arg(inundatedCount).arg(zones.size()));
+        } else if (currentMinute > 0) {
+            lblDangerSubStatus->setText(QString("Active Propagation: T + %1 min · Front %2 km").arg(currentMinute).arg(frontDistKm, 0, 'f', 1));
+        } else {
+            lblDangerSubStatus->setText("Vulnerability Level: High Risk Assessment");
+        }
+    }
+
+    if (lblDangerStatusText) {
+        if (inundatedCount > 0) {
+            lblDangerStatusText->setText(QString("%1 Zones Inundated").arg(inundatedCount));
+            lblDangerStatusText->setStyleSheet("color: #EF4444; font-size: 11px; font-weight: bold; background: transparent; border: none;");
+        } else if (currentMinute > 0) {
+            lblDangerStatusText->setText("Wave Advancing");
+            lblDangerStatusText->setStyleSheet("color: #FFFFFF; font-size: 11px; font-weight: bold; background: transparent; border: none;");
+        } else {
+            lblDangerStatusText->setText("Simulation Ready (T+0m)");
+            lblDangerStatusText->setStyleSheet("color: #FFFFFF; font-size: 11px; font-weight: normal; background: transparent; border: none;");
+        }
+    }
+
+    if (lblDangerPopulationCount) {
+        lblDangerPopulationCount->setText(QString("%1 residents").arg(QLocale(QLocale::English).toString(totalPop)));
+    }
+
+    if (lblDangerInundatedCount) {
+        lblDangerInundatedCount->setText(QString("%1 / %2 settlements").arg(inundatedCount).arg(zones.size()));
+    }
+
+    if (lblDangerFrontEta) {
+        if (nextEta > 0) {
+            int rem = static_cast<int>(std::round(nextEta - currentMinute));
+            lblDangerFrontEta->setText(QString("%1 (In %2m)").arg(nextZoneName).arg(std::max(0, rem)));
+        } else if (inundatedCount == static_cast<int>(zones.size())) {
+            lblDangerFrontEta->setText("All downstream zones inundated");
+        } else {
+            lblDangerFrontEta->setText(QString("T + %1 min").arg(currentMinute));
+        }
+    }
+
+    if (lblDangerReachDist) {
+        lblDangerReachDist->setText(QString("%1 km (Current Front)").arg(frontDistKm, 0, 'f', 1));
     }
 }
 

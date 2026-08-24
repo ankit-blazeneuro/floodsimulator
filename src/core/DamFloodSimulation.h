@@ -68,6 +68,24 @@ struct FloodWaveNode {
     int basinIndex = 0;             // Index of topographic depression
 };
 
+struct DangerZone {
+    QString name;                   // e.g. "Gogamukh Riverside Ward", "Lower Subansiri Agricultural Belt"
+    QString zoneType;               // "Residential Settlement", "Highway Bridge", "Agricultural Hub", "Health Facility", "Substation"
+    double lat = 0.0;
+    double lon = 0.0;
+    double elevationMSL = 0.0;      // Ground elevation MSL (m)
+    double distanceKm = 0.0;        // Distance downstream from dam (km)
+    double arrivalTimeMin = 0.0;    // Flood wave ETA (minutes)
+    double peakDepthM = 0.0;        // Projected peak flood depth (m)
+    double peakVelocityMs = 0.0;    // Flow velocity (m/s)
+    int estimatedPopulation = 0;    // Population at risk
+    QString riskLevel;              // "CRITICAL", "HIGH", "MODERATE", "WATCH"
+    QString evacuationAdvice;       // "Immediate Evacuation to High Ground", "Prepare Emergency Relocation"
+    QString criticalInfrastructure; // e.g. "NH-15 Bridge, 33kV Substation"
+    bool isCurrentlyInundated = false; // Evaluated dynamically at currentMinute
+    double currentDepthM = 0.0;     // Current depth at currentMinute
+};
+
 struct FloodSimulationState {
     bool isActive = false;
     DamPoint dam;
@@ -83,6 +101,7 @@ struct FloodSimulationState {
     std::vector<FloodTimeSlice> timeSlices; // Precalculated 0 to 60 min cache for zero-compute 60 FPS playback
     std::vector<FloodWaveNode> rawNodes;
     std::vector<TopoBasin> basins;          // Cascading topographic depression basins
+    std::vector<DangerZone> dangerZones;    // Downstream populated areas and critical zones in danger
 };
 
 class DamFloodSimulator {

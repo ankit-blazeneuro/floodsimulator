@@ -91,7 +91,9 @@ public:
         return get("pause", color, size);
     }
     static QIcon rewind(const QColor& color = QColor(212, 212, 216), int size = 16) {
-        return get("rewind-forward", color, size);
+        QPixmap pix = getPixmap("rewind-forward", color, size);
+        if (pix.isNull()) return QIcon();
+        return QIcon(rotatePixmap(pix, 180.0));
     }
     static QIcon forward(const QColor& color = QColor(212, 212, 216), int size = 16) {
         return get("rewind-forward", color, size);
@@ -155,6 +157,25 @@ public:
     }
     static QIcon loader(const QColor& color = QColor(138, 180, 248), int size = 18) {
         return get("loader-circle", color, size);
+    }
+    static QIcon terminal(const QColor& color = QColor(161, 161, 170), int size = 18) {
+        QPixmap pix(size, size);
+        pix.fill(Qt::transparent);
+        QPainter p(&pix);
+        p.setRenderHint(QPainter::Antialiasing, true);
+        p.setPen(QPen(color, 1.8, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        // > prompt chevron
+        p.drawLine(3, 4, 7, 8);
+        p.drawLine(7, 8, 3, 12);
+        // _ cursor line
+        p.drawLine(9, 13, 15, 13);
+        return QIcon(pix);
+    }
+    static QIcon danger(const QColor& color = QColor(244, 63, 94), int size = 20) {
+        return get("danger", color, size);
+    }
+    static QIcon alert(const QColor& color = QColor(244, 63, 94), int size = 18) {
+        return get("danger", color, size);
     }
 };
 

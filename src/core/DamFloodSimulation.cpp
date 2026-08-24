@@ -211,13 +211,30 @@ FloodSimulationState DamFloodSimulator::compute60MinSimulation(const DamPoint& d
         std::vector<QPointF> streamline;
         std::vector<PondedPool> trappedPools;
 
-        for (const auto& node : state.rawNodes) {
+        for (size_t i = 0; i < state.rawNodes.size(); ++i) {
+            const auto& node = state.rawNodes[i];
             if (node.distanceKm <= frontDist) {
                 streamline.push_back(QPointF(node.lat, node.lon));
                 frontPos = QPointF(node.lat, node.lon);
             } else {
+                // Interpolate exact sub-grid leading front position
+                if (i > 0 && frontDist > state.rawNodes[i - 1].distanceKm) {
+                    const auto& prevNode = state.rawNodes[i - 1];
+                    double segLen = node.distanceKm - prevNode.distanceKm;
+                    if (segLen > 0.0001) {
+                        double frac = std::clamp((frontDist - prevNode.distanceKm) / segLen, 0.0, 1.0);
+                        double interpLat = prevNode.lat + frac * (node.lat - prevNode.lat);
+                        double interpLon = prevNode.lon + frac * (node.lon - prevNode.lon);
+                        frontPos = QPointF(interpLat, interpLon);
+                        streamline.push_back(frontPos);
+                    }
+                }
                 break;
             }
+        }
+        if (streamline.empty() && frontDist > 0.001) {
+            streamline.push_back(QPointF(dam.lat, dam.lon));
+            streamline.push_back(frontPos);
         }
 
         // Construct Trapped Waterbodies / Pools in each basin that has received water
@@ -284,6 +301,69 @@ FloodSimulationState DamFloodSimulator::compute60MinSimulation(const DamPoint& d
         slice.totalPondedVolumeMCM = totalPondedMCM;
 
         state.timeSlices[tMin] = slice;
+    }
+
+    // 6. Generate Downstream Vulnerable Population Centers & Danger Zones
+    struct ZoneTemplate {
+        double distKm;
+        const char* nameSuffix;
+        const char* zoneType;
+        int population;
+        const char* riskLevel;
+        const char* advice;
+        const char* infra;
+    };
+
+    std::vector<ZoneTemplate> templates = {
+        { 2.5, "Dam Downstream Riverside Ward", "Residential Settlement & Fishery", 3400, "CRITICAL", "Immediate Evacuation to High Ground", "Local Bridge, Access Road, Pumping Station" },
+        { 6.2, "Riverbank Township & Primary Health Center", "Township & Health Facility", 8900, "CRITICAL", "Mandatory Emergency Relocation", "PHC Center, Primary School, 11kV Feeder" },
+        { 12.8, "Lowland Agricultural Cluster & Market", "Agricultural Floodplain & Rural Hub", 14200, "HIGH", "Evacuate Livestock and Low-Lying Homes", "Grain Storage Depot, River Embankment Bund" },
+        { 19.5, "Highway Corridor & River Crossing", "National Highway Bridge & Substation", 6100, "HIGH", "Close Highway Bridge, Secure Utilities", "Highway Bridge Pier, 33kV Power Substation" },
+        { 27.0, "Confluence Commercial Settlement", "River Confluence Market & Habitation", 19800, "MODERATE", "High Alert, Prepare Flood Shelters", "District Supply Road, Telecommunications Tower" },
+        { 35.5, "Delta Agricultural Embankment Outpost", "Lower Estuary & Embankment Colony", 7500, "WATCH", "Monitor Flood Gauge, Standby for Orders", "Flood Embankment Sluice Gate, Relief Center" }
+    };
+
+    QString damPrefix = dam.name.isEmpty() ? "Valley" : dam.name;
+
+    for (const auto& tmpl : templates) {
+        DangerZone dz;
+        dz.name = QString("%1 - %2").arg(damPrefix).arg(tmpl.nameSuffix);
+        dz.zoneType = tmpl.zoneType;
+        dz.distanceKm = tmpl.distKm;
+        dz.estimatedPopulation = tmpl.population;
+        dz.riskLevel = tmpl.riskLevel;
+        dz.evacuationAdvice = tmpl.advice;
+        dz.criticalInfrastructure = tmpl.infra;
+
+        // Sample coordinates along downstream nodes
+        dz.lat = dam.lat;
+        dz.lon = dam.lon;
+        dz.elevationMSL = damZ - 20.0;
+
+        for (size_t i = 0; i < state.rawNodes.size(); ++i) {
+            if (state.rawNodes[i].distanceKm >= tmpl.distKm) {
+                dz.lat = state.rawNodes[i].lat;
+                dz.lon = state.rawNodes[i].lon;
+                dz.elevationMSL = state.rawNodes[i].bedElevationMSL;
+                break;
+            }
+        }
+
+        // Compute Arrival Time (ETA) based on average wave speed
+        double avgSpeedKmh = (c0 * 3.6) * 0.75;
+        if (avgSpeedKmh > 1.0) {
+            dz.arrivalTimeMin = std::round((tmpl.distKm / avgSpeedKmh) * 60.0);
+        } else {
+            dz.arrivalTimeMin = std::round(tmpl.distKm * 2.5);
+        }
+
+        // Projected peak depth & velocity
+        dz.peakDepthM = std::max(1.2, H0 * 0.45 * std::exp(-0.025 * tmpl.distKm));
+        dz.peakVelocityMs = std::max(1.5, c0 * 0.4 * std::exp(-0.02 * tmpl.distKm));
+        dz.isCurrentlyInundated = false;
+        dz.currentDepthM = 0.0;
+
+        state.dangerZones.push_back(dz);
     }
 
     state.currentMinute = 0;

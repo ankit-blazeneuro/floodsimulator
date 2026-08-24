@@ -493,56 +493,36 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                 return QPointF(cx + (tX - centerTileX) * TILE_SIZE, cy + (tY - centerTileY) * TILE_SIZE);
             };
 
-            // 1. Full Downstream River Reach Bed & Area under Distance Curve (10% Opacity)
-            if (floodSimulation.rawNodes.size() >= 2) {
-                std::vector<QPointF> reachPts;
-                reachPts.reserve(floodSimulation.rawNodes.size());
-                for (const auto& node : floodSimulation.rawNodes) {
-                    reachPts.push_back(toCanvasPoint(node.lat, node.lon));
-                }
+            // 1. Dam Breach Origin Beacon (Breach Starting Point)
+            if (!floodSimulation.rawNodes.empty()) {
+                QPointF breachScreen = toCanvasPoint(floodSimulation.rawNodes[0].lat, floodSimulation.rawNodes[0].lon);
+                double breachPulse = std::fmod((flowAnimPhase * 0.7), 18.0);
 
-                // Area under full downstream distance curve (10% Opacity)
-                QPolygonF reachEnvelope;
-                float reachWidth = 14.0f;
-                for (size_t i = 0; i < reachPts.size(); ++i) {
-                    QPointF dir;
-                    if (i == 0) dir = reachPts[1] - reachPts[0];
-                    else if (i + 1 == reachPts.size()) dir = reachPts[i] - reachPts[i - 1];
-                    else dir = reachPts[i + 1] - reachPts[i - 1];
+                // Pulsing red-orange breach warning beacon
+                painter.setPen(QPen(QColor(239, 68, 68, std::max(0, 220 - static_cast<int>(breachPulse * 10))), 1.8));
+                painter.setBrush(QColor(239, 68, 68, std::max(0, 50 - static_cast<int>(breachPulse * 2))));
+                painter.drawEllipse(breachScreen, 7.0 + breachPulse, 7.0 + breachPulse);
 
-                    float len = std::hypot(dir.x(), dir.y());
-                    if (len > 0.001f) {
-                        QPointF norm(-dir.y() / len, dir.x() / len);
-                        reachEnvelope.append(reachPts[i] + norm * (reachWidth / 2.0f));
-                    }
-                }
-                for (int i = static_cast<int>(reachPts.size()) - 1; i >= 0; --i) {
-                    QPointF dir;
-                    if (i == 0) dir = reachPts[1] - reachPts[0];
-                    else if (i + 1 == static_cast<int>(reachPts.size())) dir = reachPts[i] - reachPts[i - 1];
-                    else dir = reachPts[i + 1] - reachPts[i - 1];
+                painter.setPen(QPen(QColor(255, 255, 255), 1.5));
+                painter.setBrush(QColor(239, 68, 68));
+                painter.drawEllipse(breachScreen, 4.0, 4.0);
 
-                    float len = std::hypot(dir.x(), dir.y());
-                    if (len > 0.001f) {
-                        QPointF norm(-dir.y() / len, dir.x() / len);
-                        reachEnvelope.append(reachPts[i] - norm * (reachWidth / 2.0f));
-                    }
+                if (floodSimulation.currentMinute == 0 && zoomLevel >= 8) {
+                    QString breachLabel = "Dam Breach Origin · T + 0m (Ready)";
+                    topTooltips.push_back([breachScreen, breachLabel](QPainter& p) {
+                        QFont bFont("Segoe UI", 7, QFont::DemiBold);
+                        p.setFont(bFont);
+                        QFontMetricsF bfm(bFont);
+                        QRectF bRect(breachScreen.x() - bfm.horizontalAdvance(breachLabel) / 2.0 - 6,
+                                     breachScreen.y() - bfm.height() - 10,
+                                     bfm.horizontalAdvance(breachLabel) + 12, bfm.height() + 4);
+                        p.setBrush(QColor(24, 24, 27, 255));
+                        p.setPen(QPen(QColor(239, 68, 68, 200), 1.0));
+                        p.drawRoundedRect(bRect, 4.0, 4.0);
+                        p.setPen(QColor(244, 244, 245));
+                        p.drawText(bRect, Qt::AlignCenter, breachLabel);
+                    });
                 }
-
-                if (reachEnvelope.size() >= 3) {
-                    painter.setBrush(QColor(138, 180, 248, 26)); // 10% opacity area under distance curve
-                    painter.setPen(QPen(QColor(138, 180, 248, 45), 1.0, Qt::DotLine));
-                    painter.drawPolygon(reachEnvelope);
-                }
-
-                // Distance trajectory center path
-                QPainterPath fullReachPath;
-                fullReachPath.moveTo(reachPts[0]);
-                for (size_t i = 1; i < reachPts.size(); ++i) {
-                    fullReachPath.lineTo(reachPts[i]);
-                }
-                painter.setPen(QPen(QColor(138, 180, 248, 65), 1.2, Qt::DotLine, Qt::RoundCap));
-                painter.drawPath(fullReachPath);
             }
 
             // 2. Trapped Water Pools in Topographic Basins (Depression Storage)
@@ -765,9 +745,10 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                 painter.drawEllipse(frontScreen, 3.5, 3.5);
 
                 // Defer shadcn Tooltip Badge to Top Z-Index Layer
-                QString frontBadge = QString("%1 km · T + %2m")
+                QString frontBadge = QString("%1 km · T + %2m · %3 m/s")
                     .arg(slice->frontDistanceKm, 0, 'f', 1)
-                    .arg(floodSimulation.currentMinute);
+                    .arg(floodSimulation.currentMinute)
+                    .arg(slice->maxVelocityMs, 0, 'f', 1);
 
                 topTooltips.push_back([frontScreen, frontBadge](QPainter& p) {
                     QFont badgeFont("Segoe UI", 8, QFont::DemiBold);
@@ -794,6 +775,100 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                     p.drawPolygon(pointerArrow);
                 });
             }
+
+            // 6. Downstream Danger & Vulnerable Impact Zones: River Pit Blue Zone Plotting & Beacons
+            for (const auto& dz : floodSimulation.dangerZones) {
+                QPointF dzScreen = toCanvasPoint(dz.lat, dz.lon);
+                bool isInundated = (slice->frontDistanceKm >= dz.distanceKm && floodSimulation.currentMinute > 0);
+
+                // A. Generate Organic River Pit Blue Basin Polygon (WGS84 buffer scaled with depth)
+                double pitRadiusLatDeg = 0.0035 + 0.0005 * std::clamp(dz.peakDepthM, 1.0, 10.0);
+                double pitRadiusLonDeg = 0.0050 + 0.0007 * std::clamp(dz.peakDepthM, 1.0, 10.0);
+                QPolygonF pitCanvasPoly;
+                int numVerts = 14;
+                for (int v = 0; v < numVerts; ++v) {
+                    double theta = (2.0 * M_PI * v) / numVerts;
+                    double noise = 0.82 + 0.28 * std::sin(theta * 3.0 + dz.distanceKm * 0.75);
+                    double vLat = dz.lat + pitRadiusLatDeg * noise * std::cos(theta);
+                    double vLon = dz.lon + pitRadiusLonDeg * noise * std::sin(theta);
+                    pitCanvasPoly.append(toCanvasPoint(vLat, vLon));
+                }
+
+                if (pitCanvasPoly.size() >= 3) {
+                    // 1. Outer Danger Inundation Buffer (Translucent Reddish-Rosy Wash)
+                    painter.setBrush(QColor(244, 63, 94, isInundated ? 60 : 35));
+                    painter.setPen(QPen(QColor(251, 113, 133, isInundated ? 170 : 90), 1.4, Qt::DashLine));
+                    painter.drawPolygon(pitCanvasPoly);
+
+                    // 2. Mid Inundation Risk Pool (Rich Crimson-Rose Pool)
+                    QTransform tMid;
+                    tMid.translate(dzScreen.x(), dzScreen.y());
+                    tMid.scale(0.60, 0.60);
+                    tMid.translate(-dzScreen.x(), -dzScreen.y());
+                    QPolygonF midPitPoly = tMid.map(pitCanvasPoly);
+                    painter.setBrush(QColor(225, 29, 72, isInundated ? 140 : 70));
+                    painter.setPen(QPen(QColor(244, 63, 94, isInundated ? 190 : 100), 1.0));
+                    painter.drawPolygon(midPitPoly);
+
+                    // 3. Core Critical Hazard Center (Deep Radish / Ruby Crimson Core)
+                    QTransform tCore;
+                    tCore.translate(dzScreen.x(), dzScreen.y());
+                    tCore.scale(0.30, 0.30);
+                    tCore.translate(-dzScreen.x(), -dzScreen.y());
+                    QPolygonF corePitPoly = tCore.map(pitCanvasPoly);
+                    painter.setBrush(QColor(159, 18, 57, isInundated ? 190 : 100));
+                    painter.setPen(Qt::NoPen);
+                    painter.drawPolygon(corePitPoly);
+
+                    // 4. Concentric Hazard Shockwave / Rosy Fluid Ripples
+                    double pitRipple = std::fmod((flowAnimPhase * 0.8 + dz.distanceKm * 2.0), 18.0);
+                    painter.setPen(QPen(QColor(254, 205, 211, std::max(0, 180 - static_cast<int>(pitRipple * 9))), 1.2));
+                    painter.setBrush(Qt::NoBrush);
+                    painter.drawEllipse(dzScreen, 5.0 + pitRipple, 3.5 + pitRipple * 0.7);
+                }
+
+                // B. Center Danger Warning Beacon (Rose Red + Pink Theme #F43F5E / #FB7185)
+                if (isInundated) {
+                    // Inundated Zone: Pulsing Rose-Red/Pink Alert Rings & Beacon
+                    double dangerPulse = std::fmod((flowAnimPhase * 0.9), 16.0);
+                    painter.setPen(QPen(QColor(244, 63, 94, std::max(0, 220 - static_cast<int>(dangerPulse * 12))), 2.0));
+                    painter.setBrush(QColor(225, 29, 72, 60));
+                    painter.drawEllipse(dzScreen, 6.0 + dangerPulse, 6.0 + dangerPulse);
+
+                    painter.setPen(QPen(Qt::white, 1.4));
+                    painter.setBrush(QColor(244, 63, 94)); // Rose-Pink-Red
+                    painter.drawEllipse(dzScreen, 4.0, 4.0);
+                } else {
+                    // Impending Threat: Rose-Pink Warning Diamond
+                    painter.setPen(QPen(QColor(251, 113, 133, 230), 1.5));
+                    painter.setBrush(QColor(244, 63, 94, 190));
+                    QPolygonF diamond;
+                    diamond << QPointF(dzScreen.x(), dzScreen.y() - 5.0)
+                            << QPointF(dzScreen.x() + 5.0, dzScreen.y())
+                            << QPointF(dzScreen.x(), dzScreen.y() + 5.0)
+                            << QPointF(dzScreen.x() - 5.0, dzScreen.y());
+                    painter.drawPolygon(diamond);
+                }
+
+                if (zoomLevel >= 8) {
+                    QString dzLabel = QString("%1 (%2 km · %3)")
+                        .arg(dz.name.section('-', -1).trimmed())
+                        .arg(dz.distanceKm, 0, 'f', 1)
+                        .arg(isInundated ? "INUNDATED" : QString("ETA: T+%1m").arg(qRound(dz.arrivalTimeMin)));
+
+                    topTooltips.push_back([dzScreen, dzLabel, isInundated](QPainter& p) {
+                        QFont dzFont("Segoe UI", 7, QFont::DemiBold);
+                        p.setFont(dzFont);
+                        QFontMetricsF mfm(dzFont);
+                        QRectF dRect(dzScreen.x() + 8, dzScreen.y() - mfm.height() / 2.0 - 1, mfm.horizontalAdvance(dzLabel) + 10, mfm.height() + 4);
+                        p.setBrush(QColor(24, 24, 27, 255));
+                        p.setPen(QPen(isInundated ? QColor(244, 63, 94, 230) : QColor(251, 113, 133, 200), 1.0));
+                        p.drawRoundedRect(dRect, 4.0, 4.0);
+                        p.setPen(isInundated ? QColor(254, 205, 211) : QColor(244, 244, 245));
+                        p.drawText(dRect, Qt::AlignCenter, dzLabel);
+                    });
+                }
+            }
         }
     }
 
@@ -805,9 +880,32 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
     // End Rotated Map Scene
     painter.restore();
 
-    // 2. Draw Upright Overlays & Axis Crosshair (Screen Middle Plus)
-    // Center crosshair (the axis of rotation)
-    painter.setPen(QPen(QColor(138, 180, 248, 180), 1.5));
+    // 2. Draw Upright Overlays & Dynamic Axis Crosshair (Screen Middle Plus)
+    // Determine dynamic contrast color based on background tile luminance at center
+    bool isDarkBg = true;
+    QPixmap* centerTile = getTile(zoomLevel, centerTileXInt, centerTileYInt);
+    if (centerTile && !centerTile->isNull()) {
+        int px = std::clamp(static_cast<int>((centerTileX - std::floor(centerTileX)) * TILE_SIZE), 0, TILE_SIZE - 1);
+        int py = std::clamp(static_cast<int>((centerTileY - std::floor(centerTileY)) * TILE_SIZE), 0, TILE_SIZE - 1);
+        QImage tileImg = centerTile->toImage();
+        if (px >= 0 && px < tileImg.width() && py >= 0 && py < tileImg.height()) {
+            QColor centerPixel = tileImg.pixelColor(px, py);
+            double luminance = 0.299 * centerPixel.red() + 0.587 * centerPixel.green() + 0.114 * centerPixel.blue();
+            isDarkBg = (luminance < 135.0);
+        }
+    }
+
+    // Dynamic contrast plus sign: White on dark backgrounds, Dark zinc on light/white backgrounds
+    QColor plusCoreColor = isDarkBg ? QColor(255, 255, 255, 250) : QColor(20, 20, 24, 250);
+    QColor plusShadowColor = isDarkBg ? QColor(0, 0, 0, 180) : QColor(255, 255, 255, 180);
+
+    // Outer contrast outline / shadow (for 100% visibility over any surface texture)
+    painter.setPen(QPen(plusShadowColor, 3.2, Qt::SolidLine, Qt::RoundCap));
+    painter.drawLine(cx - 8, cy, cx + 8, cy);
+    painter.drawLine(cx, cy - 8, cx, cy + 8);
+
+    // Inner dynamic core stroke
+    painter.setPen(QPen(plusCoreColor, 1.6, Qt::SolidLine, Qt::RoundCap));
     painter.drawLine(cx - 8, cy, cx + 8, cy);
     painter.drawLine(cx, cy - 8, cx, cy + 8);
 

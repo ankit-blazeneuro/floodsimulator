@@ -51,6 +51,7 @@ set(SOURCES
     src/ui/SettingsDialog.cpp
     src/ui/TimelineWidget.cpp
     src/ui/PropertiesPanel.cpp
+    src/ui/SidebarTerminal.cpp
     src/ui/PieMenu.cpp
     src/assets/resources.qrc
 )

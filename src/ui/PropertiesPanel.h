@@ -13,6 +13,9 @@
 #include <QButtonGroup>
 #include <QProgressBar>
 #include <vector>
+#include <QSplitter>
+#include "SidebarTerminal.h"
+#include "../core/DamFloodSimulation.h"
 
 namespace MapCore {
     struct DamPoint;
@@ -53,6 +56,25 @@ class PropertiesPanel : public QWidget {
     QPushButton* btnTabTelemetry;
     QPushButton* btnTabDisplay;
     QPushButton* btnTabDam;
+    QPushButton* btnTabDanger;
+    QPushButton* btnTabTerminal;
+
+    SidebarTerminal* terminalWidget;
+    QWidget* bottomWidget;
+    QSplitter* sidebarSplitter;
+
+    // Danger Tab members
+    QLabel* lblDangerThreatLevel;
+    QLabel* lblDangerSubStatus;
+    QLabel* lblDangerActionNotice;
+    QLabel* lblDangerStatusText;
+    QLabel* lblDangerPopulationCount;
+    QLabel* lblDangerInundatedCount;
+    QLabel* lblDangerFrontEta;
+    QLabel* lblDangerReachDist;
+    QWidget* dangerCardsContainer;
+    QVBoxLayout* dangerCardsLayout;
+    std::vector<MapCore::DangerZone> currentDangerZones;
 
     // Fluid parameters
     QDoubleSpinBox* spinWaterRise;
@@ -110,9 +132,17 @@ public:
     void updateHydrodynamicPropagation(int minute, double areaKm2, double frontDistKm, double maxDepthM, double maxVelMs, double peakDischargeQ,
                                        const QString& basinName = "", double bedZ = 0.0, double wse = 0.0, double saddleLipZ = 0.0,
                                        bool isOvertopping = false, double filledPct = 0.0, double totalPondedMCM = 0.0);
+    void updateDangerZones(const std::vector<MapCore::DangerZone>& zones, int currentMinute, double frontDistKm);
+
+    SidebarTerminal* getTerminal() { return terminalWidget; }
+    void toggleTerminal();
+    void setTerminalVisible(bool visible);
+    bool isTerminalVisible() const;
 
 signals:
     void simulationBakeRequested(double waterRise, double rainfall, double breachWidth);
+    void playbackControlRequested(const QString& action);
+    void jumpMinuteRequested(int minute);
     void parameterChanged(const QString& name, double val);
     void centerLocationRequested(double lat, double lon, int zoom);
 
@@ -123,6 +153,7 @@ private:
     QWidget* createTelemetryTab();
     QWidget* createDisplayTab();
     QWidget* createDamTab();
+    QWidget* createDangerTab();
     void switchTab(int index, const QString& title);
 };
 

@@ -27,6 +27,7 @@
         <file alias="chevron-up.svg">icons/chevron-up.svg</file>
         <file alias="compass.svg">icons/compass.svg</file>
         <file alias="info.svg">icons/info.svg</file>
+        <file alias="danger.svg">icons/danger.svg</file>
         <file alias="loader-circle.svg">icons/loader-circle.svg</file>
     </qresource>
 </RCC>

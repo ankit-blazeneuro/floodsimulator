@@ -98,6 +98,7 @@ private:
     QAction* actionOffline;
     QAction* actionToggleSidebar;
     QAction* actionToggleTimeline;
+    QAction* actionToggleTerminal;
 
     QAction* actionThemeSystem;
     QAction* actionThemeDark;
@@ -148,6 +149,7 @@ public slots:
     void openSettingsDialog();
     void togglePropertiesPanel();
     void toggleTimeline();
+    void toggleTerminal();
     void showSimulationScreen();
     void showAnalyticsScreen();
     void setActiveTool(MapTool tool);

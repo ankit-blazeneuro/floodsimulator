@@ -105,7 +105,7 @@ bool MainWindow::isSystemDarkTheme() {
 }
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
-    setWindowTitle("RedR - Flood Simulator");
+    setWindowTitle("RedR by BlazeNeuro");
     setWindowIcon(IconHelper::logo(QColor(212, 212, 216), 32));
     resize(1380, 860);
     setMinimumSize(920, 600);
@@ -230,6 +230,15 @@ void MainWindow::toggleTimeline() {
     updateFloatingPositions();
 }
 
+void MainWindow::toggleTerminal() {
+    if (propertiesPanel) {
+        if (!propertiesPanel->isVisible()) {
+            propertiesPanel->setVisible(true);
+        }
+        propertiesPanel->toggleTerminal();
+    }
+}
+
 void MainWindow::setupMenuBar() {
     appMenuBar = menuBar();
     appMenuBar->setStyleSheet(R"(
@@ -301,24 +310,48 @@ void MainWindow::setupMenuBar() {
             border: 1px solid #444444;
             border-radius: 2px;
         }
-        QPushButton#workspaceBtn {
+        /* Simulation Tab Button (Modern 5px Curve & Sky Blue Theme) */
+        QPushButton#btnWorkspaceSim {
             background-color: transparent;
             color: #D4D4D8;
-            border: none;
-            border-radius: 3px;
+            border: 1px solid transparent;
+            border-radius: 5px;
             font-family: 'Segoe UI', Arial, sans-serif;
             font-size: 11px;
             font-weight: 600;
-            padding: 4px 10px;
+            padding: 3px 10px;
         }
-        QPushButton#workspaceBtn:hover {
-            background-color: #383838;
-            color: #FFFFFF;
+        QPushButton#btnWorkspaceSim:hover {
+            background-color: rgba(56, 189, 248, 0.12);
+            color: #BAE6FD;
+            border: 1px solid rgba(56, 189, 248, 0.30);
         }
-        QPushButton#workspaceBtn:checked {
-            background-color: #38465C;
-            color: #8AB4F8;
-            border: 1px solid #4772B3;
+        QPushButton#btnWorkspaceSim:checked {
+            background-color: rgba(56, 189, 248, 0.22);
+            color: #38BDF8;
+            border: 1px solid #38BDF8;
+        }
+
+        /* Analytics Tab Button (Modern 5px Curve & Purple Theme) */
+        QPushButton#btnWorkspaceAnalytics {
+            background-color: transparent;
+            color: #D4D4D8;
+            border: 1px solid transparent;
+            border-radius: 5px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+        }
+        QPushButton#btnWorkspaceAnalytics:hover {
+            background-color: rgba(167, 139, 250, 0.12);
+            color: #DDD6FE;
+            border: 1px solid rgba(167, 139, 250, 0.30);
+        }
+        QPushButton#btnWorkspaceAnalytics:checked {
+            background-color: rgba(167, 139, 250, 0.22);
+            color: #A78BFA;
+            border: 1px solid #A78BFA;
         }
     )");
 
@@ -435,6 +468,10 @@ void MainWindow::setupMenuBar() {
     actionToggleTimeline->setShortcut(QKeySequence("Ctrl+T"));
     connect(actionToggleTimeline, &QAction::triggered, this, &MainWindow::toggleTimeline);
 
+    actionToggleTerminal = viewMenu->addAction(IconHelper::terminal(QColor(161, 161, 170), 16), "Toggle Logs");
+    actionToggleTerminal->setShortcut(QKeySequence("Ctrl+`"));
+    connect(actionToggleTerminal, &QAction::triggered, this, &MainWindow::toggleTerminal);
+
     viewMenu->addSeparator();
 
     actionFullscreen = viewMenu->addAction("Toggle Fullscreen");
@@ -540,10 +577,10 @@ void MainWindow::setupMenuBar() {
     auto* wsButtonGroup = new QButtonGroup(this);
     wsButtonGroup->setExclusive(true);
 
-    // Simulation Workspace Button (Icon + Title "Simulation")
+    // Simulation Workspace Button (Icon + Title "Simulation", Sky Blue Theme)
     btnWorkspaceSim = new QPushButton(" Simulation", topBarWidget);
-    btnWorkspaceSim->setObjectName("workspaceBtn");
-    btnWorkspaceSim->setIcon(IconHelper::map(QColor(138, 180, 248), 16));
+    btnWorkspaceSim->setObjectName("btnWorkspaceSim");
+    btnWorkspaceSim->setIcon(IconHelper::map(QColor(56, 189, 248), 16));
     btnWorkspaceSim->setIconSize(QSize(16, 16));
     btnWorkspaceSim->setCheckable(true);
     btnWorkspaceSim->setChecked(true);
@@ -551,9 +588,9 @@ void MainWindow::setupMenuBar() {
     wsButtonGroup->addButton(btnWorkspaceSim, 0);
     topBarLayout->addWidget(btnWorkspaceSim);
 
-    // Analytics Workspace Button (Icon + Title "Analytics")
+    // Analytics Workspace Button (Icon + Title "Analytics", Purple Theme)
     btnWorkspaceAnalytics = new QPushButton(" Analytics", topBarWidget);
-    btnWorkspaceAnalytics->setObjectName("workspaceBtn");
+    btnWorkspaceAnalytics->setObjectName("btnWorkspaceAnalytics");
     btnWorkspaceAnalytics->setIcon(IconHelper::graph(QColor(167, 139, 250), 16));
     btnWorkspaceAnalytics->setIconSize(QSize(16, 16));
     btnWorkspaceAnalytics->setCheckable(true);
@@ -787,6 +824,7 @@ void MainWindow::setupUi() {
                                                                slice0->activeBasinName, slice0->currentBedZ, slice0->currentWSE,
                                                                slice0->saddleLipThresholdMSL, slice0->isOvertoppingActive,
                                                                slice0->depressionFilledPct, slice0->totalPondedVolumeMCM);
+                propertiesPanel->updateDangerZones(sim.dangerZones, 0, 0.0);
             }
 
             // Set timeline frame to 0 and enable flood_sim track
@@ -881,6 +919,7 @@ void MainWindow::setupUi() {
                                                            slice0->activeBasinName, slice0->currentBedZ, slice0->currentWSE,
                                                            slice0->saddleLipThresholdMSL, slice0->isOvertoppingActive,
                                                            slice0->depressionFilledPct, slice0->totalPondedVolumeMCM);
+            propertiesPanel->updateDangerZones(sim.dangerZones, 0, 0.0);
         }
 
         // 3. Center and zoom to the dam reach
@@ -922,6 +961,7 @@ void MainWindow::setupUi() {
                                                                slice0->activeBasinName, slice0->currentBedZ, slice0->currentWSE,
                                                                slice0->saddleLipThresholdMSL, slice0->isOvertoppingActive,
                                                                slice0->depressionFilledPct, slice0->totalPondedVolumeMCM);
+                propertiesPanel->updateDangerZones(sim.dangerZones, 0, 0.0);
             }
 
             if (timelineWidget) {
@@ -942,6 +982,24 @@ void MainWindow::setupUi() {
             MapCore::GeoCoord geo(lat, lon);
             MapCore::Point2D merc = MapCore::Projection::geoToMercator(geo);
             mapWidget->flyTo(merc, static_cast<float>(zoom));
+        }
+    });
+
+    connect(propertiesPanel, &PropertiesPanel::playbackControlRequested, this, [this](const QString& action) {
+        if (!timelineWidget) return;
+        if (action == "play") {
+            timelineWidget->playForward();
+        } else if (action == "pause" || action == "stop") {
+            timelineWidget->stopPlayback();
+        } else if (action == "reset") {
+            timelineWidget->stopPlayback();
+            timelineWidget->setCurrentFrame(0);
+        }
+    });
+
+    connect(propertiesPanel, &PropertiesPanel::jumpMinuteRequested, this, [this](int min) {
+        if (timelineWidget) {
+            timelineWidget->setCurrentFrame(min);
         }
     });
 
@@ -1009,6 +1067,7 @@ void MainWindow::setupUi() {
                                                                    slice->activeBasinName, slice->currentBedZ, slice->currentWSE,
                                                                    slice->saddleLipThresholdMSL, slice->isOvertoppingActive,
                                                                    slice->depressionFilledPct, slice->totalPondedVolumeMCM);
+                    propertiesPanel->updateDangerZones(sim.dangerZones, frame, slice->frontDistanceKm);
                 }
             }
         }
@@ -1035,6 +1094,7 @@ void MainWindow::setupUi() {
                                                                            slice0->activeBasinName, slice0->currentBedZ, slice0->currentWSE,
                                                                            slice0->saddleLipThresholdMSL, slice0->isOvertoppingActive,
                                                                            slice0->depressionFilledPct, slice0->totalPondedVolumeMCM);
+                            propertiesPanel->updateDangerZones(sim.dangerZones, 0, 0.0);
                         }
                     }
                 }

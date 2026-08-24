@@ -10,8 +10,8 @@ int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
 
     app.setApplicationName("RedR");
-    app.setApplicationDisplayName("RedR");
-    app.setOrganizationName("SIH");
+    app.setApplicationDisplayName("RedR by BlazeNeuro");
+    app.setOrganizationName("BlazeNeuro");
     app.setApplicationVersion("1.0.0");
 
     // Configure system font
