@@ -125,6 +125,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     damManager->loadFromGeoJson("server/dam.geojson");
     onlineMap->setDamManager(damManager.get());
     searchBar->setDamManager(damManager.get());
+    if (helpScreen) {
+        helpScreen->setDamManager(damManager.get());
+    }
 
     // Guarantee default online map view
     switchToOnline();
@@ -140,7 +143,7 @@ void MainWindow::applyTheme(AppTheme theme) {
 
     if (theme == AppTheme::SystemDefault) {
         isDark = isSystemDarkTheme();
-        lblTheme->setText(isDark ? "System (Dark)" : "System (Light)");
+        lblTheme->setText("System");
         if (actionThemeSystem) actionThemeSystem->setChecked(true);
     } else if (theme == AppTheme::Dark) {
         isDark = true;
@@ -158,6 +161,13 @@ void MainWindow::applyTheme(AppTheme theme) {
         if (actionOsmDark) actionOsmDark->setChecked(true);
     } else {
         if (actionOsmStandard) actionOsmStandard->setChecked(true);
+    }
+
+    if (weatherScreen) {
+        weatherScreen->setDarkMode(isDark);
+    }
+    if (helpScreen) {
+        helpScreen->setDarkMode(isDark);
     }
 
     // Update Offline Map Style
@@ -352,6 +362,50 @@ void MainWindow::setupMenuBar() {
             background-color: rgba(167, 139, 250, 0.22);
             color: #A78BFA;
             border: 1px solid #A78BFA;
+        }
+
+        /* Weather Forecast Tab Button (Modern 5px Curve & Emerald Theme) */
+        QPushButton#btnWorkspaceWeather {
+            background-color: transparent;
+            color: #D4D4D8;
+            border: 1px solid transparent;
+            border-radius: 5px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+        }
+        QPushButton#btnWorkspaceWeather:hover {
+            background-color: rgba(52, 211, 153, 0.12);
+            color: #A7F3D0;
+            border: 1px solid rgba(52, 211, 153, 0.30);
+        }
+        QPushButton#btnWorkspaceWeather:checked {
+            background-color: rgba(52, 211, 153, 0.22);
+            color: #34D399;
+            border: 1px solid #34D399;
+        }
+
+        /* Help & Support Tab Button (Modern 5px Curve & Amber Theme) */
+        QPushButton#btnWorkspaceHelp {
+            background-color: transparent;
+            color: #D4D4D8;
+            border: 1px solid transparent;
+            border-radius: 5px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+        }
+        QPushButton#btnWorkspaceHelp:hover {
+            background-color: rgba(245, 158, 11, 0.12);
+            color: #FDE68A;
+            border: 1px solid rgba(245, 158, 11, 0.30);
+        }
+        QPushButton#btnWorkspaceHelp:checked {
+            background-color: rgba(245, 158, 11, 0.22);
+            color: #F59E0B;
+            border: 1px solid #F59E0B;
         }
     )");
 
@@ -599,8 +653,32 @@ void MainWindow::setupMenuBar() {
     wsButtonGroup->addButton(btnWorkspaceAnalytics, 1);
     topBarLayout->addWidget(btnWorkspaceAnalytics);
 
+    // Weather Forecast Workspace Button (Icon + Title "Weather Forecast", Emerald Theme)
+    btnWorkspaceWeather = new QPushButton(" Weather Forecast", topBarWidget);
+    btnWorkspaceWeather->setObjectName("btnWorkspaceWeather");
+    btnWorkspaceWeather->setIcon(IconHelper::cloud(QColor(52, 211, 153), 16));
+    btnWorkspaceWeather->setIconSize(QSize(16, 16));
+    btnWorkspaceWeather->setCheckable(true);
+    btnWorkspaceWeather->setChecked(false);
+    btnWorkspaceWeather->setToolTip("Weather Forecast Workspace");
+    wsButtonGroup->addButton(btnWorkspaceWeather, 2);
+    topBarLayout->addWidget(btnWorkspaceWeather);
+
+    // Help & Support Workspace Button (Icon + Title "Help & Support", Amber Theme)
+    btnWorkspaceHelp = new QPushButton(" Help & Support", topBarWidget);
+    btnWorkspaceHelp->setObjectName("btnWorkspaceHelp");
+    btnWorkspaceHelp->setIcon(IconHelper::info(QColor(245, 158, 11), 16));
+    btnWorkspaceHelp->setIconSize(QSize(16, 16));
+    btnWorkspaceHelp->setCheckable(true);
+    btnWorkspaceHelp->setChecked(false);
+    btnWorkspaceHelp->setToolTip("Help, Guides & Support Portal");
+    wsButtonGroup->addButton(btnWorkspaceHelp, 3);
+    topBarLayout->addWidget(btnWorkspaceHelp);
+
     connect(btnWorkspaceSim, &QPushButton::clicked, this, &MainWindow::showSimulationScreen);
     connect(btnWorkspaceAnalytics, &QPushButton::clicked, this, &MainWindow::showAnalyticsScreen);
+    connect(btnWorkspaceWeather, &QPushButton::clicked, this, &MainWindow::showWeatherScreen);
+    connect(btnWorkspaceHelp, &QPushButton::clicked, this, &MainWindow::showHelpSupportScreen);
 
     appMenuBar->setCornerWidget(topBarWidget, Qt::TopLeftCorner);
 }
@@ -670,16 +748,63 @@ void MainWindow::setupUi() {
     mainSplitter->setCollapsible(1, true);
     mainSplitter->setSizes({ 1060, 300 });
 
-    // Multi-Screen Root Stack (Index 0: Simulation Workspace, Index 1: Analytics Screen)
+    // Multi-Screen Root Stack (Index 0: Simulation Workspace, Index 1: Analytics Screen, Index 2: Weather Forecast Screen, Index 3: Help & Support Screen)
     analyticsScreen = new QWidget(this);
     analyticsScreen->setObjectName("analyticsScreen");
     analyticsScreen->setStyleSheet("QWidget#analyticsScreen { background-color: #1A1A1A; }");
 
+    weatherScreen = new WeatherGridWidget(this);
+    helpScreen = new HelpSupportWidget(this);
+
     rootStack = new QStackedWidget(this);
     rootStack->addWidget(mainSplitter);
     rootStack->addWidget(analyticsScreen);
+    rootStack->addWidget(weatherScreen);
+    rootStack->addWidget(helpScreen);
 
     setCentralWidget(rootStack);
+
+    // Real-Time Cross-Screen Viewport Synchronization (with re-entrancy protection)
+    auto syncAll = [this](int sourceScreenIndex, double lat, double lon, int zoom) {
+        static bool isSyncing = false;
+        if (isSyncing) return;
+        isSyncing = true;
+
+        if (sourceScreenIndex != 0) {
+            if (onlineMap) {
+                onlineMap->setCenter(lat, lon);
+                onlineMap->setZoom(zoom);
+            }
+            if (mapWidget) {
+                mapWidget->setCenter(MapCore::Point2D(lon, lat));
+                mapWidget->setZoom(zoom);
+            }
+        }
+        if (sourceScreenIndex != 2 && weatherScreen) {
+            weatherScreen->setViewport(lat, lon, zoom);
+        }
+        if (sourceScreenIndex != 3 && helpScreen) {
+            helpScreen->setViewport(lat, lon, zoom);
+        }
+
+        isSyncing = false;
+    };
+
+    connect(onlineMap, &OnlineTileWidget::viewportChanged, this, [syncAll](double lat, double lon, int zoom) {
+        syncAll(0, lat, lon, zoom);
+    });
+
+    connect(weatherScreen, &WeatherGridWidget::viewportChanged, this, [syncAll](double lat, double lon, int zoom) {
+        syncAll(2, lat, lon, zoom);
+    });
+
+    connect(helpScreen, &HelpSupportWidget::viewportChanged, this, [syncAll](double lat, double lon, int zoom) {
+        syncAll(3, lat, lon, zoom);
+    });
+
+    // Efficient Per-Screen Dynamic Resource Allocation (Pause background render loops & timers)
+    connect(rootStack, &QStackedWidget::currentChanged, this, &MainWindow::onCurrentScreenChanged);
+    onCurrentScreenChanged(0);
 
     // 2. Floating Search Bar (Top-Left)
     searchBar = new SearchBar(mapContainer);
@@ -797,6 +922,13 @@ void MainWindow::setupUi() {
         pieMenu->setActiveTool(currentTool);
         pieMenu->popup(globalPos);
     });
+
+    if (helpScreen) {
+        connect(helpScreen, &HelpSupportWidget::contextMenuRequested, this, [this](const QPoint& globalPos) {
+            pieMenu->setActiveTool(currentTool);
+            pieMenu->popup(globalPos);
+        });
+    }
 
     connect(pieMenu, &PieMenu::toolSelected, this, &MainWindow::setActiveTool);
 
@@ -1108,6 +1240,10 @@ void MainWindow::setupUi() {
     connect(spaceShortcut, &QShortcut::activated, this, [this]() {
         // Do not toggle playback if user is actively searching / typing in search bar
         if (searchBar && searchBar->hasFocus()) return;
+        if (rootStack && rootStack->currentIndex() == 2 && weatherScreen && weatherScreen->getTimeline()) {
+            weatherScreen->getTimeline()->togglePlayPause();
+            return;
+        }
         if (timelineWidget) {
             timelineWidget->togglePlayPause();
         }
@@ -1119,6 +1255,44 @@ void MainWindow::setupUi() {
     connect(searchShortcut, &QShortcut::activated, this, [this]() {
         if (searchBar) {
             searchBar->focusInput();
+        }
+    });
+
+    // Global Zoom In Shortcut (Ctrl++, Ctrl+=, Keypad +)
+    auto* zoomInShortcut = new QShortcut(QKeySequence::ZoomIn, this);
+    zoomInShortcut->setContext(Qt::ApplicationShortcut);
+    connect(zoomInShortcut, &QShortcut::activated, this, [this]() {
+        if (rootStack && rootStack->currentIndex() == 2 && weatherScreen) {
+            weatherScreen->zoomIn();
+            return;
+        }
+        if (rootStack && rootStack->currentIndex() == 3 && helpScreen) {
+            helpScreen->zoomIn();
+            return;
+        }
+        if (currentMapMode == MapMode::Online && onlineMap) {
+            onlineMap->zoomIn();
+        } else if (mapWidget) {
+            mapWidget->zoomIn();
+        }
+    });
+
+    // Global Zoom Out Shortcut (Ctrl+-, Ctrl+_, Keypad -)
+    auto* zoomOutShortcut = new QShortcut(QKeySequence::ZoomOut, this);
+    zoomOutShortcut->setContext(Qt::ApplicationShortcut);
+    connect(zoomOutShortcut, &QShortcut::activated, this, [this]() {
+        if (rootStack && rootStack->currentIndex() == 2 && weatherScreen) {
+            weatherScreen->zoomOut();
+            return;
+        }
+        if (rootStack && rootStack->currentIndex() == 3 && helpScreen) {
+            helpScreen->zoomOut();
+            return;
+        }
+        if (currentMapMode == MapMode::Online && onlineMap) {
+            onlineMap->zoomOut();
+        } else if (mapWidget) {
+            mapWidget->zoomOut();
         }
     });
 
@@ -1331,6 +1505,34 @@ void MainWindow::updateFloatingPositions() {
 }
 
 void MainWindow::showSimulationScreen() {
+    int prevIdx = rootStack ? rootStack->currentIndex() : 0;
+    double lat = 22.0, lon = 79.0;
+    int zoom = 5;
+    bool hasNewCamera = false;
+
+    if (prevIdx == 2 && weatherScreen) {
+        lat = weatherScreen->getCenterLat();
+        lon = weatherScreen->getCenterLon();
+        zoom = weatherScreen->getZoom();
+        hasNewCamera = true;
+    } else if (prevIdx == 3 && helpScreen) {
+        lat = helpScreen->getCenterLat();
+        lon = helpScreen->getCenterLon();
+        zoom = helpScreen->getZoom();
+        hasNewCamera = true;
+    }
+
+    if (hasNewCamera) {
+        if (onlineMap) {
+            onlineMap->setCenter(lat, lon);
+            onlineMap->setZoom(zoom);
+        }
+        if (mapWidget) {
+            mapWidget->setCenter(MapCore::Point2D(lon, lat));
+            mapWidget->setZoom(zoom);
+        }
+    }
+
     if (rootStack) {
         rootStack->setCurrentIndex(0);
     }
@@ -1349,12 +1551,67 @@ void MainWindow::showAnalyticsScreen() {
     }
 }
 
+void MainWindow::showWeatherScreen() {
+    int prevIdx = rootStack ? rootStack->currentIndex() : 0;
+    double lat = 22.0, lon = 79.0;
+    int zoom = 5;
+
+    if (prevIdx == 3 && helpScreen) {
+        lat = helpScreen->getCenterLat();
+        lon = helpScreen->getCenterLon();
+        zoom = helpScreen->getZoom();
+    } else if (onlineMap) {
+        lat = onlineMap->getCenterLat();
+        lon = onlineMap->getCenterLon();
+        zoom = onlineMap->getZoom();
+    }
+
+    if (weatherScreen) {
+        weatherScreen->setViewport(lat, lon, zoom);
+    }
+    if (rootStack) {
+        rootStack->setCurrentIndex(2);
+    }
+    if (btnWorkspaceWeather) {
+        btnWorkspaceWeather->setChecked(true);
+    }
+}
+
+void MainWindow::showHelpSupportScreen() {
+    int prevIdx = rootStack ? rootStack->currentIndex() : 0;
+    double lat = 22.0, lon = 79.0;
+    int zoom = 5;
+
+    if (prevIdx == 2 && weatherScreen) {
+        lat = weatherScreen->getCenterLat();
+        lon = weatherScreen->getCenterLon();
+        zoom = weatherScreen->getZoom();
+    } else if (onlineMap) {
+        lat = onlineMap->getCenterLat();
+        lon = onlineMap->getCenterLon();
+        zoom = onlineMap->getZoom();
+    }
+
+    if (helpScreen) {
+        helpScreen->setViewport(lat, lon, zoom);
+    }
+    if (rootStack) {
+        rootStack->setCurrentIndex(3);
+    }
+    if (btnWorkspaceHelp) {
+        btnWorkspaceHelp->setChecked(true);
+    }
+}
+
 void MainWindow::setActiveTool(MapTool tool) {
     currentTool = tool;
     if (pieMenu) {
         pieMenu->setActiveTool(tool);
     }
     onlineMap->setTool(tool);
+    if (helpScreen) {
+        helpScreen->setTool(tool);
+    }
 
     if (tool == MapTool::Move) {
         mapWidget->setMeasureMode(false);
@@ -1371,6 +1628,59 @@ void MainWindow::setActiveTool(MapTool tool) {
     } else if (tool == MapTool::Ruler) {
         mapWidget->setMeasureMode(true);
         navControls->setMeasureActive(true);
+    }
+}
+
+void MainWindow::keyPressEvent(QKeyEvent* event) {
+    if (event->modifiers() & Qt::ControlModifier) {
+        int key = event->key();
+        if (key == Qt::Key_Plus || key == Qt::Key_Equal || event->text() == "+") {
+            if (rootStack && rootStack->currentIndex() == 2 && weatherScreen) {
+                weatherScreen->zoomIn();
+            } else if (rootStack && rootStack->currentIndex() == 3 && helpScreen) {
+                helpScreen->zoomIn();
+            } else if (currentMapMode == MapMode::Online && onlineMap) {
+                onlineMap->zoomIn();
+            } else if (mapWidget) {
+                mapWidget->zoomIn();
+            }
+            event->accept();
+            return;
+        } else if (key == Qt::Key_Minus || key == Qt::Key_Underscore || event->text() == "-") {
+            if (rootStack && rootStack->currentIndex() == 2 && weatherScreen) {
+                weatherScreen->zoomOut();
+            } else if (rootStack && rootStack->currentIndex() == 3 && helpScreen) {
+                helpScreen->zoomOut();
+            } else if (currentMapMode == MapMode::Online && onlineMap) {
+                onlineMap->zoomOut();
+            } else if (mapWidget) {
+                mapWidget->zoomOut();
+            }
+            event->accept();
+            return;
+        }
+    }
+    QMainWindow::keyPressEvent(event);
+}
+
+void MainWindow::onCurrentScreenChanged(int index) {
+    bool simActive = (index == 0);
+    bool weatherActive = (index == 2);
+    bool helpActive = (index == 3);
+
+    // 1. Simulation Workspace (Pause fluid river animations and online tiles when inactive)
+    if (onlineMap) {
+        onlineMap->setRenderingActive(simActive);
+    }
+
+    // 2. Weather Forecast Screen (Pause 6-grid 30 FPS particle/radar animations when inactive)
+    if (weatherScreen) {
+        weatherScreen->setActive(weatherActive);
+    }
+
+    // 3. Help & Support Screen (Pause ADS-B/OpenSky live 3s network poller and radar animations when inactive)
+    if (helpScreen) {
+        helpScreen->setActive(helpActive);
     }
 }
 

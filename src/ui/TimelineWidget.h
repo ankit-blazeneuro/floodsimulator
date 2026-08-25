@@ -11,13 +11,20 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <vector>
+#include "../core/WeatherForecastManager.h"
 
 namespace MapUI {
+
+enum class TimelineMode {
+    DamSimulation,
+    WeatherForecast
+};
 
 class FrameRulerCanvas : public QWidget {
     Q_OBJECT
 
 private:
+    TimelineMode timelineMode = TimelineMode::DamSimulation;
     int startFrame = 0;
     int endFrame = 60;
     int currentFrame = 0;
@@ -34,11 +41,14 @@ public:
     int getStartFrame() const { return startFrame; }
     int getEndFrame() const { return endFrame; }
     bool getIsBlocked() const { return isBlocked; }
+    TimelineMode getMode() const { return timelineMode; }
 
+    void setMode(TimelineMode mode);
     void setCurrentFrame(int frame);
     void setFrameRange(int start, int end);
     void setBlocked(bool blocked);
     void setSimulationTrack(const QString& name, int start, int end);
+    void setWeatherTrack(const QString& name, int start, int end);
 
 signals:
     void frameChanged(int frame);
@@ -59,6 +69,8 @@ class TimelineWidget : public QWidget {
     Q_OBJECT
 
 private:
+    TimelineMode timelineMode = TimelineMode::DamSimulation;
+
     // Top Control Toolbar
     QWidget* controlBar;
     QLabel* lblHeaderTitle;
@@ -71,6 +83,9 @@ private:
     QPushButton* btnJumpEnd;
     QPushButton* btnRecord;
 
+    QLabel* lblFrame;
+    QLabel* lblStart;
+    QLabel* lblEnd;
     QSpinBox* spinCurrentFrame;
     QSpinBox* spinStartFrame;
     QSpinBox* spinEndFrame;
@@ -82,26 +97,35 @@ private:
     // Frame Ruler Scrubber
     FrameRulerCanvas* rulerCanvas;
 
-    // Simulation playback
+    // Simulation / Forecast playback
     QTimer* playTimer;
     bool isPlayingForward = false;
     bool isPlayingReverse = false;
     bool isLooping = true;
     bool isDamLoaded = false;
+    bool isWeatherLoaded = false;
     int fps = 24;
+
+    MapCore::WeatherForecastData currentWeatherForecast;
 
 public:
     explicit TimelineWidget(QWidget* parent = nullptr);
+    explicit TimelineWidget(TimelineMode mode, QWidget* parent = nullptr);
+
+    TimelineMode getMode() const { return timelineMode; }
+    void setMode(TimelineMode mode);
 
     int getCurrentFrame() const { return rulerCanvas->getCurrentFrame(); }
     int getStartFrame() const { return rulerCanvas->getStartFrame(); }
     int getEndFrame() const { return rulerCanvas->getEndFrame(); }
     bool getIsPlaying() const { return isPlayingForward || isPlayingReverse; }
     bool getIsDamLoaded() const { return isDamLoaded; }
+    bool getIsWeatherLoaded() const { return isWeatherLoaded; }
 
     void setCurrentFrame(int frame);
     void setFrameRange(int start, int end);
     void setDamSelected(bool selected, const QString& trackName = "flood_sim");
+    void setWeatherForecast(const MapCore::WeatherForecastData& forecast);
 
 public slots:
     void playForward();
@@ -126,6 +150,7 @@ private slots:
 
 private:
     void setupUi();
+    void applyModeConfig();
     void updateTimeCodeDisplay();
     void updateControlsEnabled();
     QString formatTimeCode(int frame) const;

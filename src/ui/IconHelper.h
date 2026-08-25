@@ -180,6 +180,9 @@ public:
     static QIcon target(const QColor& color = QColor(244, 244, 245), int size = 16) {
         return get("target", color, size);
     }
+    static QIcon temperature(const QColor& color = QColor(248, 113, 113), int size = 18) {
+        return get("temperature", color, size);
+    }
 };
 
 } // namespace MapUI

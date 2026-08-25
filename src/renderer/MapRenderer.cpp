@@ -2,6 +2,7 @@
 #include <QPolygonF>
 #include <QPainterPath>
 #include <QFontMetricsF>
+#include <QLocale>
 #include <algorithm>
 #include <cmath>
 
@@ -276,6 +277,80 @@ void MapRenderer::render(QPainter& painter, const MapCore::SpatialIndex& index,
         painter.save();
         painter.setRenderHint(QPainter::Antialiasing, true);
 
+        // 1. When >= 3 points, draw enclosed area polygon (15% opacity) & mention area at center
+        if (measurePoints.size() >= 3) {
+            QPolygonF rulerPoly;
+            for (const auto& pt : measurePoints) {
+                rulerPoly.append(toScreen(pt));
+            }
+
+            // 15% opacity fill
+            painter.setBrush(QColor(138, 180, 248, 38));
+            painter.setPen(QPen(QColor(138, 180, 248, 140), 1.5, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin));
+            painter.drawPolygon(rulerPoly);
+
+            // Compute geodesic polygon area
+            std::vector<MapCore::GeoCoord> geoCoords;
+            geoCoords.reserve(measurePoints.size());
+            double meanLat = 0.0;
+            for (const auto& p : measurePoints) {
+                MapCore::GeoCoord gc = MapCore::Projection::mercatorToGeo(p);
+                geoCoords.push_back(gc);
+                meanLat += gc.lat;
+            }
+            meanLat /= static_cast<double>(geoCoords.size());
+            double meanLatRad = meanLat * M_PI / 180.0;
+
+            const double R = 6378137.0; // WGS84 Earth radius
+            double cosLat = std::cos(meanLatRad);
+
+            std::vector<QPointF> localMeters;
+            localMeters.reserve(geoCoords.size());
+            for (const auto& gc : geoCoords) {
+                double x = (gc.lon * M_PI / 180.0) * R * cosLat;
+                double y = (gc.lat * M_PI / 180.0) * R;
+                localMeters.push_back(QPointF(x, y));
+            }
+
+            double areaM2 = 0.0;
+            size_t n = localMeters.size();
+            for (size_t i = 0; i < n; ++i) {
+                size_t j = (i + 1) % n;
+                areaM2 += localMeters[i].x() * localMeters[j].y() - localMeters[j].x() * localMeters[i].y();
+            }
+            areaM2 = std::abs(areaM2) * 0.5;
+
+            QString areaText;
+            if (areaM2 >= 1000000.0) {
+                areaText = QString("Area: %1 km² (%2 ha)").arg(areaM2 / 1e6, 0, 'f', 2).arg(areaM2 / 10000.0, 0, 'f', 1);
+            } else if (areaM2 >= 10000.0) {
+                areaText = QString("Area: %1 ha (%2 m²)").arg(areaM2 / 10000.0, 0, 'f', 2).arg(QLocale(QLocale::English).toString(qRound(areaM2)));
+            } else {
+                areaText = QString("Area: %1 m²").arg(QLocale(QLocale::English).toString(qRound(areaM2)));
+            }
+
+            QPointF centerScreen(0, 0);
+            for (const auto& pt : rulerPoly) {
+                centerScreen += pt;
+            }
+            centerScreen /= static_cast<double>(rulerPoly.size());
+
+            QFont aFont("Segoe UI", 9, QFont::Bold);
+            painter.setFont(aFont);
+            QFontMetricsF afm(aFont);
+            double bw = afm.horizontalAdvance(areaText) + 16.0;
+            double bh = afm.height() + 8.0;
+            QRectF aRect(centerScreen.x() - bw / 2.0, centerScreen.y() - bh / 2.0, bw, bh);
+
+            painter.setBrush(QColor(24, 24, 27, 255));
+            painter.setPen(QPen(style.measureLineColor, 1.4));
+            painter.drawRoundedRect(aRect, 5.0, 5.0);
+
+            painter.setPen(QColor(244, 244, 245));
+            painter.drawText(aRect, Qt::AlignCenter, areaText);
+        }
+
+        // 2. Draw solid lines connecting all placed pins
         if (measurePoints.size() >= 2) {
             QPainterPath mPath;
             mPath.moveTo(toScreen(measurePoints[0]));

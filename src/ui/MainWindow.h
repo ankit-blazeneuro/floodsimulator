@@ -22,6 +22,8 @@
 #include "TimelineWidget.h"
 #include "PropertiesPanel.h"
 #include "PieMenu.h"
+#include "WeatherGridWidget.h"
+#include "HelpSupportWidget.h"
 
 namespace MapUI {
 
@@ -56,9 +58,11 @@ private:
     MapMode currentMapMode = MapMode::Online;
     AppTheme currentTheme = AppTheme::SystemDefault;
 
-    // Multi-Screen Root Workspace Stack (0: Simulation Map, 1: Analytics)
+    // Multi-Screen Root Workspace Stack (0: Simulation Map, 1: Analytics, 2: Weather Forecast, 3: Help & Support)
     QStackedWidget* rootStack;
     QWidget* analyticsScreen;
+    WeatherGridWidget* weatherScreen;
+    HelpSupportWidget* helpScreen;
 
     // Resizable Splitter Layout
     QSplitter* mainSplitter;    // Horizontal: [ Left: vSplitter | Right: PropertiesPanel ]
@@ -116,6 +120,8 @@ private:
 
     QPushButton* btnWorkspaceSim;
     QPushButton* btnWorkspaceAnalytics;
+    QPushButton* btnWorkspaceWeather;
+    QPushButton* btnWorkspaceHelp;
 
     QAction* actionExit;
     QAction* actionFullscreen;
@@ -144,6 +150,7 @@ public:
 
     PieMenu* getPieMenu() const { return pieMenu; }
     MapTool getActiveTool() const { return currentTool; }
+    HelpSupportWidget* getHelpScreen() const { return helpScreen; }
 
 public slots:
     void openSettingsDialog();
@@ -152,10 +159,13 @@ public slots:
     void toggleTerminal();
     void showSimulationScreen();
     void showAnalyticsScreen();
+    void showWeatherScreen();
+    void showHelpSupportScreen();
     void setActiveTool(MapTool tool);
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
     bool eventFilter(QObject* watched, QEvent* event) override;
 
 private slots:
@@ -166,6 +176,7 @@ private slots:
     void onViewportChanged(MapCore::BoundingBox viewBbox, float zoomLevel, MapCore::GeoCoord centerGeo);
     void onCursorGeoMoved(MapCore::GeoCoord geo, QString hoverText);
     void onFpsChanged(float fps);
+    void onCurrentScreenChanged(int index);
 
     // Map mode switching
     void switchToOnline();

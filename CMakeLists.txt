@@ -38,6 +38,8 @@ set(SOURCES
     src/core/MapDataCache.cpp
     src/core/DamManager.cpp
     src/core/DamFloodSimulation.cpp
+    src/core/WeatherForecastManager.cpp
+    src/core/TileCacheManager.cpp
     src/renderer/MapStyle.cpp
     src/renderer/MapRenderer.cpp
     src/ui/NavigationControls.cpp
@@ -52,7 +54,12 @@ set(SOURCES
     src/ui/TimelineWidget.cpp
     src/ui/PropertiesPanel.cpp
     src/ui/SidebarTerminal.cpp
+    src/ui/WeatherHudWidget.cpp
+    src/ui/WeatherGridWidget.cpp
+    src/ui/HelpSupportWidget.cpp
+    src/ui/HelicopterDetailsPanel.cpp
     src/ui/PieMenu.cpp
+    src/core/HelicopterTrackerManager.cpp
     src/assets/resources.qrc
 )
 

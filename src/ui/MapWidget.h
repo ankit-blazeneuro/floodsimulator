@@ -33,6 +33,7 @@ private:
 
     // Mouse interaction & Inertia
     bool isDragging = false;
+    bool isMiddleDragging = false;
     QPoint lastMousePos;
     QPointF panVelocity;
     QTimer* animTimer;

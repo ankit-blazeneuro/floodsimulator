@@ -21,6 +21,24 @@ FrameRulerCanvas::FrameRulerCanvas(QWidget* parent) : QWidget(parent) {
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
+void FrameRulerCanvas::setMode(TimelineMode mode) {
+    timelineMode = mode;
+    if (mode == TimelineMode::WeatherForecast) {
+        trackName = "weather_forecast";
+        startFrame = 0;
+        endFrame = 167;
+        currentFrame = 0;
+        isBlocked = false;
+    } else {
+        trackName = "flood_sim";
+        startFrame = 0;
+        endFrame = 60;
+        currentFrame = 0;
+        isBlocked = true;
+    }
+    update();
+}
+
 void FrameRulerCanvas::setCurrentFrame(int frame) {
     if (isBlocked) return;
     currentFrame = std::clamp(frame, startFrame, endFrame);
@@ -41,7 +59,18 @@ void FrameRulerCanvas::setBlocked(bool blocked) {
 }
 
 void FrameRulerCanvas::setSimulationTrack(const QString& name, int start, int end) {
+    timelineMode = TimelineMode::DamSimulation;
     trackName = name.isEmpty() ? "flood_sim" : name;
+    startFrame = start;
+    endFrame = std::max(start + 1, end);
+    currentFrame = std::clamp(currentFrame, startFrame, endFrame);
+    isBlocked = false;
+    update();
+}
+
+void FrameRulerCanvas::setWeatherTrack(const QString& name, int start, int end) {
+    timelineMode = TimelineMode::WeatherForecast;
+    trackName = name.isEmpty() ? "weather_forecast" : name;
     startFrame = start;
     endFrame = std::max(start + 1, end);
     currentFrame = std::clamp(currentFrame, startFrame, endFrame);
@@ -76,7 +105,7 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
     int h = height();
     int rulerH = 26;
 
-    // 1. Blocked State (When no dam is selected)
+    // 1. Blocked State
     if (isBlocked) {
         painter.fillRect(rect(), QColor(24, 24, 27)); // shadcn zinc-900
 
@@ -88,26 +117,29 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
 
         painter.setFont(QFont("Segoe UI", 8, QFont::DemiBold));
         painter.setPen(QColor(113, 113, 122));
-        painter.drawText(QRect(10, 0, 120, rulerH), Qt::AlignVCenter | Qt::AlignLeft, "Channels / Tracks");
-        painter.drawText(QRect(10, rulerH + 4, 120, 24), Qt::AlignVCenter | Qt::AlignLeft, "[Locked]");
+        QString headerTitle = (timelineMode == TimelineMode::WeatherForecast) ? "Weather Metrics" : "Channels / Tracks";
+        painter.drawText(QRect(10, 0, 120, rulerH), Qt::AlignVCenter | Qt::AlignLeft, headerTitle);
+        painter.drawText(QRect(10, rulerH + 4, 120, 24), Qt::AlignVCenter | Qt::AlignLeft, "[Standby]");
 
-        // Centered Lock Banner
-        QString blockedMsg = "Select a dam on the map or search to load flood_sim timeline track";
-        QFont lockFont("Segoe UI", 9, QFont::Medium);
-        painter.setFont(lockFont);
-        QFontMetrics fm(lockFont);
-        int tw = fm.horizontalAdvance(blockedMsg) + 32;
-        int th = 30;
-        int bx = 135 + (w - 135 - tw) / 2;
-        int by = (h - th) / 2;
+        if (timelineMode != TimelineMode::WeatherForecast) {
+            // Centered Lock Banner for Simulation Mode
+            QString blockedMsg = "Select a dam on the map or search to load flood_sim timeline track";
+            QFont lockFont("Segoe UI", 9, QFont::Medium);
+            painter.setFont(lockFont);
+            QFontMetrics fm(lockFont);
+            int tw = fm.horizontalAdvance(blockedMsg) + 32;
+            int th = 30;
+            int bx = 135 + (w - 135 - tw) / 2;
+            int by = (h - th) / 2;
 
-        QRect lockRect(bx, by, tw, th);
-        painter.setBrush(QColor(39, 39, 42, 220));
-        painter.setPen(QPen(QColor(63, 63, 70), 1.0));
-        painter.drawRoundedRect(lockRect, 6.0, 6.0);
+            QRect lockRect(bx, by, tw, th);
+            painter.setBrush(QColor(39, 39, 42, 220));
+            painter.setPen(QPen(QColor(63, 63, 70), 1.0));
+            painter.drawRoundedRect(lockRect, 6.0, 6.0);
 
-        painter.setPen(QColor(212, 212, 216));
-        painter.drawText(lockRect, Qt::AlignCenter, blockedMsg);
+            painter.setPen(QColor(212, 212, 216));
+            painter.drawText(lockRect, Qt::AlignCenter, blockedMsg);
+        }
         return;
     }
 
@@ -133,32 +165,79 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
         QColor textColor;
     };
 
-    std::vector<SimTrack> tracks = {
-        {
-            trackName.isEmpty() ? "flood_sim" : trackName,
-            QString("%1 · 0 to %2 min Inundation Wave Propagation").arg(trackName).arg(endFrame),
-            QColor(2, 132, 199),   // Sky 600
-            QColor(3, 105, 161),   // Sky 700
-            QColor(56, 189, 248),  // Sky 400
-            QColor(240, 249, 255)
-        },
-        {
-            "Discharge Q",
-            "Breach Outflow Hydrograph · Continuous Hydraulic Depletion",
-            QColor(79, 70, 229),   // Indigo 600
-            QColor(67, 56, 202),   // Indigo 700
-            QColor(129, 140, 248), // Indigo 400
-            QColor(238, 242, 255)
-        },
-        {
-            "Basin Storage",
-            "Sequential Depressions 1 - 4 · Topographic Saddle Weir Cascades",
-            QColor(5, 150, 105),   // Emerald 600
-            QColor(4, 120, 87),    // Emerald 700
-            QColor(52, 211, 153),  // Emerald 400
-            QColor(236, 253, 245)
-        }
-    };
+    std::vector<SimTrack> tracks;
+
+    if (timelineMode == TimelineMode::WeatherForecast) {
+        tracks = {
+            {
+                "Thermal & Temp",
+                QString("🌡️ Temperature Heatmap · Thermal Distribution (0h to %1h)").arg(endFrame),
+                QColor(239, 68, 68),   // Red 500
+                QColor(220, 38, 38),   // Red 600
+                QColor(248, 113, 113), // Red 400
+                QColor(254, 242, 242)
+            },
+            {
+                "Doppler Radar",
+                "🌧️ Precipitation & Doppler Radar · Dynamic Rain Plumes & Intensity",
+                QColor(2, 132, 199),   // Sky 600
+                QColor(3, 105, 161),   // Sky 700
+                QColor(56, 189, 248),  // Sky 400
+                QColor(240, 249, 255)
+            },
+            {
+                "Wind Vectors",
+                "💨 Wind Velocity & Aerodynamics · Isobaric Streamlines & Gale Vectors",
+                QColor(217, 119, 6),   // Amber 600
+                QColor(180, 83, 9),    // Amber 700
+                QColor(251, 191, 36),  // Amber 400
+                QColor(255, 251, 235)
+            },
+            {
+                "Cloud Satellite",
+                "☁️ Multi-Tier Cloud Cover · Low/Mid/High Optical Albedo",
+                QColor(71, 85, 105),   // Slate 600
+                QColor(51, 65, 85),    // Slate 700
+                QColor(148, 163, 184), // Slate 400
+                QColor(248, 250, 252)
+            },
+            {
+                "Severe Risk",
+                "⚡ Multi-Hazard Risk Composite · Convective Severe Weather Scoring",
+                QColor(147, 51, 234),  // Purple 600
+                QColor(126, 34, 206),  // Purple 700
+                QColor(192, 132, 252), // Purple 400
+                QColor(250, 245, 255)
+            }
+        };
+    } else {
+        tracks = {
+            {
+                trackName.isEmpty() ? "flood_sim" : trackName,
+                QString("%1 · 0 to %2 min Inundation Wave Propagation").arg(trackName).arg(endFrame),
+                QColor(2, 132, 199),   // Sky 600
+                QColor(3, 105, 161),   // Sky 700
+                QColor(56, 189, 248),  // Sky 400
+                QColor(240, 249, 255)
+            },
+            {
+                "Discharge Q",
+                "Breach Outflow Hydrograph · Continuous Hydraulic Depletion",
+                QColor(79, 70, 229),   // Indigo 600
+                QColor(67, 56, 202),   // Indigo 700
+                QColor(129, 140, 248), // Indigo 400
+                QColor(238, 242, 255)
+            },
+            {
+                "Basin Storage",
+                "Sequential Depressions 1 - 4 · Topographic Saddle Weir Cascades",
+                QColor(5, 150, 105),   // Emerald 600
+                QColor(4, 120, 87),    // Emerald 700
+                QColor(52, 211, 153),  // Emerald 400
+                QColor(236, 253, 245)
+            }
+        };
+    }
 
     int trackH = 22;
     int curY = rulerH + 2;
@@ -214,7 +293,7 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
         curY += trackH;
     }
 
-    // Inactive Outside Range Shading (Gray out areas other than the timeline media range)
+    // Inactive Outside Range Shading
     if (xStart > 135) {
         painter.fillRect(QRectF(135, 0, xStart - 135, h), QColor(0, 0, 0, 95));
     }
@@ -231,13 +310,21 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
 
     painter.setFont(QFont("Segoe UI", 8, QFont::Bold));
     painter.setPen(QColor(113, 113, 122));
-    painter.drawText(QRect(10, 0, 120, rulerH), Qt::AlignVCenter | Qt::AlignLeft, "Channels / Tracks");
+    QString headerTitle = (timelineMode == TimelineMode::WeatherForecast) ? "Weather Metrics" : "Channels / Tracks";
+    painter.drawText(QRect(10, 0, 120, rulerH), Qt::AlignVCenter | Qt::AlignLeft, headerTitle);
 
-    // 5. Frame Grid & Ruler Tick Marks (0 - 60 Minutes)
+    // 5. Frame Grid & Ruler Tick Marks
     int frameStep = 10;
     int totalRange = endFrame - startFrame;
-    if (totalRange > 120) frameStep = 20;
-    else if (totalRange <= 30) frameStep = 5;
+
+    if (timelineMode == TimelineMode::WeatherForecast) {
+        if (totalRange >= 100) frameStep = 24; // 24-hour day steps
+        else if (totalRange >= 48) frameStep = 12;
+        else frameStep = 6;
+    } else {
+        if (totalRange > 120) frameStep = 20;
+        else if (totalRange <= 30) frameStep = 5;
+    }
 
     for (int f = startFrame; f <= endFrame; ++f) {
         float x = frameToX(f);
@@ -248,9 +335,13 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
             painter.setPen(QPen(QColor(63, 63, 70), 1.0));
             painter.drawLine(QPointF(x, 0), QPointF(x, h));
 
-            // Minute label in ruler bar
+            // Tick label in ruler bar
             painter.setPen(QColor(212, 212, 216));
-            painter.drawText(QRectF(x - 18, 2, 36, 14), Qt::AlignCenter, QString("%1m").arg(f));
+            if (timelineMode == TimelineMode::WeatherForecast) {
+                painter.drawText(QRectF(x - 22, 2, 44, 14), Qt::AlignCenter, QString("%1h").arg(f));
+            } else {
+                painter.drawText(QRectF(x - 18, 2, 36, 14), Qt::AlignCenter, QString("%1m").arg(f));
+            }
         } else if (f % (frameStep / 2 == 0 ? 1 : frameStep / 2) == 0) {
             // Medium tick mark
             painter.setPen(QPen(QColor(39, 39, 42), 1.0));
@@ -265,16 +356,17 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
     // 6. Playhead Indicator (Blender-Style Player Line & Frame Tag)
     float curX = frameToX(currentFrame);
     if (curX >= 135) {
-        // A. Subtle Drop Shadow / Glow behind vertical player line for crisp contrast over tracks
+        // A. Subtle Drop Shadow / Glow behind vertical player line for crisp contrast
         painter.setPen(QPen(QColor(0, 0, 0, 95), 3.0));
         painter.drawLine(QPointF(curX, rulerH), QPointF(curX, h));
 
-        // B. Blender Vertical Player Line (#5294E2 / #4772B3)
-        painter.setPen(QPen(QColor(82, 148, 226), 1.5));
+        // B. Vertical Player Line (Emerald #34D399 for Weather, Sky #5294E2 for Dam Sim)
+        QColor playheadColor = (timelineMode == TimelineMode::WeatherForecast) ? QColor(52, 211, 153) : QColor(82, 148, 226);
+        painter.setPen(QPen(playheadColor, 1.5));
         painter.drawLine(QPointF(curX, 0), QPointF(curX, h));
 
         // C. Blender Current Frame Tag in Ruler Header
-        QString frameStr = QString::number(currentFrame);
+        QString frameStr = (timelineMode == TimelineMode::WeatherForecast) ? QString("H%1").arg(currentFrame) : QString::number(currentFrame);
         QFont tagFont("Segoe UI", 8, QFont::Bold);
         painter.setFont(tagFont);
         QFontMetrics fm(tagFont);
@@ -324,14 +416,20 @@ void FrameRulerCanvas::paintEvent(QPaintEvent* /*event*/) {
         badgePath.quadTo(left, tagTop, left + r, tagTop);
         badgePath.closeSubpath();
 
-        // Blender Gradient: #568CE8 (top highlight) -> #4772B3 (Blender blue) -> #3C66A6 (base)
         QLinearGradient tagGrad(QPointF(curX, tagTop), QPointF(curX, tagBottom + pointerH));
-        tagGrad.setColorAt(0.0, QColor(86, 140, 232));
-        tagGrad.setColorAt(0.65, QColor(71, 114, 179));
-        tagGrad.setColorAt(1.0, QColor(60, 102, 166));
+        if (timelineMode == TimelineMode::WeatherForecast) {
+            tagGrad.setColorAt(0.0, QColor(52, 211, 153));
+            tagGrad.setColorAt(0.65, QColor(16, 185, 129));
+            tagGrad.setColorAt(1.0, QColor(5, 150, 105));
+            painter.strokePath(badgePath, QPen(QColor(110, 231, 183), 1.0));
+        } else {
+            tagGrad.setColorAt(0.0, QColor(86, 140, 232));
+            tagGrad.setColorAt(0.65, QColor(71, 114, 179));
+            tagGrad.setColorAt(1.0, QColor(60, 102, 166));
+            painter.strokePath(badgePath, QPen(QColor(118, 174, 255), 1.0));
+        }
 
         painter.fillPath(badgePath, tagGrad);
-        painter.strokePath(badgePath, QPen(QColor(118, 174, 255), 1.0));
 
         // White Frame Number Text inside Badge
         painter.setPen(QColor(255, 255, 255));
@@ -376,14 +474,66 @@ void FrameRulerCanvas::wheelEvent(QWheelEvent* event) {
 // TimelineWidget Implementation
 // ==========================================
 
-TimelineWidget::TimelineWidget(QWidget* parent) : QWidget(parent) {
+TimelineWidget::TimelineWidget(QWidget* parent)
+    : TimelineWidget(TimelineMode::DamSimulation, parent) {
+}
+
+TimelineWidget::TimelineWidget(TimelineMode mode, QWidget* parent)
+    : QWidget(parent)
+    , timelineMode(mode) {
     setupUi();
 
     playTimer = new QTimer(this);
     connect(playTimer, &QTimer::timeout, this, &TimelineWidget::onTimerTick);
 
-    // Initial state: blocked until dam is selected
-    setDamSelected(false);
+    applyModeConfig();
+}
+
+void TimelineWidget::setMode(TimelineMode mode) {
+    timelineMode = mode;
+    rulerCanvas->setMode(mode);
+    applyModeConfig();
+}
+
+void TimelineWidget::applyModeConfig() {
+    if (timelineMode == TimelineMode::WeatherForecast) {
+        fps = 4;
+        lblHeaderTitle->setText("Weather Timeline");
+        lblTrackBadge->setText("7-Day Forecast");
+        lblTrackBadge->setStyleSheet("color: #34D399; background-color: rgba(5, 150, 105, 0.25); border: 1px solid #059669; border-radius: 4px; padding: 1px 6px; font-weight: bold; font-size: 10px;");
+        lblFrame->setText("Hour:");
+        btnFps->setText("4 fps");
+        btnFps->setToolTip("Click to cycle frame rate (1, 2, 4, 8 fps)");
+
+        spinStartFrame->setRange(0, 500);
+        spinStartFrame->setValue(0);
+        spinEndFrame->setRange(1, 500);
+        spinEndFrame->setValue(167);
+        spinCurrentFrame->setRange(0, 500);
+        spinCurrentFrame->setValue(0);
+
+        rulerCanvas->setWeatherTrack("weather_forecast", 0, 167);
+        isWeatherLoaded = true;
+        updateControlsEnabled();
+        updateTimeCodeDisplay();
+    } else {
+        fps = 24;
+        lblHeaderTitle->setText("Timeline");
+        lblTrackBadge->setText("flood_sim");
+        lblTrackBadge->setStyleSheet("color: #38BDF8; background-color: #0C4A6E; border: 1px solid #0284C7; border-radius: 4px; padding: 1px 6px; font-weight: bold; font-size: 10px;");
+        lblFrame->setText("Minute:");
+        btnFps->setText("24 fps");
+        btnFps->setToolTip("Click to cycle frame rate (24, 30, 60 fps)");
+
+        spinStartFrame->setRange(0, 1000);
+        spinStartFrame->setValue(0);
+        spinEndFrame->setRange(1, 1000);
+        spinEndFrame->setValue(60);
+        spinCurrentFrame->setRange(0, 1000);
+        spinCurrentFrame->setValue(0);
+
+        setDamSelected(false);
+    }
 }
 
 void TimelineWidget::setupUi() {
@@ -539,7 +689,7 @@ void TimelineWidget::setupUi() {
     controlLayout->addSpacing(6);
 
     // Frame inputs
-    auto* lblFrame = new QLabel("Minute:", controlBar);
+    lblFrame = new QLabel("Minute:", controlBar);
     spinCurrentFrame = new QSpinBox(controlBar);
     spinCurrentFrame->setRange(0, 1000);
     spinCurrentFrame->setValue(0);
@@ -550,13 +700,13 @@ void TimelineWidget::setupUi() {
 
     controlLayout->addSpacing(6);
 
-    auto* lblStart = new QLabel("Start:", controlBar);
+    lblStart = new QLabel("Start:", controlBar);
     spinStartFrame = new QSpinBox(controlBar);
     spinStartFrame->setRange(0, 1000);
     spinStartFrame->setValue(0);
     spinStartFrame->setButtonSymbols(QAbstractSpinBox::NoButtons);
 
-    auto* lblEnd = new QLabel("End:", controlBar);
+    lblEnd = new QLabel("End:", controlBar);
     spinEndFrame = new QSpinBox(controlBar);
     spinEndFrame->setRange(1, 1000);
     spinEndFrame->setValue(60);
@@ -620,6 +770,7 @@ void TimelineWidget::setupUi() {
 }
 
 void TimelineWidget::setDamSelected(bool selected, const QString& trackName) {
+    timelineMode = TimelineMode::DamSimulation;
     isDamLoaded = selected;
     rulerCanvas->setBlocked(!selected);
 
@@ -640,8 +791,33 @@ void TimelineWidget::setDamSelected(bool selected, const QString& trackName) {
     updateControlsEnabled();
 }
 
+void TimelineWidget::setWeatherForecast(const MapCore::WeatherForecastData& forecast) {
+    timelineMode = TimelineMode::WeatherForecast;
+    currentWeatherForecast = forecast;
+    isWeatherLoaded = forecast.isValid && !forecast.hourly.empty();
+    rulerCanvas->setBlocked(!isWeatherLoaded);
+
+    if (isWeatherLoaded) {
+        int maxHour = std::max(1, static_cast<int>(forecast.hourly.size()) - 1);
+        setFrameRange(0, maxHour);
+        rulerCanvas->setWeatherTrack("weather_forecast", 0, maxHour);
+        lblHeaderTitle->setText("Weather Timeline");
+        lblTrackBadge->setText(QString("%1 (%2h)").arg(forecast.locationName).arg(maxHour + 1));
+        lblTrackBadge->setStyleSheet("color: #34D399; background-color: rgba(5, 150, 105, 0.25); border: 1px solid #059669; border-radius: 4px; padding: 1px 6px; font-weight: bold; font-size: 10px;");
+        lblTrackBadge->show();
+    } else {
+        stopPlayback();
+        lblHeaderTitle->setText("Weather Timeline");
+        lblTrackBadge->setText("Fetching Forecast...");
+        lblTrackBadge->setStyleSheet("color: #71717A; background-color: #27272A; border: 1px solid #3F3F46; border-radius: 4px; padding: 1px 6px; font-weight: 500; font-size: 10px;");
+    }
+
+    updateControlsEnabled();
+    updateTimeCodeDisplay();
+}
+
 void TimelineWidget::updateControlsEnabled() {
-    bool en = isDamLoaded;
+    bool en = (timelineMode == TimelineMode::WeatherForecast) ? isWeatherLoaded : isDamLoaded;
     btnJumpStart->setEnabled(en);
     btnStepBack->setEnabled(en);
     btnPlayReverse->setEnabled(en);
@@ -657,7 +833,8 @@ void TimelineWidget::updateControlsEnabled() {
 }
 
 void TimelineWidget::setCurrentFrame(int frame) {
-    if (!isDamLoaded) return;
+    bool en = (timelineMode == TimelineMode::WeatherForecast) ? isWeatherLoaded : isDamLoaded;
+    if (!en) return;
     spinCurrentFrame->blockSignals(true);
     spinCurrentFrame->setValue(frame);
     spinCurrentFrame->blockSignals(false);
@@ -679,7 +856,8 @@ void TimelineWidget::setFrameRange(int start, int end) {
 }
 
 void TimelineWidget::playForward() {
-    if (!isDamLoaded) return;
+    bool en = (timelineMode == TimelineMode::WeatherForecast) ? isWeatherLoaded : isDamLoaded;
+    if (!en) return;
     isPlayingForward = true;
     isPlayingReverse = false;
     btnPlayPause->setIcon(IconHelper::pause(Qt::white, 14));
@@ -692,7 +870,8 @@ void TimelineWidget::playForward() {
 }
 
 void TimelineWidget::playReverse() {
-    if (!isDamLoaded) return;
+    bool en = (timelineMode == TimelineMode::WeatherForecast) ? isWeatherLoaded : isDamLoaded;
+    if (!en) return;
     isPlayingReverse = true;
     isPlayingForward = false;
     btnPlayPause->setIcon(IconHelper::pause(Qt::white, 14));
@@ -722,7 +901,8 @@ void TimelineWidget::stopPlayback() {
 }
 
 void TimelineWidget::togglePlayPause() {
-    if (!isDamLoaded) return;
+    bool en = (timelineMode == TimelineMode::WeatherForecast) ? isWeatherLoaded : isDamLoaded;
+    if (!en) return;
     if (isPlayingForward || isPlayingReverse) {
         stopPlayback();
     } else {
@@ -753,9 +933,16 @@ void TimelineWidget::stepBackward() {
 }
 
 void TimelineWidget::cycleFps() {
-    if (fps == 24) fps = 30;
-    else if (fps == 30) fps = 60;
-    else fps = 24;
+    if (timelineMode == TimelineMode::WeatherForecast) {
+        if (fps == 1) fps = 2;
+        else if (fps == 2) fps = 4;
+        else if (fps == 4) fps = 8;
+        else fps = 1;
+    } else {
+        if (fps == 24) fps = 30;
+        else if (fps == 30) fps = 60;
+        else fps = 24;
+    }
 
     btnFps->setText(QString("%1 fps").arg(fps));
     if (isPlayingForward || isPlayingReverse) {
@@ -814,6 +1001,18 @@ void TimelineWidget::updateTimeCodeDisplay() {
 }
 
 QString TimelineWidget::formatTimeCode(int frame) const {
+    if (timelineMode == TimelineMode::WeatherForecast) {
+        if (currentWeatherForecast.isValid && !currentWeatherForecast.hourly.empty()) {
+            const auto* hw = currentWeatherForecast.getHour(frame);
+            if (hw) {
+                QString t = hw->timeIso;
+                t.replace('T', ' ');
+                return QString("%1 (T+%2h)").arg(t).arg(frame);
+            }
+        }
+        return QString("Hour %1 (T+%2h)").arg(frame).arg(frame);
+    }
+
     int totalSec = frame * 60; // Each frame is 1 minute
     int hrs = totalSec / 3600;
     int mins = (totalSec % 3600) / 60;
@@ -827,3 +1026,4 @@ QString TimelineWidget::formatTimeCode(int frame) const {
 }
 
 } // namespace MapUI
+

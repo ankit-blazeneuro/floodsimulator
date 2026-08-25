@@ -190,6 +190,14 @@ void MapWidget::paintEvent(QPaintEvent* /*event*/) {
 }
 
 void MapWidget::mousePressEvent(QMouseEvent* event) {
+    if (event->button() == Qt::MiddleButton) {
+        isMiddleDragging = true;
+        lastMousePos = event->pos();
+        panVelocity = QPointF(0, 0);
+        setCursor(Qt::ClosedHandCursor);
+        return;
+    }
+
     if (event->button() == Qt::LeftButton) {
         isDragging = true;
         lastMousePos = event->pos();
@@ -210,7 +218,7 @@ void MapWidget::mousePressEvent(QMouseEvent* event) {
 }
 
 void MapWidget::mouseMoveEvent(QMouseEvent* event) {
-    if (isDragging) {
+    if ((isMiddleDragging && (event->buttons() & Qt::MiddleButton)) || isDragging) {
         QPoint delta = event->pos() - lastMousePos;
         lastMousePos = event->pos();
 
@@ -222,6 +230,7 @@ void MapWidget::mouseMoveEvent(QMouseEvent* event) {
 
         updateViewportNotification();
         update();
+        if (isMiddleDragging) return;
     }
 
     // Hover queries
@@ -242,6 +251,13 @@ void MapWidget::mouseMoveEvent(QMouseEvent* event) {
 }
 
 void MapWidget::mouseReleaseEvent(QMouseEvent* event) {
+    if (event->button() == Qt::MiddleButton) {
+        isMiddleDragging = false;
+        setCursor(measureMode ? Qt::CrossCursor : Qt::ArrowCursor);
+        update();
+        return;
+    }
+
     if (event->button() == Qt::LeftButton) {
         isDragging = false;
 

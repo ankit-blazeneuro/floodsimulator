@@ -14,45 +14,20 @@
 #include <cmath>
 #include "../core/DamManager.h"
 #include "../core/DamFloodSimulation.h"
+#include "../core/WeatherForecastManager.h"
+#include "../core/HelicopterTrackerManager.h"
+#include "../core/TileCacheManager.h"
 #include "MapTool.h"
 
 namespace MapUI {
 
-// Represents a single map tile identified by (provider, zoom, x, y)
-struct TileKey {
-    int provider;
-    int zoom;
-    int x;
-    int y;
-
-    bool operator==(const TileKey& o) const {
-        return provider == o.provider && zoom == o.zoom && x == o.x && y == o.y;
-    }
-};
-
-inline uint qHash(const TileKey& key, uint seed = 0) {
-    return ::qHash(key.provider, seed) ^ ::qHash(key.zoom, seed) ^ ::qHash(key.x, seed) ^ ::qHash(key.y, seed);
-}
-
-enum class OnlineTileProvider {
-    OpenStreetMap_Standard = 0,
-    OpenStreetMap_DE = 1,
-    OpenStreetMap_Voyager = 2,
-    OpenStreetMap_Dark = 3
-};
+using MapCore::TileKey;
+using MapCore::OnlineTileProvider;
 
 class OnlineTileWidget : public QWidget {
     Q_OBJECT
 
 private:
-    QNetworkAccessManager* networkManager;
-
-    // In-memory tile cache (max ~500 tiles ≈ ~100 MB)
-    QCache<TileKey, QPixmap> tileCache;
-
-    // Tiles currently being downloaded
-    QSet<TileKey> pendingTiles;
-
     // Camera state in geo coordinates (WGS84) - Default: Full India View
     double centerLat = 22.0;
     double centerLon = 79.0;
@@ -60,6 +35,7 @@ private:
 
     // Mouse dragging state
     bool isDragging = false;
+    bool isMiddleDragging = false;
     QPoint lastMousePos;
 
     OnlineTileProvider currentProvider = OnlineTileProvider::OpenStreetMap_Standard;
@@ -100,6 +76,19 @@ private:
     QTimer* flowAnimTimer = nullptr;
     int flowAnimPhase = 0;
 
+    // Weather Forecast Layer
+    bool weatherMode = false;
+    MapCore::WeatherForecastData weatherForecast;
+    int weatherHourIndex = 0;
+
+    // Helicopter SAR Live Tracking Layer
+    bool showHelicopters = false;
+    std::vector<MapCore::HelicopterTrack> liveHelicopters;
+    QString selectedHelicopterHex;
+
+    // Viewport Active Render Guard
+    bool renderingActive = true;
+
     static constexpr int TILE_SIZE = 256;
 
 public:
@@ -122,6 +111,37 @@ public:
     void updateFloodSimulationMinute(int minute);
     void clearFloodSimulation();
     const MapCore::FloodSimulationState& getFloodSimulation() const { return floodSimulation; }
+
+    void setWeatherMode(bool active) { weatherMode = active; update(); }
+    bool isWeatherMode() const { return weatherMode; }
+    void setWeatherForecast(const MapCore::WeatherForecastData& forecast, int hourIndex = 0) {
+        weatherForecast = forecast;
+        weatherHourIndex = hourIndex;
+        update();
+    }
+    void setWeatherHourIndex(int hourIndex) {
+        weatherHourIndex = hourIndex;
+        update();
+    }
+
+    void setHelicopters(const std::vector<MapCore::HelicopterTrack>& helis) {
+        liveHelicopters = helis;
+        if (renderingActive) update();
+    }
+    void setSelectedHelicopterHex(const QString& hex) {
+        selectedHelicopterHex = hex;
+        if (renderingActive) update();
+    }
+    void setShowHelicopters(bool show) {
+        showHelicopters = show;
+        if (renderingActive) update();
+    }
+    bool getShowHelicopters() const { return showHelicopters; }
+    const std::vector<MapCore::HelicopterTrack>& getHelicopters() const { return liveHelicopters; }
+    const MapCore::WeatherForecastData& getWeatherForecast() const { return weatherForecast; }
+
+    void setRenderingActive(bool active);
+    bool isRenderingActive() const { return renderingActive; }
 
     void setRotation(double degrees);
     double getRotation() const { return rotationAngle; }
@@ -163,7 +183,7 @@ public:
     void setInvertScroll(bool inv) { invertScroll = inv; }
     bool getInvertScroll() const { return invertScroll; }
 
-    void setCacheCapacity(int maxTiles) { tileCache.setMaxCost(maxTiles); }
+    void setCacheCapacity(int maxTiles) { MapCore::TileCacheManager::instance().setCacheMaxCost(maxTiles); }
 
     double getCenterLat() const { return centerLat; }
     double getCenterLon() const { return centerLon; }
@@ -176,6 +196,8 @@ signals:
     void contextMenuRequested(const QPoint& globalPos);
     void boxSelectionCompleted(double minLat, double minLon, double maxLat, double maxLon, int count);
     void rotationChanged(double degrees);
+    void weatherLocationRequested(double lat, double lon);
+    void helicopterClicked(const MapCore::HelicopterTrack& heli);
 
 protected:
     void paintEvent(QPaintEvent* event) override;
@@ -194,12 +216,7 @@ private:
     static double tileXToLon(double x, int zoom);
     static double tileYToLat(double y, int zoom);
 
-    QString getPrimaryUrl(OnlineTileProvider provider, int zoom, int x, int y) const;
-    QString getFallbackUrl(int zoom, int x, int y) const;
-
     QPixmap* getTile(int zoom, int x, int y);
-    void fetchTile(int zoom, int x, int y, bool isFallback = false);
-
     void emitViewportChanged();
 };
 

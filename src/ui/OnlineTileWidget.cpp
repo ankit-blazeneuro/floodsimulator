@@ -12,23 +12,32 @@
 
 namespace MapUI {
 
-OnlineTileWidget::OnlineTileWidget(QWidget* parent) : QWidget(parent), tileCache(500) {
+OnlineTileWidget::OnlineTileWidget(QWidget* parent) : QWidget(parent) {
     setFocusPolicy(Qt::StrongFocus);
     setMouseTracking(true);
     setAttribute(Qt::WA_OpaquePaintEvent);
     setAttribute(Qt::WA_NoSystemBackground);
 
-    networkManager = new QNetworkAccessManager(this);
+    // Connect to central shared TileCacheManager
+    connect(&MapCore::TileCacheManager::instance(), &MapCore::TileCacheManager::tileLoaded, this,
+            [this](int provider, int zoom, int x, int y) {
+                Q_UNUSED(provider);
+                Q_UNUSED(zoom);
+                Q_UNUSED(x);
+                Q_UNUSED(y);
+                update();
+            });
 
-    // Continuous 30 FPS fluid animation timer for river flow & ripple dynamics
+    // Continuous 30 FPS fluid animation timer for river flow, ripple dynamics & live helicopter radar
     flowAnimTimer = new QTimer(this);
     flowAnimTimer->setInterval(33);
     connect(flowAnimTimer, &QTimer::timeout, this, [this]() {
-        if (floodSimulation.isActive) {
+        if (floodSimulation.isActive || showHelicopters || !liveHelicopters.empty()) {
             flowAnimPhase = (flowAnimPhase + 1) % 10000;
             update();
         }
     });
+    flowAnimTimer->start();
 
     // Initial center on India
     centerLat = 22.0;
@@ -37,16 +46,38 @@ OnlineTileWidget::OnlineTileWidget(QWidget* parent) : QWidget(parent), tileCache
 }
 
 void OnlineTileWidget::setCenter(double lat, double lon) {
-    centerLat = std::clamp(lat, -85.0511, 85.0511);
-    centerLon = std::clamp(lon, -180.0, 180.0);
+    double newLat = std::clamp(lat, -85.0511, 85.0511);
+    double newLon = std::clamp(lon, -180.0, 180.0);
+    if (std::abs(centerLat - newLat) < 1e-7 && std::abs(centerLon - newLon) < 1e-7) return;
+    centerLat = newLat;
+    centerLon = newLon;
     emitViewportChanged();
     update();
 }
 
 void OnlineTileWidget::setZoom(int z) {
-    zoomLevel = std::clamp(z, 2, 19);
+    int newZ = std::clamp(z, 2, 19);
+    if (zoomLevel == newZ) return;
+    zoomLevel = newZ;
     emitViewportChanged();
     update();
+}
+
+void OnlineTileWidget::setRenderingActive(bool active) {
+    if (renderingActive == active) return;
+    renderingActive = active;
+    if (flowAnimTimer) {
+        if (active) {
+            if (!flowAnimTimer->isActive()) {
+                flowAnimTimer->start();
+            }
+            update();
+        } else {
+            if (flowAnimTimer->isActive()) {
+                flowAnimTimer->stop();
+            }
+        }
+    }
 }
 
 void OnlineTileWidget::zoomIn() {
@@ -98,96 +129,11 @@ double OnlineTileWidget::tileYToLat(double y, int zoom) {
     return 180.0 / M_PI * std::atan(0.5 * (std::exp(n) - std::exp(-n)));
 }
 
-// --- Tile URL Builders ---
-
-QString OnlineTileWidget::getPrimaryUrl(OnlineTileProvider provider, int zoom, int x, int y) const {
-    switch (provider) {
-        case OnlineTileProvider::OpenStreetMap_Standard:
-            return QString("https://tile.openstreetmap.org/%1/%2/%3.png").arg(zoom).arg(x).arg(y);
-        case OnlineTileProvider::OpenStreetMap_DE:
-            return QString("https://tile.openstreetmap.de/%1/%2/%3.png").arg(zoom).arg(x).arg(y);
-        case OnlineTileProvider::OpenStreetMap_Voyager:
-            return QString("https://a.basemaps.cartocdn.com/rastertiles/voyager/%1/%2/%3.png").arg(zoom).arg(x).arg(y);
-        case OnlineTileProvider::OpenStreetMap_Dark:
-            return QString("https://a.basemaps.cartocdn.com/dark_all/%1/%2/%3.png").arg(zoom).arg(x).arg(y);
-        default:
-            return QString("https://tile.openstreetmap.org/%1/%2/%3.png").arg(zoom).arg(x).arg(y);
-    }
-}
-
-QString OnlineTileWidget::getFallbackUrl(int zoom, int x, int y) const {
-    // Fast German OpenStreetMap mirror as automatic fallback
-    return QString("https://tile.openstreetmap.de/%1/%2/%3.png").arg(zoom).arg(x).arg(y);
-}
-
-// --- Tile fetching & caching ---
+// --- Tile fetching & caching (Shared Single OSM Fetch Engine) ---
 
 QPixmap* OnlineTileWidget::getTile(int zoom, int x, int y) {
-    int maxTile = (1 << zoom);
-    x = ((x % maxTile) + maxTile) % maxTile;
-    if (y < 0 || y >= maxTile) return nullptr;
-
-    TileKey key{static_cast<int>(currentProvider), zoom, x, y};
-    QPixmap* cached = tileCache.object(key);
-    if (cached) return cached;
-
-    // Not in cache, fetch it
-    fetchTile(zoom, x, y, false);
-    return nullptr;
-}
-
-void OnlineTileWidget::fetchTile(int zoom, int x, int y, bool isFallback) {
-    int maxTile = (1 << zoom);
-    x = ((x % maxTile) + maxTile) % maxTile;
-    if (y < 0 || y >= maxTile) return;
-
-    TileKey key{static_cast<int>(currentProvider), zoom, x, y};
-    if (pendingTiles.contains(key)) return;
-
-    pendingTiles.insert(key);
-
-    QString urlStr = isFallback ? getFallbackUrl(zoom, x, y) : getPrimaryUrl(currentProvider, zoom, x, y);
-    QUrl url(urlStr);
-    QNetworkRequest request(url);
-
-    // Set valid policy-compliant User-Agent header
-    request.setRawHeader("User-Agent", "AssamMapExplorer/1.0 (https://sih.gov.in; team@sih-assam.org)");
-    request.setRawHeader("Accept", "image/png,image/jpeg,image/*;q=0.9,*/*;q=0.8");
-
-    QNetworkReply* reply = networkManager->get(request);
-    connect(reply, &QNetworkReply::finished, this, [this, reply, key, zoom, x, y, isFallback]() {
-        reply->deleteLater();
-        pendingTiles.remove(key);
-
-        if (reply->error() != QNetworkReply::NoError) {
-            // If primary OSM request failed, try fallback mirror
-            if (!isFallback) {
-                fetchTile(zoom, x, y, true);
-            }
-            return;
-        }
-
-        QByteArray data = reply->readAll();
-        // Check if OSM returned a block tile image
-        QByteArray blockedHeader = reply->rawHeader("x-blocked");
-        if (!blockedHeader.isEmpty()) {
-            if (!isFallback) {
-                fetchTile(zoom, x, y, true);
-                return;
-            }
-        }
-
-        QPixmap* pixmap = new QPixmap();
-        if (pixmap->loadFromData(data) && !pixmap->isNull()) {
-            tileCache.insert(key, pixmap);
-            update();
-        } else {
-            delete pixmap;
-            if (!isFallback) {
-                fetchTile(zoom, x, y, true);
-            }
-        }
-    });
+    return MapCore::TileCacheManager::instance().getTile(
+        static_cast<MapCore::OnlineTileProvider>(currentProvider), zoom, x, y);
 }
 
 // --- Paint ---
@@ -202,8 +148,8 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
     double cx = w / 2.0;
     double cy = h / 2.0;
 
-    // Dark background for modern theme
-    painter.fillRect(rect(), QColor(24, 24, 27));
+    // Background adapting to dark / light theme
+    painter.fillRect(rect(), isDarkMode() ? QColor(24, 24, 27) : QColor(240, 240, 245));
 
     // Calculate center tile position
     double centerTileX = lonToTileX(centerLon, zoomLevel);
@@ -240,8 +186,8 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
                 painter.drawPixmap(drawX, drawY, TILE_SIZE, TILE_SIZE, *tile);
             } else {
                 QRect tileRect(drawX, drawY, TILE_SIZE, TILE_SIZE);
-                painter.fillRect(tileRect, QColor(32, 33, 36));
-                painter.setPen(QPen(QColor(45, 48, 52), 1));
+                painter.fillRect(tileRect, isDarkMode() ? QColor(32, 33, 36) : QColor(230, 230, 235));
+                painter.setPen(QPen(isDarkMode() ? QColor(45, 48, 52) : QColor(210, 210, 215), 1));
                 painter.drawRect(tileRect);
             }
         }
@@ -399,7 +345,81 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
         const QColor rulerLineColor(138, 180, 248); // Neon Blue
         const QColor rulerPointColor(255, 255, 255);
 
-        // 1. Draw solid lines connecting all placed pins
+        // 1. When >= 3 points, draw enclosed area polygon (15% opacity) & compute geodesic area
+        if (measurePoints.size() >= 3) {
+            QPolygonF rulerPoly;
+            for (const auto& pt : measurePoints) {
+                rulerPoly.append(geoToScreen(pt.x(), pt.y()));
+            }
+
+            // 15% opacity fill (38/255 = 14.9%)
+            painter.setBrush(QColor(138, 180, 248, 38));
+            painter.setPen(QPen(QColor(138, 180, 248, 140), 1.5, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin));
+            painter.drawPolygon(rulerPoly);
+
+            // Compute exact geodesic polygon area on Earth surface (local tangent projection)
+            double meanLat = 0.0;
+            for (const auto& p : measurePoints) meanLat += p.x();
+            meanLat /= static_cast<double>(measurePoints.size());
+            double meanLatRad = meanLat * M_PI / 180.0;
+
+            const double R = 6378137.0; // Earth radius in meters
+            double cosLat = std::cos(meanLatRad);
+
+            std::vector<QPointF> localMeters;
+            localMeters.reserve(measurePoints.size());
+            for (const auto& p : measurePoints) {
+                double x = (p.y() * M_PI / 180.0) * R * cosLat;
+                double y = (p.x() * M_PI / 180.0) * R;
+                localMeters.push_back(QPointF(x, y));
+            }
+
+            double areaM2 = 0.0;
+            size_t n = localMeters.size();
+            for (size_t i = 0; i < n; ++i) {
+                size_t j = (i + 1) % n;
+                areaM2 += localMeters[i].x() * localMeters[j].y() - localMeters[j].x() * localMeters[i].y();
+            }
+            areaM2 = std::abs(areaM2) * 0.5;
+
+            // Formatted area text
+            QString areaText;
+            if (areaM2 >= 1000000.0) {
+                double areaKm2 = areaM2 / 1000000.0;
+                double areaHa = areaM2 / 10000.0;
+                areaText = QString("Area: %1 km² (%2 ha)").arg(areaKm2, 0, 'f', 2).arg(areaHa, 0, 'f', 1);
+            } else if (areaM2 >= 10000.0) {
+                double areaHa = areaM2 / 10000.0;
+                areaText = QString("Area: %1 ha (%2 m²)").arg(areaHa, 0, 'f', 2).arg(QLocale(QLocale::English).toString(qRound(areaM2)));
+            } else {
+                areaText = QString("Area: %1 m²").arg(QLocale(QLocale::English).toString(qRound(areaM2)));
+            }
+
+            // Polygon Centroid in screen coordinates
+            QPointF centerScreen(0, 0);
+            for (const auto& pt : rulerPoly) {
+                centerScreen += pt;
+            }
+            centerScreen /= static_cast<double>(rulerPoly.size());
+
+            topTooltips.push_back([centerScreen, areaText, rulerLineColor](QPainter& p) {
+                QFont aFont("Segoe UI", 9, QFont::Bold);
+                p.setFont(aFont);
+                QFontMetricsF afm(aFont);
+                double bw = afm.horizontalAdvance(areaText) + 16.0;
+                double bh = afm.height() + 8.0;
+                QRectF aRect(centerScreen.x() - bw / 2.0, centerScreen.y() - bh / 2.0, bw, bh);
+
+                p.setBrush(QColor(24, 24, 27, 255)); // 100% solid dark zinc card background
+                p.setPen(QPen(rulerLineColor, 1.4)); // Neon blue border
+                p.drawRoundedRect(aRect, 5.0, 5.0);
+
+                p.setPen(QColor(244, 244, 245)); // Clean white text
+                p.drawText(aRect, Qt::AlignCenter, areaText);
+            });
+        }
+
+        // 2. Draw solid lines connecting all placed pins
         if (measurePoints.size() >= 2) {
             QPainterPath path;
             path.moveTo(geoToScreen(measurePoints[0].x(), measurePoints[0].y()));
@@ -871,6 +891,184 @@ void OnlineTileWidget::paintEvent(QPaintEvent* /*event*/) {
             }
         }
     }
+    // --- Render Open-Meteo Weather Forecast Visual Overlay (Cloud Cover, Precipitation Radar, Wind Streamlines) ---
+    if (weatherMode && weatherForecast.isValid) {
+        const auto* hw = weatherForecast.getHour(weatherHourIndex);
+        if (hw) {
+            auto toCanvasPoint = [&](double lat, double lon) -> QPointF {
+                return geoToScreen(lat, lon);
+            };
+
+            // 1. Cloud Cover Atmosphere Wash Overlay
+            if (hw->cloudCoverPct > 1.0) {
+                int cloudAlpha = std::clamp(static_cast<int>((hw->cloudCoverPct / 100.0) * 85.0), 10, 85);
+                painter.fillRect(rect(), QColor(241, 245, 249, cloudAlpha));
+            }
+
+            // 2. Precipitation Radar & Animated Raindrop Vectors
+            if (hw->precipitationMm > 0.0) {
+                int precipAlpha = std::clamp(static_cast<int>(hw->precipitationMm * 20.0), 25, 95);
+                QColor radarColor = (hw->precipitationMm > 5.0) ? QColor(225, 29, 72, precipAlpha)
+                                  : (hw->precipitationMm > 2.0 ? QColor(37, 99, 235, precipAlpha)
+                                  : QColor(52, 211, 153, precipAlpha));
+                painter.fillRect(rect(), radarColor);
+
+                // Animated rain streak lines across canvas
+                int numStreaks = std::clamp(static_cast<int>(hw->precipitationMm * 15.0) + 20, 20, 80);
+                painter.setPen(QPen(QColor(186, 230, 253, 140), 1.2, Qt::SolidLine, Qt::RoundCap));
+                for (int s = 0; s < numStreaks; ++s) {
+                    double sx = std::fmod((s * 47.0 + flowAnimPhase * 4.0), static_cast<double>(width()));
+                    double sy = std::fmod((s * 73.0 + flowAnimPhase * 12.0), static_cast<double>(height()));
+                    double slant = 4.0 + (hw->windSpeedKmh * 0.4);
+                    painter.drawLine(QPointF(sx, sy), QPointF(sx + slant, sy + 14.0));
+                }
+            }
+
+            // 3. Wind Streamlines
+            if (hw->windSpeedKmh > 2.0) {
+                int numWindLines = 8;
+                painter.setPen(QPen(QColor(253, 224, 71, 70), 1.0, Qt::DashLine));
+                for (int w = 0; w < numWindLines; ++w) {
+                    double wy = (height() / (numWindLines + 1)) * (w + 1);
+                    double wxOffset = std::fmod(flowAnimPhase * (hw->windSpeedKmh * 0.8) + w * 90.0, static_cast<double>(width()));
+                    painter.drawLine(QPointF(wxOffset, wy), QPointF(wxOffset + 60.0, wy + 4.0));
+                }
+            }
+
+            // 4. Target Pinpoint at Forecast Coordinate
+            QPointF targetScreen = toCanvasPoint(weatherForecast.latitude, weatherForecast.longitude);
+
+            // Pulsing Emerald Beacon
+            double wPulse = std::fmod((flowAnimPhase * 0.8), 16.0);
+            painter.setPen(QPen(QColor(52, 211, 153, std::max(0, 200 - static_cast<int>(wPulse * 10))), 1.8));
+            painter.setBrush(QColor(52, 211, 153, 40));
+            painter.drawEllipse(targetScreen, 8.0 + wPulse, 8.0 + wPulse);
+
+            painter.setPen(QPen(Qt::white, 1.4));
+            painter.setBrush(QColor(52, 211, 153));
+            painter.drawEllipse(targetScreen, 5.0, 5.0);
+
+            // Top Z-Index Floating HUD Badge
+            QString wBadge = QString("📍 %1 · %2°C · Rain: %3mm · Wind: %4km/h")
+                                .arg(weatherForecast.locationName)
+                                .arg(hw->temperatureC, 0, 'f', 1)
+                                .arg(hw->precipitationMm, 0, 'f', 1)
+                                .arg(hw->windSpeedKmh, 0, 'f', 1);
+
+            topTooltips.push_back([targetScreen, wBadge](QPainter& p) {
+                QFont wFont("Segoe UI", 8, QFont::DemiBold);
+                p.setFont(wFont);
+                QFontMetricsF wfm(wFont);
+                double bw = wfm.horizontalAdvance(wBadge) + 16.0;
+                double bh = wfm.height() + 6.0;
+                QRectF wRect(targetScreen.x() - bw / 2.0, targetScreen.y() - bh - 12.0, bw, bh);
+
+                p.setBrush(QColor(24, 24, 27, 255));
+                p.setPen(QPen(QColor(52, 211, 153), 1.2));
+                p.drawRoundedRect(wRect, 5.0, 5.0);
+
+                p.setPen(QColor(244, 244, 245));
+                p.drawText(wRect, Qt::AlignCenter, wBadge);
+
+                // Downward pointer
+                QPolygonF pointer;
+                pointer << QPointF(targetScreen.x() - 4, wRect.bottom())
+                        << QPointF(targetScreen.x() + 4, wRect.bottom())
+                        << QPointF(targetScreen.x(), targetScreen.y() - 1);
+                p.setBrush(QColor(24, 24, 27, 255));
+                p.setPen(QPen(QColor(52, 211, 153), 1.0));
+                p.drawPolygon(pointer);
+            });
+        }
+    }
+
+    // -------------------------------------------------------------
+    // Helicopter Live SAR Layer (Glowing Dots + Vectors + Breadcrumbs)
+    // -------------------------------------------------------------
+    if (showHelicopters || !liveHelicopters.empty()) {
+        auto geoToCanvasPoint = [&](double lat, double lon) -> QPointF {
+            double tX = lonToTileX(lon, zoomLevel);
+            double tY = latToTileY(lat, zoomLevel);
+            return QPointF(cx + (tX - centerTileX) * TILE_SIZE, cy + (tY - centerTileY) * TILE_SIZE);
+        };
+
+        for (const auto& heli : liveHelicopters) {
+            QPointF hScreen = geoToCanvasPoint(heli.lat, heli.lon);
+            if (hScreen.x() < -80 || hScreen.x() > w + 80 || hScreen.y() < -80 || hScreen.y() > h + 80) {
+                continue;
+            }
+
+            bool isSelected = (heli.hex == selectedHelicopterHex);
+
+            // 1. Breadcrumb Trail History
+            if (heli.trailHistory.size() > 1) {
+                QPainterPath trailPath;
+                bool first = true;
+                for (const auto& pt : heli.trailHistory) {
+                    QPointF tp = geoToCanvasPoint(pt.y(), pt.x()); // pt.y() is lat, pt.x() is lon
+                    if (first) {
+                        trailPath.moveTo(tp);
+                        first = false;
+                    } else {
+                        trailPath.lineTo(tp);
+                    }
+                }
+                QColor trailColor = isSelected ? QColor(6, 182, 212, 180) : QColor(245, 158, 11, 120);
+                painter.setPen(QPen(trailColor, isSelected ? 2.0 : 1.4, Qt::DashLine, Qt::RoundCap));
+                painter.drawPath(trailPath);
+            }
+
+            // 2. Velocity / Heading Vector
+            double rad = (heli.trackHeading - 90.0) * M_PI / 180.0;
+            double speedFactor = std::clamp(heli.groundSpeedKnots / 8.0, 14.0, 40.0);
+            QPointF headEnd(hScreen.x() + std::cos(rad) * speedFactor, hScreen.y() + std::sin(rad) * speedFactor);
+            painter.setPen(QPen(isSelected ? QColor(6, 182, 212, 240) : QColor(251, 191, 36, 220), 2.0, Qt::SolidLine, Qt::RoundCap));
+            painter.drawLine(hScreen, headEnd);
+
+            // 3. Spinning Helicopter Rotor Blades (4 Animated Blades)
+            double rotorAngle = (flowAnimPhase * 25.0) * M_PI / 180.0;
+            double bladeLen = isSelected ? 12.0 : 9.0;
+            painter.setPen(QPen(isSelected ? QColor(6, 182, 212, 180) : QColor(251, 191, 36, 160), 1.4, Qt::SolidLine, Qt::RoundCap));
+            for (int b = 0; b < 4; ++b) {
+                double bRad = rotorAngle + (b * M_PI / 2.0);
+                painter.drawLine(hScreen, QPointF(hScreen.x() + std::cos(bRad) * bladeLen, hScreen.y() + std::sin(bRad) * bladeLen));
+            }
+
+            // 4. Pulsing Radar Dot Ring & Fluid Wash
+            double pulse = std::fmod(flowAnimPhase * 0.9, 16.0);
+            painter.setPen(QPen(isSelected ? QColor(6, 182, 212, std::max(0, 240 - static_cast<int>(pulse * 14)))
+                                           : QColor(245, 158, 11, std::max(0, 200 - static_cast<int>(pulse * 12))), 1.6));
+            painter.setBrush(isSelected ? QColor(6, 182, 212, 40) : QColor(245, 158, 11, 30));
+            painter.drawEllipse(hScreen, 6.0 + pulse, 6.0 + pulse);
+
+            // 5. Solid Central Helicopter Core Dot
+            painter.setPen(QPen(QColor(18, 18, 22), 1.8));
+            painter.setBrush(isSelected ? QColor(6, 182, 212) : QColor(245, 158, 11)); // Cyan if selected, Amber if active
+            painter.drawEllipse(hScreen, 6.0, 6.0);
+
+            // 6. Callsign / Altitude Badge (Tooltip Layer without icon)
+            QString heliLabel = QString("%1 · %2ft · %3kt")
+                                    .arg(heli.flight.isEmpty() ? heli.registration : heli.flight)
+                                    .arg(static_cast<int>(heli.altitudeFt))
+                                    .arg(static_cast<int>(heli.groundSpeedKnots));
+
+            topTooltips.push_back([hScreen, heliLabel, isSelected](QPainter& p) {
+                QFont hFont("Segoe UI", isSelected ? 8 : 7, isSelected ? QFont::Bold : QFont::DemiBold);
+                p.setFont(hFont);
+                QFontMetricsF hfm(hFont);
+                double bw = hfm.horizontalAdvance(heliLabel) + 12.0;
+                double bh = hfm.height() + 4.0;
+                QRectF hRect(hScreen.x() - bw / 2.0, hScreen.y() - bh - 10.0, bw, bh);
+
+                p.setBrush(QColor(18, 18, 22, 245));
+                p.setPen(QPen(isSelected ? QColor(6, 182, 212) : QColor(245, 158, 11), isSelected ? 1.5 : 1.0));
+                p.drawRoundedRect(hRect, 4.0, 4.0);
+
+                p.setPen(isSelected ? QColor(255, 255, 255) : QColor(244, 244, 245));
+                p.drawText(hRect, Qt::AlignCenter, heliLabel);
+            });
+        }
+    }
 
     // --- Render All Tooltips & Badges at Highest Z-Index (Above all paths, dots, and polygons) ---
     for (const auto& renderTooltip : topTooltips) {
@@ -1081,6 +1279,15 @@ void OnlineTileWidget::clearBoxSelection() {
 
 void OnlineTileWidget::mousePressEvent(QMouseEvent* event) {
     pressMousePos = event->pos();
+
+    // Middle Mouse Button (Wheel Press): Pan/Move map seamlessly across all active tools
+    if (event->button() == Qt::MiddleButton) {
+        isMiddleDragging = true;
+        lastMousePos = event->pos();
+        setCursor(Qt::ClosedHandCursor);
+        return;
+    }
+
     if (event->button() == Qt::LeftButton) {
         if (currentTool == MapTool::Rotate) {
             isRotating = true;
@@ -1121,6 +1328,32 @@ void OnlineTileWidget::mouseMoveEvent(QMouseEvent* event) {
     liveMousePos = event->pos();
     hasLiveMouse = true;
 
+    // 1. Middle Mouse Pan (or Left Mouse Drag in Move tool)
+    if ((isMiddleDragging && (event->buttons() & Qt::MiddleButton)) ||
+        (isDragging && (event->buttons() & Qt::LeftButton))) {
+        QPoint delta = event->pos() - lastMousePos;
+        lastMousePos = event->pos();
+
+        // Compensate for viewport rotation when panning
+        double rad = -rotationAngle * M_PI / 180.0;
+        double rdx = delta.x() * std::cos(rad) - delta.y() * std::sin(rad);
+        double rdy = delta.x() * std::sin(rad) + delta.y() * std::cos(rad);
+
+        double tileCount = std::pow(2.0, zoomLevel);
+        double lonDelta = -rdx / (TILE_SIZE * tileCount) * 360.0;
+
+        double centerTileY = latToTileY(centerLat, zoomLevel);
+        double newTileY = centerTileY - rdy / static_cast<double>(TILE_SIZE);
+        double newLat = tileYToLat(newTileY, zoomLevel);
+
+        centerLon = std::clamp(centerLon + lonDelta, -180.0, 180.0);
+        centerLat = std::clamp(newLat, -85.0511, 85.0511);
+
+        emitViewportChanged();
+        update();
+        return;
+    }
+
     if (isRotating && (event->buttons() & Qt::LeftButton)) {
         double dx = event->pos().x() - width() / 2.0;
         double dy = event->pos().y() - height() / 2.0;
@@ -1145,36 +1378,19 @@ void OnlineTileWidget::mouseMoveEvent(QMouseEvent* event) {
         return;
     }
 
-    if (isDragging && (event->buttons() & Qt::LeftButton)) {
-        QPoint delta = event->pos() - lastMousePos;
-        lastMousePos = event->pos();
-
-        // Compensate for viewport rotation when panning
-        double rad = -rotationAngle * M_PI / 180.0;
-        double rdx = delta.x() * std::cos(rad) - delta.y() * std::sin(rad);
-        double rdy = delta.x() * std::sin(rad) + delta.y() * std::cos(rad);
-
-        double tileCount = std::pow(2.0, zoomLevel);
-        double lonDelta = -rdx / (TILE_SIZE * tileCount) * 360.0;
-
-        double centerTileY = latToTileY(centerLat, zoomLevel);
-        double newTileY = centerTileY - rdy / static_cast<double>(TILE_SIZE);
-        double newLat = tileYToLat(newTileY, zoomLevel);
-
-        centerLon = std::clamp(centerLon + lonDelta, -180.0, 180.0);
-        centerLat = std::clamp(newLat, -85.0511, 85.0511);
-
-        emitViewportChanged();
-        update();
-        return;
-    }
-
     if (measureMode) {
         update();
     }
 }
 
 void OnlineTileWidget::mouseReleaseEvent(QMouseEvent* event) {
+    if (event->button() == Qt::MiddleButton) {
+        isMiddleDragging = false;
+        setCursor((measureMode || currentTool == MapTool::Select) ? Qt::CrossCursor : (currentTool == MapTool::Rotate ? Qt::SizeAllCursor : Qt::ArrowCursor));
+        update();
+        return;
+    }
+
     if (event->button() == Qt::LeftButton) {
         if (isRotating) {
             isRotating = false;
@@ -1228,6 +1444,29 @@ void OnlineTileWidget::mouseReleaseEvent(QMouseEvent* event) {
 
         // Check if it was a clean stationary click without dragging
         if ((event->pos() - pressMousePos).manhattanLength() < 6) {
+            // 1. First check if any Helicopter dot was clicked
+            if (showHelicopters || !liveHelicopters.empty()) {
+                auto geoToCanvasPoint = [this](double lat, double lon) -> QPointF {
+                    double tX = lonToTileX(lon, zoomLevel);
+                    double tY = latToTileY(lat, zoomLevel);
+                    double curTileX = lonToTileX(centerLon, zoomLevel);
+                    double curTileY = latToTileY(centerLat, zoomLevel);
+                    return QPointF((width() / 2.0) + (tX - curTileX) * TILE_SIZE, (height() / 2.0) + (tY - curTileY) * TILE_SIZE);
+                };
+
+                QPointF unrotClick = unrotatePoint(event->pos());
+                for (const auto& heli : liveHelicopters) {
+                    QPointF hScreen = geoToCanvasPoint(heli.lat, heli.lon);
+                    double dist = std::hypot(unrotClick.x() - hScreen.x(), unrotClick.y() - hScreen.y());
+                    if (dist <= 20.0) {
+                        selectedHelicopterHex = heli.hex;
+                        emit helicopterClicked(heli);
+                        update();
+                        return;
+                    }
+                }
+            }
+
             double clickLat = screenToLat(event->pos().x(), event->pos().y());
             double clickLon = screenToLon(event->pos().x(), event->pos().y());
 
