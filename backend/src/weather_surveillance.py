@@ -33,13 +33,22 @@ try:
 except ImportError:
     from feature_pipeline import FeaturePipeline
 
+try:
+    from src.neon_db import neon_db
+except ImportError:
+    try:
+        from neon_db import neon_db
+    except ImportError:
+        neon_db = None
+
 
 def evaluate_rain_criteria(hourly_precip: List[float]) -> Tuple[bool, str, float, float]:
     """
-    Evaluates rain surveillance criteria from recent hourly precipitation:
+    Evaluates rain surveillance criteria from recent and forecasted hourly precipitation:
     - Heavy rain for 1+ hr: any recent hour >= 15.0 mm/hr
     - Moderate rain for 2+ hr: 2 consecutive hours >= 7.5 mm/hr or 2h sum >= 15.0 mm
     - Slow rain for 3+ hr: 3 consecutive hours >= 2.0 mm/hr or 3h sum >= 7.5 mm
+    - Forecast Heavy Cloudburst: next 3h forecast >= 15.0 mm/hr or 2h forecast sum >= 15.0 mm
 
     Returns:
         (is_triggered, trigger_type, rain_1h, rain_24h)
@@ -51,29 +60,43 @@ def evaluate_rain_criteria(hourly_precip: List[float]) -> Tuple[bool, str, float
     if not clean_precip:
         return False, "No Data", 0.0, 0.0
 
-    # Recent hours
-    recent = clean_precip[-6:] if len(clean_precip) >= 6 else clean_precip
-    rain_1h = recent[-1] if recent else 0.0
-    rain_24h = sum(clean_precip[-24:]) if len(clean_precip) >= 24 else sum(clean_precip)
+    # With past_hours=6 & forecast_hours=6, indices 0..5 are past, 6 is current, 7+ are forecast
+    if len(clean_precip) >= 8:
+        past_current = clean_precip[:7]
+        forecast = clean_precip[7:]
+    else:
+        past_current = clean_precip
+        forecast = []
 
-    # 1. Heavy rain for 1+ hr
-    for val in recent[-3:]:
+    rain_1h = past_current[-1] if past_current else 0.0
+    rain_24h = sum(past_current)
+
+    # 1. Heavy rain for 1+ hr (current/recent)
+    for val in past_current[-3:]:
         if val >= 15.0:
             return True, f"Heavy Rain (1h: {val:.1f} mm/h)", rain_1h, rain_24h
 
-    # 2. Moderate rain for 2+ hr
-    if len(recent) >= 2:
-        for i in range(len(recent) - 1):
-            if (recent[i] >= 7.5 and recent[i+1] >= 7.5) or (recent[i] + recent[i+1] >= 15.0 and recent[i] >= 4.0 and recent[i+1] >= 4.0):
-                two_hr_sum = recent[i] + recent[i+1]
+    # 2. Moderate rain for 2+ hr (current/recent)
+    if len(past_current) >= 2:
+        for i in range(len(past_current) - 1):
+            if (past_current[i] >= 7.5 and past_current[i+1] >= 7.5) or (past_current[i] + past_current[i+1] >= 15.0 and past_current[i] >= 4.0 and past_current[i+1] >= 4.0):
+                two_hr_sum = past_current[i] + past_current[i+1]
                 return True, f"Moderate Rain (2h: {two_hr_sum:.1f} mm)", rain_1h, rain_24h
 
-    # 3. Slow rain for 3+ hr
-    if len(recent) >= 3:
-        for i in range(len(recent) - 2):
-            if (recent[i] >= 2.0 and recent[i+1] >= 2.0 and recent[i+2] >= 2.0) or (recent[i] + recent[i+1] + recent[i+2] >= 7.5 and recent[i] >= 1.0 and recent[i+1] >= 1.0 and recent[i+2] >= 1.0):
-                three_hr_sum = recent[i] + recent[i+1] + recent[i+2]
+    # 3. Slow rain for 3+ hr (current/recent)
+    if len(past_current) >= 3:
+        for i in range(len(past_current) - 2):
+            if (past_current[i] >= 2.0 and past_current[i+1] >= 2.0 and past_current[i+2] >= 2.0) or (past_current[i] + past_current[i+1] + past_current[i+2] >= 7.5 and past_current[i] >= 1.0 and past_current[i+1] >= 1.0 and past_current[i+2] >= 1.0):
+                three_hr_sum = past_current[i] + past_current[i+1] + past_current[i+2]
                 return True, f"Slow Rain (3h: {three_hr_sum:.1f} mm)", rain_1h, rain_24h
+
+    # 4. Forecast Heavy Cloudburst (upcoming 3-6 hours)
+    if forecast:
+        for val in forecast[:3]:
+            if val >= 15.0:
+                return True, f"Forecast Heavy Rain ({val:.1f} mm/h expected)", rain_1h, rain_24h
+        if len(forecast) >= 2 and (forecast[0] + forecast[1] >= 15.0):
+            return True, f"Forecast Cloudburst ({forecast[0] + forecast[1]:.1f} mm in 2h)", rain_1h, rain_24h
 
     return False, "Normal / Below Surveillance Threshold", rain_1h, rain_24h
 
@@ -86,7 +109,33 @@ class WeatherSurveillanceEngine:
         self.surveillance_results: List[Dict[str, Any]] = []
         self.last_scan_time: Optional[str] = None
         self.is_scanning: bool = False
+        self.is_danger_active: bool = False
+        self.cycle_interval_seconds: int = 1800  # Default nominal: 30 minutes
+        self.polling_mode: str = "NOMINAL (30 min)"
+        self.next_scan_time: Optional[str] = None
         self._load_dams()
+
+    def evaluate_danger_state(self, results: Optional[List[Dict[str, Any]]] = None) -> Tuple[bool, int, str]:
+        """
+        Evaluates danger state across dam assessments:
+        - Crisis Mode (2 minutes = 120s): If any dam triggers WARNING or IMMINENT, or breach prob >= 0.50, or heavy cloudburst forecast.
+        - Nominal Mode (30 minutes = 1800s): Safe patrol interval when all dams operate within nominal tolerances.
+        """
+        eval_list = results if results is not None else self.surveillance_results
+        if not eval_list:
+            return False, 1800, "NOMINAL (30 min)"
+
+        is_danger = any(
+            d.get("alert_level") in ("WARNING", "IMMINENT")
+            or d.get("failure_probability", 0.0) >= 0.50
+            or "Forecast Heavy" in str(d.get("trigger_reason", ""))
+            or "Forecast Cloudburst" in str(d.get("trigger_reason", ""))
+            for d in eval_list
+        )
+
+        interval = 120 if is_danger else 1800
+        mode = "CRISIS (2 min)" if is_danger else "NOMINAL (30 min)"
+        return is_danger, interval, mode
 
     def _load_dams(self):
         """Loads all dams from seed json or geojson."""
@@ -154,7 +203,7 @@ class WeatherSurveillanceEngine:
                 batch = grid_points[i:i + batch_size]
                 lats = ",".join(f"{pt[0]:.2f}" for pt in batch)
                 lons = ",".join(f"{pt[1]:.2f}" for pt in batch)
-                url = f"https://api.open-meteo.com/v1/forecast?latitude={lats}&longitude={lons}&hourly=precipitation,rain&past_hours=6&forecast_hours=3"
+                url = f"https://api.open-meteo.com/v1/forecast?latitude={lats}&longitude={lons}&hourly=precipitation,rain&past_hours=6&forecast_hours=6"
 
                 try:
                     resp = await client.get(url)
@@ -294,10 +343,42 @@ class WeatherSurveillanceEngine:
         self.last_scan_time = datetime.now(timezone.utc).isoformat()
         self.is_scanning = False
 
+        # Adaptive Recomputation & Danger Scheduling:
+        # If in danger (WARNING / IMMINENT or heavy forecast): 2 minutes (120s)
+        # If no upcoming danger (Nominal): 30 minutes (1800s)
+        is_danger, interval, mode = self.evaluate_danger_state(final_surveillance)
+        self.is_danger_active = is_danger
+        self.cycle_interval_seconds = interval
+        self.polling_mode = mode
+        self.next_scan_time = datetime.fromtimestamp(time.time() + interval, timezone.utc).isoformat()
+
         self._persist_surveillance()
 
         elapsed = time.time() - scan_start
+
+        # Sync to Neon Serverless PostgreSQL Database
+        counts = {
+            "IMMINENT": sum(1 for d in self.surveillance_results if d["alert_level"] == "IMMINENT"),
+            "WARNING": sum(1 for d in self.surveillance_results if d["alert_level"] == "WARNING"),
+            "WATCH": sum(1 for d in self.surveillance_results if d["alert_level"] == "WATCH"),
+            "NORMAL": sum(1 for d in self.surveillance_results if d["alert_level"] == "NORMAL"),
+        }
+        if neon_db and neon_db.is_configured():
+            try:
+                neon_db.sync_surveillance_results(
+                    surveillance_results=self.surveillance_results,
+                    counts=counts,
+                    is_danger_active=self.is_danger_active,
+                    cycle_interval_seconds=self.cycle_interval_seconds,
+                    scan_duration_seconds=elapsed,
+                    weather_provider="Open-Meteo (ECMWF IFS / GFS / ICON High-Resolution Ensemble)",
+                    compute_engine="Modal.com Serverless GPU (NVIDIA A10G)"
+                )
+            except Exception as e:
+                logger.warning(f"Neon database sync encountered an error: {e}")
+
         logger.info(f"✅ Surveillance scan complete in {elapsed:.2f}s. {len(self.surveillance_results)} dams actively compiled.")
+        logger.info(f"⏱️ Adaptive Scheduler: {self.polling_mode} | Next cycle in {self.cycle_interval_seconds}s (at {self.next_scan_time})")
         return self.surveillance_results
 
     async def _call_modal_batch_predict(self, payloads: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -349,6 +430,10 @@ class WeatherSurveillanceEngine:
         """Saves current surveillance status to JSON for persistent access."""
         summary = {
             "last_scan_time": self.last_scan_time,
+            "next_scan_time": self.next_scan_time,
+            "is_danger_active": self.is_danger_active,
+            "cycle_interval_seconds": self.cycle_interval_seconds,
+            "polling_mode": self.polling_mode,
             "total_dams_in_registry": len(self.dams),
             "surveillance_count": len(self.surveillance_results),
             "counts": {
@@ -393,11 +478,19 @@ class WeatherSurveillanceEngine:
                         "WATCH": sum(1 for d in filtered_dams if d.get("alert_level") == "WATCH"),
                         "NORMAL": sum(1 for d in filtered_dams if d.get("alert_level") == "NORMAL"),
                     }
+                    data["is_danger_active"] = data.get("is_danger_active", False)
+                    data["cycle_interval_seconds"] = data.get("cycle_interval_seconds", 1800)
+                    data["polling_mode"] = data.get("polling_mode", "NOMINAL (30 min)")
+                    data["next_scan_time"] = data.get("next_scan_time", None)
                     return data
             except Exception:
                 pass
         return {
             "last_scan_time": self.last_scan_time,
+            "next_scan_time": self.next_scan_time,
+            "is_danger_active": self.is_danger_active,
+            "cycle_interval_seconds": self.cycle_interval_seconds,
+            "polling_mode": self.polling_mode,
             "total_dams_in_registry": len(self.dams),
             "surveillance_count": len(self.surveillance_results),
             "counts": {"IMMINENT": 0, "WARNING": 0, "WATCH": 0, "NORMAL": 0},

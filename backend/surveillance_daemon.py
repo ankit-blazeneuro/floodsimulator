@@ -53,8 +53,12 @@ async def main():
         except Exception as e:
             logger.error("Error during surveillance cycle: %s", e)
 
-        # Sleep 5 minutes before next meteorological scan
-        await asyncio.sleep(300)
+        # Adaptive Polling Cadence:
+        # If danger active (WARNING / IMMINENT or cloudburst forecast): 2 minutes (120s)
+        # If nominal: 30 minutes (1800s)
+        sleep_seconds = surveillance_engine.cycle_interval_seconds
+        logger.info("⏱️ Next surveillance cycle in %d seconds (%s mode).", sleep_seconds, surveillance_engine.polling_mode)
+        await asyncio.sleep(sleep_seconds)
 
 
 if __name__ == "__main__":

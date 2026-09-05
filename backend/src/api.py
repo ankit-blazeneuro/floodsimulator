@@ -27,6 +27,13 @@ if BACKEND_DIR not in sys.path:
 from src.predictor import DamBreachPredictor
 from src.feature_pipeline import FeaturePipeline
 from src.weather_surveillance import surveillance_engine
+try:
+    from src.neon_db import neon_db
+except ImportError:
+    try:
+        from neon_db import neon_db
+    except ImportError:
+        neon_db = None
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("hydroguard_api")
@@ -49,8 +56,11 @@ async def _background_surveillance_worker():
 
     while True:
         try:
-            # Poll every 5 minutes (300 seconds)
-            await asyncio.sleep(300)
+            # Adaptive Polling Cadence:
+            # Recomputes every 2 minutes (120s) if danger active, or every 30 minutes (1800s) if nominal
+            sleep_secs = surveillance_engine.cycle_interval_seconds
+            logger.info(f"⏱️ Background surveillance waiting {sleep_secs}s ({surveillance_engine.polling_mode})...")
+            await asyncio.sleep(sleep_secs)
             logger.info("Executing periodic nationwide meteorological surveillance...")
             await surveillance_engine.scan_all_dams()
         except asyncio.CancelledError:
@@ -215,20 +225,35 @@ async def predict_dam_risk(req: DamPredictionRequest):
 async def get_surveillance_status():
     """Returns overview of nationwide meteorological surveillance."""
     data = surveillance_engine.load_cached_surveillance()
+    neon_status = neon_db.get_status() if neon_db else {"configured": False, "status": "NOT_LOADED"}
     return {
         "status": "success",
         "last_scan_time": data.get("last_scan_time"),
+        "next_scan_time": data.get("next_scan_time"),
+        "is_danger_active": data.get("is_danger_active", False),
+        "cycle_interval_seconds": data.get("cycle_interval_seconds", 1800),
+        "polling_mode": data.get("polling_mode", "NOMINAL (30 min)"),
         "total_dams_in_registry": data.get("total_dams_in_registry", 6648),
         "surveillance_count": data.get("surveillance_count", len(data.get("dams", []))),
         "counts": data.get("counts", {"IMMINENT": 0, "WARNING": 0, "WATCH": 0, "NORMAL": 0}),
         "weather_provider": data.get("weather_provider", "Open-Meteo (ECMWF IFS / GFS / ICON)"),
         "compute_engine": data.get("compute_engine", "Modal.com Serverless GPU"),
+        "neon_database": neon_status,
         "criteria": {
             "heavy_rain": ">= 15.0 mm/hr for 1+ hr",
             "moderate_rain": ">= 7.5 mm/hr for 2+ consecutive hr (or >= 15mm in 2h)",
-            "slow_rain": ">= 2.0 mm/hr for 3+ consecutive hr (or >= 7.5mm in 3h)"
+            "slow_rain": ">= 2.0 mm/hr for 3+ consecutive hr (or >= 7.5mm in 3h)",
+            "forecast_cloudburst": ">= 15.0 mm/hr or 2h sum >= 15mm expected"
         }
     }
+
+
+@app.get("/api/surveillance/neon/status")
+async def get_neon_status():
+    """Returns Neon Serverless PostgreSQL connectivity and telemetry sync health."""
+    if neon_db:
+        return neon_db.get_status()
+    return {"configured": False, "status": "NOT_LOADED", "error": "neon_db module not loaded"}
 
 
 @app.get("/api/surveillance/dams")

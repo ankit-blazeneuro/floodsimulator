@@ -423,9 +423,9 @@ QWidget* MonitorWidget::createBriefPage() {
 
     layout->addWidget(probBox);
 
-    // 3. Single Master Button: Unified Full Surveillance & ML Prediction
-    m_btnPredict = new QPushButton("⚡ Run Full Surveillance & ML Prediction", content);
-    m_btnPredict->setToolTip("Queries live Open-Meteo weather across India, batch-updates all 6,600+ dams on Modal GPU, and computes real-time breach risk for the selected dam.");
+    // 3. Master Refresh Button: Unified Weather Scan, ML Prediction & Neon DB Sync
+    m_btnPredict = new QPushButton("⚡ Refresh", content);
+    m_btnPredict->setToolTip("Queries live Open-Meteo weather across India, batch-updates ML breach risks on Modal GPU, and syncs telemetry to Neon database.");
     m_btnPredict->setStyleSheet(R"(
         QPushButton {
             background-color: #0284C7;
@@ -1260,7 +1260,7 @@ void MonitorWidget::onDamSelected(int index) {
 
 void MonitorWidget::onRunMlPrediction() {
     if (m_btnPredict) {
-        m_btnPredict->setText("⏳ Running Full Surveillance & Prediction...");
+        m_btnPredict->setText("⏳ Refreshing...");
         m_btnPredict->setEnabled(false);
     }
 
@@ -1272,7 +1272,7 @@ void MonitorWidget::onRunMlPrediction() {
         updateHudUI(0.0, "NORMAL", "#22C55E", "🟢 Historical Landslide Dam (Breached May 2015) — Drained & Inactive. No Current Hazard.", 0.0, 0.0, 0.0);
         m_onlineMap->clearFloodSimulation();
         if (m_btnPredict) {
-            m_btnPredict->setText("⚡ Run Full Surveillance & ML Prediction");
+            m_btnPredict->setText("⚡ Refresh");
             m_btnPredict->setEnabled(true);
         }
         return;
@@ -1281,7 +1281,7 @@ void MonitorWidget::onRunMlPrediction() {
         updateHudUI(0.0, "NORMAL", "#22C55E", "🟢 Historical Landslide Dam (Breached Feb 2021) — Drained & Inactive. No Current Hazard.", 0.0, 0.0, 0.0);
         m_onlineMap->clearFloodSimulation();
         if (m_btnPredict) {
-            m_btnPredict->setText("⚡ Run Full Surveillance & ML Prediction");
+            m_btnPredict->setText("⚡ Refresh");
             m_btnPredict->setEnabled(true);
         }
         return;
@@ -1317,7 +1317,7 @@ void MonitorWidget::onNetworkReplyFinished(QNetworkReply* reply) {
     if (reply->property("requestType").toString() == "surveillanceDams" ||
         reply->property("requestType").toString() == "scanNow") {
         if (m_btnPredict) {
-            m_btnPredict->setText("⚡ Run Full Surveillance & ML Prediction");
+            m_btnPredict->setText("⚡ Refresh");
             m_btnPredict->setEnabled(true);
         }
         if (reply->error() == QNetworkReply::NoError) {
@@ -1458,7 +1458,7 @@ void MonitorWidget::onNetworkReplyFinished(QNetworkReply* reply) {
             }
         }
         if (m_btnPredict) {
-            m_btnPredict->setText("⚡ Run Full Surveillance & ML Prediction");
+            m_btnPredict->setText("⚡ Refresh");
             m_btnPredict->setEnabled(true);
         }
         reply->deleteLater();

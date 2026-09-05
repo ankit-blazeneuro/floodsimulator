@@ -22,6 +22,9 @@ requests>=2.31.0
 fastapi>=0.104.0
 uvicorn>=0.24.0
 
+# Neon Serverless PostgreSQL Database
+psycopg2-binary>=2.9.9
+
 # Export
 simplekml>=1.3.6
 
