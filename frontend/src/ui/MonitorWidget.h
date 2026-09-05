@@ -16,6 +16,8 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QLineEdit>
+#include <QButtonGroup>
+#include <QScrollArea>
 #include <vector>
 
 #include "OnlineTileWidget.h"
@@ -89,46 +91,85 @@ private:
     OnlineTileWidget* m_onlineMap;
     TimelineWidget* m_timelineWidget;
 
+    // Sidebar of Sidebar Navigation
+    QWidget* m_iconStrip = nullptr;
+    QButtonGroup* m_tabGroup = nullptr;
+    QStackedWidget* m_pageStack = nullptr;
+    QLabel* m_lblPageTitle = nullptr;
+
+    QPushButton* m_btnTabBrief = nullptr;
+    QPushButton* m_btnTabRadar = nullptr;
+    QPushButton* m_btnTabControls = nullptr;
+    QPushButton* m_btnTabPhysics = nullptr;
+    QPushButton* m_btnTabProfile = nullptr;
+
     // National Risk Summary Count Cards
-    QLabel* m_lblCountSurveillance;
-    QLabel* m_lblCountImminent;
-    QLabel* m_lblCountWarning;
-    QLabel* m_lblCountWatch;
-    QLabel* m_lblCountNormal;
-    QLabel* m_lblWeatherStatus;
+    QLabel* m_lblCountSurveillance = nullptr;
+    QLabel* m_lblCountImminent = nullptr;
+    QLabel* m_lblCountWarning = nullptr;
+    QLabel* m_lblCountWatch = nullptr;
+    QLabel* m_lblCountNormal = nullptr;
+    QLabel* m_lblWeatherStatus = nullptr;
 
     // Auto Surveillance Toolbar
-    QPushButton* m_btnAutoMonitor;
+    QPushButton* m_btnAutoMonitor = nullptr;
 
     // Control Panel Widgets
-    QLineEdit* m_txtSearchFilter;
-    QComboBox* m_cboDamSelector;
-    QDoubleSpinBox* m_spnRain1h;
-    QDoubleSpinBox* m_spnRain24h;
-    QDoubleSpinBox* m_spnFreeboard;
-    QDoubleSpinBox* m_spnStorage;
-    QDoubleSpinBox* m_spnCrestDisp;
-    QComboBox* m_cboStructType;
-    QPushButton* m_btnPredict;
+    QLineEdit* m_txtSearchFilter = nullptr;
+    QComboBox* m_cboDamSelector = nullptr;
+    QDoubleSpinBox* m_spnRain1h = nullptr;
+    QDoubleSpinBox* m_spnRain24h = nullptr;
+    QDoubleSpinBox* m_spnFreeboard = nullptr;
+    QDoubleSpinBox* m_spnStorage = nullptr;
+    QDoubleSpinBox* m_spnCrestDisp = nullptr;
+    QComboBox* m_cboStructType = nullptr;
+    QPushButton* m_btnPredict = nullptr;
 
     // Alert & Risk Telemetry HUD
-    QLabel* m_lblDamTitle;
-    QLabel* m_lblAlertBadge;
-    QLabel* m_lblRiskProbPercent;
-    QProgressBar* m_progressRisk;
-    QLabel* m_lblOriStatus;
-    QLabel* m_lblDbiStatus;
-    QLabel* m_lblInflowSurge;
-    QLabel* m_lblShapSummary;
-    QLabel* m_lblActionGuide;
+    QLabel* m_lblDamTitle = nullptr;
+    QLabel* m_lblAlertBadge = nullptr;
+    QLabel* m_lblRiskProbPercent = nullptr;
+    QProgressBar* m_progressRisk = nullptr;
+    QLabel* m_lblOriStatus = nullptr;
+    QLabel* m_lblDbiStatus = nullptr;
+    QLabel* m_lblInflowSurge = nullptr;
+    QLabel* m_lblShapSummary = nullptr;
+    QLabel* m_lblActionGuide = nullptr;
+
+    // Brief Tab specific KPI labels
+    QLabel* m_lblBriefRain = nullptr;
+    QLabel* m_lblBriefInflow = nullptr;
+    QLabel* m_lblBriefFreeboard = nullptr;
+    QLabel* m_lblBriefDisp = nullptr;
+    QLabel* m_lblBriefOri = nullptr;
+    QLabel* m_lblBriefDbi = nullptr;
+    QLabel* m_lblBriefShap = nullptr;
+
+    // Dam Profile Tab specific labels
+    QLabel* m_lblProfileName = nullptr;
+    QLabel* m_lblProfilePic = nullptr;
+    QLabel* m_lblProfileState = nullptr;
+    QLabel* m_lblProfileRiver = nullptr;
+    QLabel* m_lblProfileCoords = nullptr;
+    QLabel* m_lblProfileHeight = nullptr;
+    QLabel* m_lblProfileStorage = nullptr;
+    QLabel* m_lblProfileType = nullptr;
+    QLabel* m_lblProfileYear = nullptr;
+    QLabel* m_lblProfilePurpose = nullptr;
 
     // Monitored Dams Table
-    QTableWidget* m_tblDams;
+    QTableWidget* m_tblDams = nullptr;
 
     MapCore::FloodSimulationState m_currentSimState;
 
     void setupUi();
     void buildControlPanel(QWidget* parent);
+    QWidget* createBriefPage();
+    QWidget* createRadarPage();
+    QWidget* createControlsPage();
+    QWidget* createPhysicsPage();
+    QWidget* createProfilePage();
+
     void computeLocalPrediction();
     void fetchAllDamsLiveWeather();
     DamRiskAssessment evaluateDamRisk(const MapCore::DamPoint& dam, double r1h, double r24h, double fb, double storage, double crestDisp, const QString& structType);

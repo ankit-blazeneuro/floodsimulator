@@ -1,9 +1,12 @@
 #include "MonitorWidget.h"
+#include "IconHelper.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QGridLayout>
 #include <QFormLayout>
 #include <QGroupBox>
+#include <QScrollArea>
 #include <QGraphicsDropShadowEffect>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -11,6 +14,7 @@
 #include <QNetworkRequest>
 #include <QUrl>
 #include <cmath>
+#include <algorithm>
 
 namespace MapUI {
 
@@ -98,103 +102,258 @@ void MonitorWidget::setupUi() {
     m_mainSplitter->addWidget(rightPanel);
     m_mainSplitter->setCollapsible(0, false);
     m_mainSplitter->setCollapsible(1, false);
-    m_mainSplitter->setSizes({ 1020, 360 });
+    m_mainSplitter->setSizes({ 940, 440 });
 
     rootLayout->addWidget(m_mainSplitter);
 }
 
+static QScrollArea* wrapInScrollArea(QWidget* content) {
+    auto* sa = new QScrollArea();
+    sa->setWidgetResizable(true);
+    sa->setFrameShape(QFrame::NoFrame);
+    sa->setStyleSheet(R"(
+        QScrollArea {
+            background-color: #18181B;
+            border: none;
+        }
+        QScrollBar:vertical {
+            background: #121214;
+            width: 6px;
+            margin: 0px;
+        }
+        QScrollBar::handle:vertical {
+            background: #3F3F46;
+            min-height: 20px;
+            border-radius: 3px;
+        }
+        QScrollBar::handle:vertical:hover {
+            background: #52525B;
+        }
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            height: 0px;
+        }
+    )");
+    sa->setWidget(content);
+    return sa;
+}
+
 void MonitorWidget::buildControlPanel(QWidget* parent) {
-    auto* layout = new QVBoxLayout(parent);
-    layout->setContentsMargins(12, 12, 12, 12);
-    layout->setSpacing(10);
+    parent->setStyleSheet(R"(
+        QWidget#rightControlPanel {
+            background-color: #18181B;
+            border-left: 1px solid #27272A;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 11px;
+        }
+        QWidget#iconStrip {
+            background-color: #121214;
+            border-right: 1px solid #27272A;
+        }
+        QWidget#iconStrip QPushButton {
+            background-color: transparent;
+            border: none;
+            border-left: 3px solid transparent;
+            border-radius: 0px;
+            min-width: 42px;
+            max-width: 42px;
+            min-height: 42px;
+            max-height: 42px;
+        }
 
-    // 1. National Risk Summary HUD & Auto Surveillance Controls
-    auto* hudWidget = new QWidget(parent);
-    hudWidget->setStyleSheet("QWidget { background-color: #1E1E22; border-radius: 8px; }");
-    auto* hudLayout = new QVBoxLayout(hudWidget);
-    hudLayout->setContentsMargins(8, 8, 8, 8);
-    hudLayout->setSpacing(6);
+        /* 1. Brief Tab (Sky Blue Theme) */
+        QPushButton#btnTabBrief:hover {
+            background-color: rgba(56, 189, 248, 0.10);
+        }
+        QPushButton#btnTabBrief:checked {
+            background-color: rgba(56, 189, 248, 0.18);
+            border-left: 3px solid #38BDF8;
+        }
 
-    auto* topHud = new QHBoxLayout();
-    auto* lblNavTitle = new QLabel("🛰️ HydroGuard Live Surveillance", hudWidget);
-    lblNavTitle->setStyleSheet("font-size: 13px; font-weight: bold; color: #FAFAFA;");
-    topHud->addWidget(lblNavTitle);
-    topHud->addStretch();
+        /* 2. Radar Surveillance Tab (Amber Theme) */
+        QPushButton#btnTabRadar:hover {
+            background-color: rgba(253, 214, 99, 0.10);
+        }
+        QPushButton#btnTabRadar:checked {
+            background-color: rgba(253, 214, 99, 0.18);
+            border-left: 3px solid #FDD663;
+        }
 
-    m_btnAutoMonitor = new QPushButton("🛰️ Auto Monitor: OFF", hudWidget);
-    m_btnAutoMonitor->setStyleSheet(R"(
-        QPushButton {
-            background-color: #27272A;
-            color: #A1A1AA;
+        /* 3. Controls Tab (Emerald Theme) */
+        QPushButton#btnTabControls:hover {
+            background-color: rgba(52, 211, 153, 0.10);
+        }
+        QPushButton#btnTabControls:checked {
+            background-color: rgba(52, 211, 153, 0.18);
+            border-left: 3px solid #34D399;
+        }
+
+        /* 4. Physics Tab (Rose / Red Theme) */
+        QPushButton#btnTabPhysics:hover {
+            background-color: rgba(244, 63, 94, 0.12);
+        }
+        QPushButton#btnTabPhysics:checked {
+            background-color: rgba(244, 63, 94, 0.20);
+            border-left: 3px solid #F43F5E;
+        }
+
+        /* 5. Dam Profile Tab (Purple Theme) */
+        QPushButton#btnTabProfile:hover {
+            background-color: rgba(167, 139, 250, 0.10);
+        }
+        QPushButton#btnTabProfile:checked {
+            background-color: rgba(167, 139, 250, 0.18);
+            border-left: 3px solid #A78BFA;
+        }
+    )");
+
+    parent->setObjectName("rightControlPanel");
+
+    auto* rootHBox = new QHBoxLayout(parent);
+    rootHBox->setContentsMargins(0, 0, 0, 0);
+    rootHBox->setSpacing(0);
+
+    // 1. Left Vertical Icon Strip (Sidebar of Sidebar)
+    m_iconStrip = new QWidget(parent);
+    m_iconStrip->setObjectName("iconStrip");
+    m_iconStrip->setFixedWidth(44);
+
+    auto* isLayout = new QVBoxLayout(m_iconStrip);
+    isLayout->setContentsMargins(0, 6, 0, 6);
+    isLayout->setSpacing(3);
+
+    m_tabGroup = new QButtonGroup(this);
+    m_tabGroup->setExclusive(true);
+
+    m_btnTabBrief = new QPushButton(m_iconStrip);
+    m_btnTabBrief->setObjectName("btnTabBrief");
+    m_btnTabBrief->setIcon(IconHelper::graph(QColor(56, 189, 248), 22));
+    m_btnTabBrief->setIconSize(QSize(22, 22));
+    m_btnTabBrief->setCheckable(true);
+    m_btnTabBrief->setToolTip("Brief Overview & Executive Dashboard");
+    m_tabGroup->addButton(m_btnTabBrief, 0);
+    isLayout->addWidget(m_btnTabBrief);
+
+    m_btnTabRadar = new QPushButton(m_iconStrip);
+    m_btnTabRadar->setObjectName("btnTabRadar");
+    m_btnTabRadar->setIcon(IconHelper::radar(QColor(253, 214, 99), 22));
+    m_btnTabRadar->setIconSize(QSize(22, 22));
+    m_btnTabRadar->setCheckable(true);
+    m_btnTabRadar->setToolTip("Nationwide Surveillance & Dam Ranking");
+    m_tabGroup->addButton(m_btnTabRadar, 1);
+    isLayout->addWidget(m_btnTabRadar);
+
+    m_btnTabControls = new QPushButton(m_iconStrip);
+    m_btnTabControls->setObjectName("btnTabControls");
+    m_btnTabControls->setIcon(IconHelper::rain(QColor(52, 211, 153), 22));
+    m_btnTabControls->setIconSize(QSize(22, 22));
+    m_btnTabControls->setCheckable(true);
+    m_btnTabControls->setToolTip("Hydraulic Telemetry & Simulation Controls");
+    m_tabGroup->addButton(m_btnTabControls, 2);
+    isLayout->addWidget(m_btnTabControls);
+
+    m_btnTabPhysics = new QPushButton(m_iconStrip);
+    m_btnTabPhysics->setObjectName("btnTabPhysics");
+    m_btnTabPhysics->setIcon(IconHelper::danger(QColor(244, 63, 94), 22));
+    m_btnTabPhysics->setIconSize(QSize(22, 22));
+    m_btnTabPhysics->setCheckable(true);
+    m_btnTabPhysics->setToolTip("Physics Indices (ORI / DBI) & SHAP Drivers");
+    m_tabGroup->addButton(m_btnTabPhysics, 3);
+    isLayout->addWidget(m_btnTabPhysics);
+
+    m_btnTabProfile = new QPushButton(m_iconStrip);
+    m_btnTabProfile->setObjectName("btnTabProfile");
+    m_btnTabProfile->setIcon(IconHelper::info(QColor(167, 139, 250), 22));
+    m_btnTabProfile->setIconSize(QSize(22, 22));
+    m_btnTabProfile->setCheckable(true);
+    m_btnTabProfile->setToolTip("Dam Specifications & Engineering Profile");
+    m_tabGroup->addButton(m_btnTabProfile, 4);
+    isLayout->addWidget(m_btnTabProfile);
+
+    isLayout->addStretch();
+    rootHBox->addWidget(m_iconStrip);
+
+    // 2. Right Content Stack
+    auto* rightContent = new QWidget(parent);
+    auto* rcLayout = new QVBoxLayout(rightContent);
+    rcLayout->setContentsMargins(0, 0, 0, 0);
+    rcLayout->setSpacing(0);
+
+    // Header bar with active category title
+    auto* headerBar = new QWidget(rightContent);
+    headerBar->setStyleSheet("background-color: #141416; border-bottom: 1px solid #27272A;");
+    headerBar->setFixedHeight(38);
+    auto* hbLayout = new QHBoxLayout(headerBar);
+    hbLayout->setContentsMargins(12, 0, 12, 0);
+
+    m_lblPageTitle = new QLabel("📋 BRIEF — EXECUTIVE OVERVIEW", headerBar);
+    m_lblPageTitle->setStyleSheet("font-size: 11px; font-weight: bold; color: #FAFAFA; letter-spacing: 0.5px;");
+    hbLayout->addWidget(m_lblPageTitle);
+    hbLayout->addStretch();
+    rcLayout->addWidget(headerBar);
+
+    // Stack of Category Pages
+    m_pageStack = new QStackedWidget(rightContent);
+    m_pageStack->addWidget(createBriefPage());       // Index 0: Brief
+    m_pageStack->addWidget(createRadarPage());       // Index 1: Radar
+    m_pageStack->addWidget(createControlsPage());    // Index 2: Controls
+    m_pageStack->addWidget(createPhysicsPage());     // Index 3: Physics
+    m_pageStack->addWidget(createProfilePage());     // Index 4: Profile
+
+    rcLayout->addWidget(m_pageStack);
+    rootHBox->addWidget(rightContent, 1);
+
+    // Switch categories on icon click
+    connect(m_tabGroup, &QButtonGroup::idClicked, this, [this](int id) {
+        m_pageStack->setCurrentIndex(id);
+        switch (id) {
+            case 0: m_lblPageTitle->setText("📋 BRIEF — EXECUTIVE OVERVIEW"); break;
+            case 1: m_lblPageTitle->setText("🛰️ NATIONWIDE SURVEILLANCE & RANKING"); break;
+            case 2: m_lblPageTitle->setText("🎛️ HYDRAULIC & STRUCTURAL CONTROLS"); break;
+            case 3: m_lblPageTitle->setText("🔬 PHYSICS INDICES & SHAP ATTRIBUTION"); break;
+            case 4: m_lblPageTitle->setText("ℹ️ DAM SPECIFICATIONS & PROFILE"); break;
+            default: break;
+        }
+    });
+
+    m_btnTabBrief->setChecked(true);
+}
+
+QWidget* MonitorWidget::createBriefPage() {
+    auto* content = new QWidget();
+    content->setStyleSheet(R"(
+        QWidget {
+            background-color: #18181B;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 11px;
+            color: #FAFAFA;
+        }
+        QGroupBox {
             font-size: 11px;
             font-weight: bold;
-            border: 1px solid #3F3F46;
-            border-radius: 5px;
-            padding: 4px 10px;
+            color: #A1A1AA;
+            border: 1px solid #27272A;
+            border-radius: 6px;
+            margin-top: 6px;
+            padding-top: 14px;
+            background-color: #141416;
         }
-        QPushButton:hover { background-color: #3F3F46; color: #FAFAFA; }
     )");
-    connect(m_btnAutoMonitor, &QPushButton::clicked, this, &MonitorWidget::toggleAutoMonitor);
-    topHud->addWidget(m_btnAutoMonitor);
 
-    hudLayout->addLayout(topHud);
+    auto* layout = new QVBoxLayout(content);
+    layout->setContentsMargins(10, 10, 10, 10);
+    layout->setSpacing(8);
 
-    // Risk Summary Count Cards Bar [Red | Orange | Yellow | Green]
-    auto* cardsLayout = new QHBoxLayout();
-    cardsLayout->setSpacing(6);
+    // 1. Active Dam Quick Header Card
+    auto* damCard = new QWidget(content);
+    damCard->setStyleSheet("background-color: #1E1E22; border: 1px solid #27272A; border-radius: 6px; padding: 4px;");
+    auto* damCardLayout = new QVBoxLayout(damCard);
+    damCardLayout->setContentsMargins(8, 6, 8, 6);
+    damCardLayout->setSpacing(4);
 
-    auto createBadge = [](const QString& countStr, const QString& label, const QString& color) {
-        auto* box = new QWidget();
-        box->setStyleSheet(QString("background-color: rgba(255, 255, 255, 0.05); border: 1px solid %1; border-radius: 6px;").arg(color));
-        auto* l = new QVBoxLayout(box);
-        l->setContentsMargins(4, 4, 4, 4);
-        l->setSpacing(0);
-        auto* lblVal = new QLabel(countStr, box);
-        lblVal->setAlignment(Qt::AlignCenter);
-        lblVal->setStyleSheet(QString("font-size: 14px; font-weight: bold; color: %1;").arg(color));
-        auto* lblTxt = new QLabel(label, box);
-        lblTxt->setAlignment(Qt::AlignCenter);
-        lblTxt->setStyleSheet("font-size: 9px; color: #A1A1AA;");
-        l->addWidget(lblVal);
-        l->addWidget(lblTxt);
-        return std::make_pair(box, lblVal);
-    };
-
-    auto pairSurveillance = createBadge("0", "Surveillance", "#06B6D4");
-    auto pairImminent     = createBadge("0", "Imminent",     "#EF4444");
-    auto pairWarning      = createBadge("0", "Warning",      "#F97316");
-    auto pairWatch        = createBadge("0", "Watch",        "#EAB308");
-    auto pairNormal       = createBadge("0", "Normal",       "#22C55E");
-
-    m_lblCountSurveillance = pairSurveillance.second;
-    m_lblCountImminent     = pairImminent.second;
-    m_lblCountWarning      = pairWarning.second;
-    m_lblCountWatch        = pairWatch.second;
-    m_lblCountNormal       = pairNormal.second;
-
-    cardsLayout->addWidget(pairSurveillance.first);
-    cardsLayout->addWidget(pairImminent.first);
-    cardsLayout->addWidget(pairWarning.first);
-    cardsLayout->addWidget(pairWatch.first);
-    cardsLayout->addWidget(pairNormal.first);
-
-    hudLayout->addLayout(cardsLayout);
-
-    m_lblWeatherStatus = new QLabel("🛰️ Rain Triggers: Heavy (1h+) | Mod (2h+) | Slow (3h+) · Open-Meteo & Modal GPU", hudWidget);
-    m_lblWeatherStatus->setStyleSheet("font-size: 10px; color: #38BDF8; font-style: italic; padding-top: 2px;");
-    hudLayout->addWidget(m_lblWeatherStatus);
-
-    layout->addWidget(hudWidget);
-
-    // 2. Active Dam Telemetry Header & Dropdown
-    auto* headerWidget = new QWidget(parent);
-    auto* hLayout = new QHBoxLayout(headerWidget);
-    hLayout->setContentsMargins(0, 0, 0, 0);
-
-    m_lblDamTitle = new QLabel("Pench Dam (Kamthikhairy)", headerWidget);
-    m_lblDamTitle->setStyleSheet("font-family: 'Segoe UI', sans-serif; font-size: 15px; font-weight: bold; color: #FAFAFA;");
-
-    m_lblAlertBadge = new QLabel(" 🟢 NORMAL ", headerWidget);
+    auto* hTop = new QHBoxLayout();
+    m_lblDamTitle = new QLabel("Pench Dam (Kamthikhairy)", damCard);
+    m_lblDamTitle->setStyleSheet("font-size: 14px; font-weight: bold; color: #FAFAFA;");
+    m_lblAlertBadge = new QLabel(" 🟢 NORMAL ", damCard);
     m_lblAlertBadge->setStyleSheet(R"(
         QLabel {
             background-color: rgba(34, 197, 94, 0.2);
@@ -206,21 +365,20 @@ void MonitorWidget::buildControlPanel(QWidget* parent) {
             padding: 2px 6px;
         }
     )");
+    hTop->addWidget(m_lblDamTitle);
+    hTop->addStretch();
+    hTop->addWidget(m_lblAlertBadge);
+    damCardLayout->addLayout(hTop);
 
-    hLayout->addWidget(m_lblDamTitle);
-    hLayout->addStretch();
-    hLayout->addWidget(m_lblAlertBadge);
-    layout->addWidget(headerWidget);
-
-    // Dam Selector Dropdown
-    m_cboDamSelector = new QComboBox(parent);
+    // Quick Dam Selector Dropdown
+    m_cboDamSelector = new QComboBox(damCard);
     m_cboDamSelector->setStyleSheet(R"(
         QComboBox {
-            background-color: #1E1E22;
+            background-color: #27272A;
             color: #E4E4E7;
             border: 1px solid #3F3F46;
-            border-radius: 6px;
-            padding: 5px 8px;
+            border-radius: 4px;
+            padding: 4px 6px;
             font-size: 11px;
         }
         QComboBox QAbstractItemView {
@@ -229,24 +387,20 @@ void MonitorWidget::buildControlPanel(QWidget* parent) {
             selection-background-color: #38BDF8;
         }
     )");
-
     m_cboDamSelector->addItem("MH09HH0596 - Pench Dam (Kamthikhairy, MH)");
-    m_cboDamSelector->addItem("MH09HH0597 - Totladoh Dam (Maharashtra)");
-    m_cboDamSelector->addItem("UK001 - Rishi Ganga Landslide Dam (Uttarakhand)");
-    m_cboDamSelector->addItem("GJ002 - Machhu II Dam (Morbi, Gujarat)");
-    m_cboDamSelector->addItem("AP003 - Annamayya Dam (Cheyyeru, AP)");
-    m_cboDamSelector->addItem("UK004 - Tehri High Gravity Dam (Uttarakhand)");
-
     connect(m_cboDamSelector, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MonitorWidget::onDamSelected);
-    layout->addWidget(m_cboDamSelector);
+    damCardLayout->addWidget(m_cboDamSelector);
 
-    // 3. Failure Risk & Probability HUD
-    auto* probBox = new QGroupBox("Predictive Breach Risk Index (BG_model)", parent);
-    probBox->setStyleSheet("QGroupBox { font-size: 11px; font-weight: bold; color: #A1A1AA; border: 1px solid #27272A; border-radius: 6px; margin-top: 4px; padding-top: 12px; }");
+    layout->addWidget(damCard);
+
+    // 2. Predictive Breach Risk Master Gauge
+    auto* probBox = new QGroupBox("Predictive Breach Risk Index (BG_model)", content);
     auto* probLayout = new QVBoxLayout(probBox);
+    probLayout->setContentsMargins(8, 12, 8, 8);
+    probLayout->setSpacing(6);
 
     m_lblRiskProbPercent = new QLabel("8.4%", probBox);
-    m_lblRiskProbPercent->setStyleSheet("font-size: 24px; font-weight: bold; color: #22C55E;");
+    m_lblRiskProbPercent->setStyleSheet("font-size: 26px; font-weight: bold; color: #22C55E;");
     m_lblRiskProbPercent->setAlignment(Qt::AlignCenter);
     probLayout->addWidget(m_lblRiskProbPercent);
 
@@ -261,18 +415,262 @@ void MonitorWidget::buildControlPanel(QWidget* parent) {
     )");
     probLayout->addWidget(m_progressRisk);
 
-    m_lblActionGuide = new QLabel("Dam operating within nominal parameters.", probBox);
-    m_lblActionGuide->setStyleSheet("font-size: 10px; color: #A1A1AA; text-align: center;");
+    m_lblActionGuide = new QLabel("Dam operating within nominal parameters. Inundation safe.", probBox);
+    m_lblActionGuide->setStyleSheet("font-size: 10px; color: #A1A1AA;");
+    m_lblActionGuide->setAlignment(Qt::AlignCenter);
     m_lblActionGuide->setWordWrap(true);
     probLayout->addWidget(m_lblActionGuide);
 
     layout->addWidget(probBox);
 
-    // 4. Inputs Form Controls
-    auto* formBox = new QGroupBox("Hydro-Meteorological Controls", parent);
-    formBox->setStyleSheet("QGroupBox { font-size: 11px; font-weight: bold; color: #A1A1AA; border: 1px solid #27272A; border-radius: 6px; margin-top: 4px; padding-top: 12px; }");
+    // 3. Single Master Button: Unified Full Surveillance & ML Prediction
+    m_btnPredict = new QPushButton("⚡ Run Full Surveillance & ML Prediction", content);
+    m_btnPredict->setToolTip("Queries live Open-Meteo weather across India, batch-updates all 6,600+ dams on Modal GPU, and computes real-time breach risk for the selected dam.");
+    m_btnPredict->setStyleSheet(R"(
+        QPushButton {
+            background-color: #0284C7;
+            color: #FFFFFF;
+            font-weight: bold;
+            font-size: 11px;
+            border-radius: 6px;
+            padding: 9px 12px;
+        }
+        QPushButton:hover { background-color: #0369A1; }
+        QPushButton:pressed { background-color: #075985; }
+        QPushButton:disabled { background-color: #3F3F46; color: #A1A1AA; }
+    )");
+    connect(m_btnPredict, &QPushButton::clicked, this, &MonitorWidget::onRunMlPrediction);
+    layout->addWidget(m_btnPredict);
+
+    // 4. Brief KPI Matrix Card (All Info at a Glance)
+    auto* kpiBox = new QGroupBox("⚡ Key Telemetry & Physics Metrics", content);
+    auto* kpiLayout = new QGridLayout(kpiBox);
+    kpiLayout->setContentsMargins(8, 12, 8, 8);
+    kpiLayout->setSpacing(6);
+
+    auto makeKpiTile = [](const QString& labelText, QLabel*& valLabelRef) {
+        auto* tile = new QWidget();
+        tile->setStyleSheet("background-color: #1E1E22; border-radius: 4px; padding: 4px;");
+        auto* tl = new QVBoxLayout(tile);
+        tl->setContentsMargins(4, 3, 4, 3);
+        tl->setSpacing(1);
+        auto* title = new QLabel(labelText, tile);
+        title->setStyleSheet("font-size: 9px; color: #71717A; font-weight: bold;");
+        valLabelRef = new QLabel("--", tile);
+        valLabelRef->setStyleSheet("font-size: 11px; font-weight: bold; color: #FAFAFA;");
+        tl->addWidget(title);
+        tl->addWidget(valLabelRef);
+        return tile;
+    };
+
+    kpiLayout->addWidget(makeKpiTile("🌧️ PRECIPITATION", m_lblBriefRain), 0, 0);
+    kpiLayout->addWidget(makeKpiTile("🌊 INFLOW SURGE", m_lblBriefInflow), 0, 1);
+    kpiLayout->addWidget(makeKpiTile("📏 FREEBOARD / STORAGE", m_lblBriefFreeboard), 1, 0);
+    kpiLayout->addWidget(makeKpiTile("📐 STRUCTURE / DISP", m_lblBriefDisp), 1, 1);
+    kpiLayout->addWidget(makeKpiTile("⚠️ OVERTOPPING INDEX", m_lblBriefOri), 2, 0);
+    kpiLayout->addWidget(makeKpiTile("🛡️ BREACH STABILITY", m_lblBriefDbi), 2, 1);
+
+    layout->addWidget(kpiBox);
+
+    // 5. National Surveillance Status Summary Badges
+    auto* nationalBox = new QGroupBox("🛰️ National Early Warning Surveillance", content);
+    auto* natLayout = new QVBoxLayout(nationalBox);
+    natLayout->setContentsMargins(6, 12, 6, 6);
+    natLayout->setSpacing(6);
+
+    auto* topNat = new QHBoxLayout();
+    auto* lblNatSummary = new QLabel("Active Monitored Reservoirs", nationalBox);
+    lblNatSummary->setStyleSheet("font-size: 10px; color: #A1A1AA;");
+    topNat->addWidget(lblNatSummary);
+    topNat->addStretch();
+
+    m_btnAutoMonitor = new QPushButton("🛰️ Auto Monitor: OFF", nationalBox);
+    m_btnAutoMonitor->setStyleSheet(R"(
+        QPushButton {
+            background-color: #27272A;
+            color: #A1A1AA;
+            font-size: 10px;
+            font-weight: bold;
+            border: 1px solid #3F3F46;
+            border-radius: 4px;
+            padding: 3px 8px;
+        }
+        QPushButton:hover { background-color: #3F3F46; color: #FAFAFA; }
+    )");
+    connect(m_btnAutoMonitor, &QPushButton::clicked, this, &MonitorWidget::toggleAutoMonitor);
+    topNat->addWidget(m_btnAutoMonitor);
+    natLayout->addLayout(topNat);
+
+    auto* cardsLayout = new QHBoxLayout();
+    cardsLayout->setSpacing(4);
+
+    auto createBadge = [](const QString& countStr, const QString& label, const QString& color) {
+        auto* box = new QWidget();
+        box->setStyleSheet(QString("background-color: rgba(255, 255, 255, 0.04); border: 1px solid %1; border-radius: 4px;").arg(color));
+        auto* l = new QVBoxLayout(box);
+        l->setContentsMargins(2, 3, 2, 3);
+        l->setSpacing(0);
+        auto* lblVal = new QLabel(countStr, box);
+        lblVal->setAlignment(Qt::AlignCenter);
+        lblVal->setStyleSheet(QString("font-size: 13px; font-weight: bold; color: %1;").arg(color));
+        auto* lblTxt = new QLabel(label, box);
+        lblTxt->setAlignment(Qt::AlignCenter);
+        lblTxt->setStyleSheet("font-size: 8px; color: #A1A1AA;");
+        l->addWidget(lblVal);
+        l->addWidget(lblTxt);
+        return std::make_pair(box, lblVal);
+    };
+
+    auto pairSurveillance = createBadge("0", "Radar",     "#06B6D4");
+    auto pairImminent     = createBadge("0", "Imminent",  "#EF4444");
+    auto pairWarning      = createBadge("0", "Warning",   "#F97316");
+    auto pairWatch        = createBadge("0", "Watch",     "#EAB308");
+    auto pairNormal       = createBadge("0", "Normal",    "#22C55E");
+
+    m_lblCountSurveillance = pairSurveillance.second;
+    m_lblCountImminent     = pairImminent.second;
+    m_lblCountWarning      = pairWarning.second;
+    m_lblCountWatch        = pairWatch.second;
+    m_lblCountNormal       = pairNormal.second;
+
+    cardsLayout->addWidget(pairSurveillance.first);
+    cardsLayout->addWidget(pairImminent.first);
+    cardsLayout->addWidget(pairWarning.first);
+    cardsLayout->addWidget(pairWatch.first);
+    cardsLayout->addWidget(pairNormal.first);
+    natLayout->addLayout(cardsLayout);
+
+    m_lblWeatherStatus = new QLabel("🛰️ Gridded NWP Cluster Polling · Open-Meteo ECMWF/GFS & Modal Cloud", nationalBox);
+    m_lblWeatherStatus->setStyleSheet("font-size: 9px; color: #38BDF8; font-style: italic;");
+    natLayout->addWidget(m_lblWeatherStatus);
+
+    layout->addWidget(nationalBox);
+
+    // 6. Top AI Attribution Narrative Card
+    auto* shapBox = new QGroupBox("🤖 Top AI Risk Driver & Explainability", content);
+    auto* shapLayout = new QVBoxLayout(shapBox);
+    shapLayout->setContentsMargins(8, 12, 8, 8);
+
+    m_lblBriefShap = new QLabel("Nominal freeboard and balanced catchment inflow. No immediate hazards detected.", shapBox);
+    m_lblBriefShap->setStyleSheet("font-size: 10px; color: #38BDF8; font-style: italic;");
+    m_lblBriefShap->setWordWrap(true);
+    shapLayout->addWidget(m_lblBriefShap);
+
+    layout->addWidget(shapBox);
+    layout->addStretch();
+
+    return wrapInScrollArea(content);
+}
+
+QWidget* MonitorWidget::createRadarPage() {
+    auto* content = new QWidget();
+    content->setStyleSheet("background-color: #18181B; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px;");
+    auto* layout = new QVBoxLayout(content);
+    layout->setContentsMargins(10, 10, 10, 10);
+    layout->setSpacing(8);
+
+    auto* infoCard = new QWidget(content);
+    infoCard->setStyleSheet("background-color: #1E1E22; border: 1px solid #27272A; border-radius: 6px; padding: 6px;");
+    auto* icLayout = new QVBoxLayout(infoCard);
+    icLayout->setContentsMargins(6, 4, 6, 4);
+    icLayout->setSpacing(2);
+    auto* lblDescTitle = new QLabel("🛰️ Real-Time Radar Surveillance & Ranking", infoCard);
+    lblDescTitle->setStyleSheet("font-size: 12px; font-weight: bold; color: #FAFAFA;");
+    auto* lblDescSub = new QLabel("Continuously scans rainfall clusters across all 6,600+ reservoirs in India. Click any row to inspect.", infoCard);
+    lblDescSub->setStyleSheet("font-size: 10px; color: #A1A1AA;");
+    icLayout->addWidget(lblDescTitle);
+    icLayout->addWidget(lblDescSub);
+    layout->addWidget(infoCard);
+
+    // Search filter
+    m_txtSearchFilter = new QLineEdit(content);
+    m_txtSearchFilter->setPlaceholderText("🔍 Search 6,600+ dams by name, state, PIC, or alert...");
+    m_txtSearchFilter->setStyleSheet(R"(
+        QLineEdit {
+            background-color: #27272A;
+            color: #FAFAFA;
+            border: 1px solid #3F3F46;
+            border-radius: 4px;
+            padding: 5px 8px;
+            font-size: 11px;
+        }
+        QLineEdit:focus { border: 1px solid #38BDF8; }
+    )");
+    connect(m_txtSearchFilter, &QLineEdit::textChanged, this, &MonitorWidget::onSearchFilterChanged);
+    layout->addWidget(m_txtSearchFilter);
+
+    // Monitored Dams Table
+    m_tblDams = new QTableWidget(0, 6, content);
+    m_tblDams->setHorizontalHeaderLabels({ "Alert", "Dam Name", "State", "Rain Trigger Criteria", "P(Breach)", "Level" });
+    m_tblDams->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    m_tblDams->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    m_tblDams->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
+    m_tblDams->verticalHeader()->setVisible(false);
+    m_tblDams->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_tblDams->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_tblDams->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_tblDams->setMinimumHeight(420);
+    m_tblDams->setStyleSheet(R"(
+        QTableWidget {
+            background-color: #141416;
+            color: #FAFAFA;
+            gridline-color: #27272A;
+            border: 1px solid #27272A;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        QTableWidget::item:selected {
+            background-color: #0284C7;
+            color: #FFFFFF;
+        }
+        QHeaderView::section {
+            background-color: #1E1E22;
+            color: #A1A1AA;
+            font-weight: bold;
+            border: 1px solid #27272A;
+            padding: 4px;
+        }
+    )");
+    connect(m_tblDams, &QTableWidget::cellClicked, this, &MonitorWidget::onDamTableCellClicked);
+    layout->addWidget(m_tblDams);
+
+    // Diagnostic trigger criteria box
+    auto* diagBox = new QGroupBox("⚡ Surveillance Trigger Criteria", content);
+    diagBox->setStyleSheet("QGroupBox { font-size: 11px; font-weight: bold; color: #A1A1AA; border: 1px solid #27272A; border-radius: 6px; margin-top: 6px; padding-top: 14px; background-color: #141416; }");
+    auto* diagLayout = new QVBoxLayout(diagBox);
+    diagLayout->setContentsMargins(8, 12, 8, 8);
+    diagLayout->setSpacing(3);
+
+    auto makeDiagLine = [](const QString& icon, const QString& rule, const QString& desc) {
+        auto* l = new QLabel(QString("<b>%1 %2</b> — <span style='color: #A1A1AA;'>%3</span>").arg(icon, rule, desc));
+        l->setStyleSheet("font-size: 10px; color: #E4E4E7;");
+        l->setWordWrap(true);
+        return l;
+    };
+    diagLayout->addWidget(makeDiagLine("⚡", "Cloudburst Alarm:", "Rainfall ≥ 20 mm/hr detected in catchment"));
+    diagLayout->addWidget(makeDiagLine("🌧️", "Heavy Sustained Rain:", "Rainfall ≥ 10 mm/hr persisting for ≥ 2 hours"));
+    diagLayout->addWidget(makeDiagLine("🌊", "Ground Saturation:", "24-hour cumulative precipitation ≥ 80 mm"));
+    diagLayout->addWidget(makeDiagLine("🛡️", "Infiltration Absorption:", "Rain < 5 mm/hr absorbed by soil; zero breach risk"));
+
+    layout->addWidget(diagBox);
+    layout->addStretch();
+
+    return wrapInScrollArea(content);
+}
+
+QWidget* MonitorWidget::createControlsPage() {
+    auto* content = new QWidget();
+    content->setStyleSheet("background-color: #18181B; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px;");
+    auto* layout = new QVBoxLayout(content);
+    layout->setContentsMargins(10, 10, 10, 10);
+    layout->setSpacing(8);
+
+    auto* formBox = new QGroupBox("🎛️ Hydro-Meteorological & Structural Controls", content);
+    formBox->setStyleSheet("QGroupBox { font-size: 11px; font-weight: bold; color: #A1A1AA; border: 1px solid #27272A; border-radius: 6px; margin-top: 6px; padding-top: 14px; background-color: #141416; }");
     auto* formLayout = new QFormLayout(formBox);
     formLayout->setLabelAlignment(Qt::AlignLeft);
+    formLayout->setContentsMargins(8, 12, 8, 8);
+    formLayout->setSpacing(8);
 
     m_spnRain1h = new QDoubleSpinBox(formBox);
     m_spnRain1h->setRange(0.0, 250.0);
@@ -303,7 +701,7 @@ void MonitorWidget::buildControlPanel(QWidget* parent) {
     m_cboStructType->addItems({ "Earthfill", "Rockfill", "Gravity Concrete", "Masonry", "Landslide Debris" });
 
     auto styleInput = [](QWidget* w) {
-        w->setStyleSheet("background-color: #1E1E22; color: #E4E4E7; border: 1px solid #3F3F46; border-radius: 4px; padding: 2px 4px; font-size: 11px;");
+        w->setStyleSheet("background-color: #27272A; color: #E4E4E7; border: 1px solid #3F3F46; border-radius: 4px; padding: 4px 6px; font-size: 11px;");
     };
     styleInput(m_spnRain1h);
     styleInput(m_spnRain24h);
@@ -312,119 +710,179 @@ void MonitorWidget::buildControlPanel(QWidget* parent) {
     styleInput(m_spnCrestDisp);
     styleInput(m_cboStructType);
 
-    formLayout->addRow("Rainfall (1h):", m_spnRain1h);
-    formLayout->addRow("Rainfall (24h):", m_spnRain24h);
-    formLayout->addRow("Freeboard:", m_spnFreeboard);
-    formLayout->addRow("Storage MCM:", m_spnStorage);
-    formLayout->addRow("Crest Disp.:", m_spnCrestDisp);
-    formLayout->addRow("Structure Type:", m_cboStructType);
+    formLayout->addRow("Precipitation (1h):", m_spnRain1h);
+    formLayout->addRow("Precipitation (24h):", m_spnRain24h);
+    formLayout->addRow("Remaining Freeboard:", m_spnFreeboard);
+    formLayout->addRow("Gross Storage MCM:", m_spnStorage);
+    formLayout->addRow("Crest Displacement:", m_spnCrestDisp);
+    formLayout->addRow("Dam Structural Type:", m_cboStructType);
 
     layout->addWidget(formBox);
 
-    // 5. Single Unified Action Button: Compute Full Surveillance & ML Prediction
-    m_btnPredict = new QPushButton("⚡ Run Full Surveillance & ML Prediction", parent);
-    m_btnPredict->setToolTip("Queries live Open-Meteo weather across India, batch-updates all 6,600+ dams on Modal GPU, and computes real-time breach risk for the selected dam.");
-    m_btnPredict->setStyleSheet(R"(
+    auto* btnLocalRecompute = new QPushButton("⚡ Recompute Scenario Risk", content);
+    btnLocalRecompute->setStyleSheet(R"(
         QPushButton {
-            background-color: #0284C7;
+            background-color: #27272A;
             color: #FFFFFF;
             font-weight: bold;
             font-size: 11px;
-            border-radius: 6px;
+            border: 1px solid #3F3F46;
+            border-radius: 5px;
             padding: 8px 12px;
         }
-        QPushButton:hover { background-color: #0369A1; }
-        QPushButton:pressed { background-color: #075985; }
-        QPushButton:disabled { background-color: #3F3F46; color: #A1A1AA; }
+        QPushButton:hover { background-color: #3F3F46; }
     )");
+    connect(btnLocalRecompute, &QPushButton::clicked, this, &MonitorWidget::computeLocalPrediction);
+    layout->addWidget(btnLocalRecompute);
 
-    connect(m_btnPredict, &QPushButton::clicked, this, &MonitorWidget::onRunMlPrediction);
-    layout->addWidget(m_btnPredict);
+    // Engineering Guidelines Reference Box
+    auto* refBox = new QGroupBox("📐 CWC & IS 11223 Engineering Guidelines", content);
+    refBox->setStyleSheet("QGroupBox { font-size: 11px; font-weight: bold; color: #A1A1AA; border: 1px solid #27272A; border-radius: 6px; margin-top: 6px; padding-top: 14px; background-color: #141416; }");
+    auto* refLayout = new QVBoxLayout(refBox);
+    refLayout->setContentsMargins(8, 12, 8, 8);
+    refLayout->setSpacing(4);
 
-    // 6. Monitored Dams Risk Ranking Table
-    auto* tableBox = new QGroupBox("📋 Active Surveillance & High-Risk Dam Ranking", parent);
-    tableBox->setStyleSheet("QGroupBox { font-size: 11px; font-weight: bold; color: #A1A1AA; border: 1px solid #27272A; border-radius: 6px; margin-top: 4px; padding-top: 12px; }");
-    auto* tableLayout = new QVBoxLayout(tableBox);
-    tableLayout->setContentsMargins(4, 6, 4, 4);
-    tableLayout->setSpacing(4);
+    auto makeRef = [](const QString& title, const QString& body) {
+        auto* l = new QLabel(QString("<b>%1</b>: <span style='color: #A1A1AA;'>%2</span>").arg(title, body));
+        l->setStyleSheet("font-size: 10px; color: #E4E4E7;");
+        l->setWordWrap(true);
+        return l;
+    };
+    refLayout->addWidget(makeRef("Freeboard Standards", "Minimum 2.5m for major earthfill dams; ≥ 1.5m for masonry/gravity dams under CWC design flood criteria."));
+    refLayout->addWidget(makeRef("Crest Deformation", "Annual crest shifts < 5 mm/yr represent elastic thermal response. Shifts > 20 mm/yr trigger geotechnical slope failure warnings."));
+    refLayout->addWidget(makeRef("Emergency Spillways", "Engineered dams possess non-gated waste weirs providing automatic flow release floors even if main gates fail."));
 
-    m_txtSearchFilter = new QLineEdit(tableBox);
-    m_txtSearchFilter->setPlaceholderText("🔍 Search 6,600+ dams by name, state, or PIC...");
-    m_txtSearchFilter->setStyleSheet(R"(
-        QLineEdit {
-            background-color: #27272A;
-            color: #FAFAFA;
-            border: 1px solid #3F3F46;
-            border-radius: 4px;
-            padding: 3px 8px;
-            font-size: 11px;
-        }
-        QLineEdit:focus { border: 1px solid #0284C7; }
-    )");
-    connect(m_txtSearchFilter, &QLineEdit::textChanged, this, &MonitorWidget::onSearchFilterChanged);
-    tableLayout->addWidget(m_txtSearchFilter);
-
-    m_tblDams = new QTableWidget(0, 6, tableBox);
-    m_tblDams->setHorizontalHeaderLabels({ "Alert", "Dam Name", "State", "Rain Trigger Criteria", "P(Breach)", "Level" });
-    m_tblDams->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    m_tblDams->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    m_tblDams->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
-    m_tblDams->verticalHeader()->setVisible(false);
-    m_tblDams->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_tblDams->setSelectionMode(QAbstractItemView::SingleSelection);
-    m_tblDams->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_tblDams->setFixedHeight(170);
-    m_tblDams->setStyleSheet(R"(
-        QTableWidget {
-            background-color: #18181B;
-            color: #FAFAFA;
-            gridline-color: #27272A;
-            border: 1px solid #27272A;
-            border-radius: 4px;
-            font-size: 11px;
-        }
-        QTableWidget::item:selected {
-            background-color: #0284C7;
-            color: #FFFFFF;
-        }
-        QHeaderView::section {
-            background-color: #1E1E22;
-            color: #A1A1AA;
-            font-weight: bold;
-            border: 1px solid #27272A;
-            padding: 3px;
-        }
-    )");
-
-    connect(m_tblDams, &QTableWidget::cellClicked, this, &MonitorWidget::onDamTableCellClicked);
-    tableLayout->addWidget(m_tblDams);
-
-    layout->addWidget(tableBox);
-
-    // 7. Physics Indices & SHAP Attribution Box
-    auto* physBox = new QGroupBox("Physics & SHAP Attributions", parent);
-    physBox->setStyleSheet("QGroupBox { font-size: 11px; font-weight: bold; color: #A1A1AA; border: 1px solid #27272A; border-radius: 6px; margin-top: 4px; padding-top: 10px; }");
-    auto* physLayout = new QVBoxLayout(physBox);
-
-    m_lblOriStatus = new QLabel("ORI (Overtopping Risk Index): Safe", physBox);
-    m_lblDbiStatus = new QLabel("DBI (Dam Breach Index): 3.50 (Stable)", physBox);
-    m_lblInflowSurge = new QLabel("Inflow Surge Q_in: 320 m³/s", physBox);
-    m_lblShapSummary = new QLabel("Drivers: Nominal freeboard & balanced inflow.", physBox);
-
-    QString physStyle = "font-size: 10px; color: #D4D4D8;";
-    m_lblOriStatus->setStyleSheet(physStyle);
-    m_lblDbiStatus->setStyleSheet(physStyle);
-    m_lblInflowSurge->setStyleSheet(physStyle);
-    m_lblShapSummary->setStyleSheet("font-size: 10px; color: #38BDF8; font-style: italic;");
-    m_lblShapSummary->setWordWrap(true);
-
-    physLayout->addWidget(m_lblOriStatus);
-    physLayout->addWidget(m_lblDbiStatus);
-    physLayout->addWidget(m_lblInflowSurge);
-    physLayout->addWidget(m_lblShapSummary);
-
-    layout->addWidget(physBox);
+    layout->addWidget(refBox);
     layout->addStretch();
+
+    return wrapInScrollArea(content);
+}
+
+QWidget* MonitorWidget::createPhysicsPage() {
+    auto* content = new QWidget();
+    content->setStyleSheet("background-color: #18181B; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px;");
+    auto* layout = new QVBoxLayout(content);
+    layout->setContentsMargins(10, 10, 10, 10);
+    layout->setSpacing(8);
+
+    // 1. Overtopping Risk Index (ORI) Card
+    auto* oriBox = new QGroupBox("⚠️ Overtopping Risk Index (ORI)", content);
+    oriBox->setStyleSheet("QGroupBox { font-size: 11px; font-weight: bold; color: #A1A1AA; border: 1px solid #27272A; border-radius: 6px; margin-top: 6px; padding-top: 14px; background-color: #141416; }");
+    auto* oriLayout = new QVBoxLayout(oriBox);
+    oriLayout->setContentsMargins(8, 12, 8, 8);
+    m_lblOriStatus = new QLabel("ORI (Overtopping Risk Index): Safe", oriBox);
+    m_lblOriStatus->setStyleSheet("font-size: 13px; font-weight: bold; color: #22C55E;");
+    auto* lblOriFormula = new QLabel("Formula: ORI = max(0, (Q_in - Q_spillway) / V_freeboard)", oriBox);
+    lblOriFormula->setStyleSheet("font-size: 10px; font-family: monospace; color: #38BDF8;");
+    auto* lblOriDesc = new QLabel("Measures how quickly the net hydraulic inflow surcharges beyond spillway discharge capacity into the remaining freeboard chamber.", oriBox);
+    lblOriDesc->setStyleSheet("font-size: 10px; color: #A1A1AA;");
+    lblOriDesc->setWordWrap(true);
+    oriLayout->addWidget(m_lblOriStatus);
+    oriLayout->addWidget(lblOriFormula);
+    oriLayout->addWidget(lblOriDesc);
+    layout->addWidget(oriBox);
+
+    // 2. Dam Breach Index (DBI) Card
+    auto* dbiBox = new QGroupBox("🛡️ Dam Breach Index (Stefanelli & Cenderelli DBI)", content);
+    dbiBox->setStyleSheet("QGroupBox { font-size: 11px; font-weight: bold; color: #A1A1AA; border: 1px solid #27272A; border-radius: 6px; margin-top: 6px; padding-top: 14px; background-color: #141416; }");
+    auto* dbiLayout = new QVBoxLayout(dbiBox);
+    dbiLayout->setContentsMargins(8, 12, 8, 8);
+    m_lblDbiStatus = new QLabel("DBI (Dam Breach Index): 3.50 (Stable)", dbiBox);
+    m_lblDbiStatus->setStyleSheet("font-size: 13px; font-weight: bold; color: #22C55E;");
+    auto* lblDbiFormula = new QLabel("Formula: DBI = log10( (V_d * H_d) / W_d )", dbiBox);
+    lblDbiFormula->setStyleSheet("font-size: 10px; font-family: monospace; color: #38BDF8;");
+    auto* lblDbiDesc = new QLabel("Geotechnical threshold: DBI ≥ 2.75 indicates stable embankment. Values ≤ 2.75 indicate imminent landslide dam or structural rupture.", dbiBox);
+    lblDbiDesc->setStyleSheet("font-size: 10px; color: #A1A1AA;");
+    lblDbiDesc->setWordWrap(true);
+    dbiLayout->addWidget(m_lblDbiStatus);
+    dbiLayout->addWidget(lblDbiFormula);
+    dbiLayout->addWidget(lblDbiDesc);
+    layout->addWidget(dbiBox);
+
+    // 3. Catchment Peak Runoff
+    auto* runoffBox = new QGroupBox("🌊 Rational Method Catchment Inflow", content);
+    runoffBox->setStyleSheet("QGroupBox { font-size: 11px; font-weight: bold; color: #A1A1AA; border: 1px solid #27272A; border-radius: 6px; margin-top: 6px; padding-top: 14px; background-color: #141416; }");
+    auto* roLayout = new QVBoxLayout(runoffBox);
+    roLayout->setContentsMargins(8, 12, 8, 8);
+    m_lblInflowSurge = new QLabel("Inflow Surge Q_in: 320 m³/s", runoffBox);
+    m_lblInflowSurge->setStyleSheet("font-size: 13px; font-weight: bold; color: #FAFAFA;");
+    auto* lblRoFormula = new QLabel("Formula: Q_in = 0.278 * C * I * A", runoffBox);
+    lblRoFormula->setStyleSheet("font-size: 10px; font-family: monospace; color: #38BDF8;");
+    auto* lblRoDesc = new QLabel("Calibrated with IS 11223 emergency weir discharge floors. Light rain (< 5 mm/hr) is absorbed by unsaturated catchment soil.", runoffBox);
+    lblRoDesc->setStyleSheet("font-size: 10px; color: #A1A1AA;");
+    lblRoDesc->setWordWrap(true);
+    roLayout->addWidget(m_lblInflowSurge);
+    roLayout->addWidget(lblRoFormula);
+    roLayout->addWidget(lblRoDesc);
+    layout->addWidget(runoffBox);
+
+    // 4. SHAP Attributions Box
+    auto* shapBox = new QGroupBox("🤖 SHAP Decision Attributions", content);
+    shapBox->setStyleSheet("QGroupBox { font-size: 11px; font-weight: bold; color: #A1A1AA; border: 1px solid #27272A; border-radius: 6px; margin-top: 6px; padding-top: 14px; background-color: #141416; }");
+    auto* shLayout = new QVBoxLayout(shapBox);
+    shLayout->setContentsMargins(8, 12, 8, 8);
+    m_lblShapSummary = new QLabel("Drivers: Nominal freeboard & balanced inflow.", shapBox);
+    m_lblShapSummary->setStyleSheet("font-size: 11px; color: #38BDF8; font-style: italic;");
+    m_lblShapSummary->setWordWrap(true);
+    shLayout->addWidget(m_lblShapSummary);
+    layout->addWidget(shapBox);
+
+    layout->addStretch();
+    return wrapInScrollArea(content);
+}
+
+QWidget* MonitorWidget::createProfilePage() {
+    auto* content = new QWidget();
+    content->setStyleSheet("background-color: #18181B; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px;");
+    auto* layout = new QVBoxLayout(content);
+    layout->setContentsMargins(10, 10, 10, 10);
+    layout->setSpacing(8);
+
+    auto* profileBox = new QGroupBox("🏛️ National Dam Registry (CWC / NRLD Profile)", content);
+    profileBox->setStyleSheet("QGroupBox { font-size: 11px; font-weight: bold; color: #A1A1AA; border: 1px solid #27272A; border-radius: 6px; margin-top: 6px; padding-top: 14px; background-color: #141416; }");
+    auto* pLayout = new QFormLayout(profileBox);
+    pLayout->setContentsMargins(8, 12, 8, 8);
+    pLayout->setSpacing(6);
+
+    auto makeVal = [](QLabel*& lblRef, const QString& defVal) {
+        lblRef = new QLabel(defVal);
+        lblRef->setStyleSheet("font-size: 11px; font-weight: bold; color: #FAFAFA;");
+        return lblRef;
+    };
+
+    pLayout->addRow("Dam Name:", makeVal(m_lblProfileName, "Pench Dam (Kamthikhairy)"));
+    pLayout->addRow("National PIC:", makeVal(m_lblProfilePic, "MH09HH0596"));
+    pLayout->addRow("State / District:", makeVal(m_lblProfileState, "Maharashtra / Nagpur"));
+    pLayout->addRow("River Basin:", makeVal(m_lblProfileRiver, "Pench River (Godavari Basin)"));
+    pLayout->addRow("Geo Coordinates:", makeVal(m_lblProfileCoords, "21.4645° N, 79.1865° E"));
+    pLayout->addRow("Structural Height:", makeVal(m_lblProfileHeight, "32.0 m"));
+    pLayout->addRow("Gross Storage:", makeVal(m_lblProfileStorage, "180.0 MCM"));
+    pLayout->addRow("Dam Structure:", makeVal(m_lblProfileType, "Earthfill Embankment"));
+    pLayout->addRow("Commission Year:", makeVal(m_lblProfileYear, "1983"));
+    pLayout->addRow("Designated Purpose:", makeVal(m_lblProfilePurpose, "Irrigation & Industrial Water Supply"));
+
+    layout->addWidget(profileBox);
+
+    auto* jurisBox = new QGroupBox("🛡️ Jurisdiction & Surveillance Protocol", content);
+    jurisBox->setStyleSheet("QGroupBox { font-size: 11px; font-weight: bold; color: #A1A1AA; border: 1px solid #27272A; border-radius: 6px; margin-top: 6px; padding-top: 14px; background-color: #141416; }");
+    auto* jLayout = new QVBoxLayout(jurisBox);
+    jLayout->setContentsMargins(8, 12, 8, 8);
+    jLayout->setSpacing(3);
+
+    auto makeJLine = [](const QString& label, const QString& val) {
+        auto* l = new QLabel(QString("<b>%1</b>: <span style='color: #A1A1AA;'>%2</span>").arg(label, val));
+        l->setStyleSheet("font-size: 10px; color: #E4E4E7;");
+        l->setWordWrap(true);
+        return l;
+    };
+    jLayout->addWidget(makeJLine("Supervisory Authority", "Central Water Commission (CWC) Dam Safety Organization"));
+    jLayout->addWidget(makeJLine("Surveillance Protocol", "Automated 24/7 Satellite Weather Grids + Modal GPU ML Early Warning"));
+    jLayout->addWidget(makeJLine("Disaster Classification", "Category-1 High Hazard Potential Structure under Dam Safety Act 2021"));
+
+    layout->addWidget(jurisBox);
+    layout->addStretch();
+
+    return wrapInScrollArea(content);
 }
 
 DamRiskAssessment MonitorWidget::evaluateDamRisk(const MapCore::DamPoint& dam, double r1h, double r24h, double fb, double storage, double crestDisp, const QString& structType) {
@@ -738,17 +1196,31 @@ void MonitorWidget::onDamTableCellClicked(int row, int column) {
 
 void MonitorWidget::selectDamAssessment(const DamRiskAssessment& risk) {
     m_currentDam = risk.dam;
-    m_lblDamTitle->setText(risk.dam.name);
+    if (m_lblDamTitle) m_lblDamTitle->setText(risk.dam.name);
 
-    m_spnRain1h->setValue(risk.rain1h);
-    m_spnRain24h->setValue(risk.rain24h);
-    m_spnFreeboard->setValue(risk.freeboard);
-    m_spnStorage->setValue(risk.storageMcm);
-    m_spnCrestDisp->setValue(risk.crestDisp);
-    m_cboStructType->setCurrentText(risk.structType);
+    if (m_spnRain1h) m_spnRain1h->setValue(risk.rain1h);
+    if (m_spnRain24h) m_spnRain24h->setValue(risk.rain24h);
+    if (m_spnFreeboard) m_spnFreeboard->setValue(risk.freeboard);
+    if (m_spnStorage) m_spnStorage->setValue(risk.storageMcm);
+    if (m_spnCrestDisp) m_spnCrestDisp->setValue(risk.crestDisp);
+    if (m_cboStructType) m_cboStructType->setCurrentText(risk.structType);
 
-    m_onlineMap->setCenter(risk.dam.lat, risk.dam.lon);
-    m_onlineMap->setZoom(11);
+    if (m_onlineMap) {
+        m_onlineMap->setCenter(risk.dam.lat, risk.dam.lon);
+        m_onlineMap->setZoom(11);
+    }
+
+    // Update Dam Profile labels
+    if (m_lblProfileName) m_lblProfileName->setText(risk.dam.name);
+    if (m_lblProfilePic) m_lblProfilePic->setText(risk.dam.pic.isEmpty() ? "MH293MH3214" : risk.dam.pic);
+    if (m_lblProfileState) m_lblProfileState->setText(QString("%1%2").arg(risk.dam.state.isEmpty() ? "India" : risk.dam.state).arg(risk.dam.district.isEmpty() ? "" : " / " + risk.dam.district));
+    if (m_lblProfileRiver) m_lblProfileRiver->setText(QString("%1%2").arg(risk.dam.river.isEmpty() ? "Local River" : risk.dam.river).arg(risk.dam.basin.isEmpty() ? "" : " (" + risk.dam.basin + ")"));
+    if (m_lblProfileCoords) m_lblProfileCoords->setText(QString("%1° N, %2° E").arg(risk.dam.lat, 0, 'f', 4).arg(risk.dam.lon, 0, 'f', 4));
+    if (m_lblProfileHeight) m_lblProfileHeight->setText(QString("%1 m").arg(risk.dam.height > 0.0f ? QString::number(risk.dam.height, 'f', 1) : "32.0"));
+    if (m_lblProfileStorage) m_lblProfileStorage->setText(QString("%1 MCM").arg(risk.dam.storage > 0.0f ? QString::number(risk.dam.storage, 'f', 1) : QString::number(risk.storageMcm, 'f', 1)));
+    if (m_lblProfileType) m_lblProfileType->setText(risk.structType.isEmpty() ? "Earthfill Embankment" : risk.structType);
+    if (m_lblProfileYear) m_lblProfileYear->setText(risk.dam.year > 0 ? QString::number(risk.dam.year) : "1984");
+    if (m_lblProfilePurpose) m_lblProfilePurpose->setText(risk.dam.purpose.isEmpty() ? "Irrigation & Flood Control" : risk.dam.purpose);
 
     updateHudUI(risk.failureProbability, risk.alertLevel, risk.alertColor, risk.summary, risk.ori, risk.dbi, risk.qIn);
 
@@ -1013,33 +1485,64 @@ void MonitorWidget::updateHudUI(double probability, const QString& level, const 
                                 const QString& summary, double ori, double dbi, double qIn)
 {
     int probPct = std::clamp(int(probability * 100.0), 0, 100);
-    m_lblRiskProbPercent->setText(QString("%1%").arg(probPct));
-    m_lblRiskProbPercent->setStyleSheet(QString("font-size: 24px; font-weight: bold; color: %1;").arg(color));
+    if (m_lblRiskProbPercent) {
+        m_lblRiskProbPercent->setText(QString("%1%").arg(probPct));
+        m_lblRiskProbPercent->setStyleSheet(QString("font-size: 26px; font-weight: bold; color: %1;").arg(color));
+    }
 
-    m_progressRisk->setValue(probPct);
-    m_progressRisk->setStyleSheet(QString(R"(
-        QProgressBar { background-color: #27272A; border-radius: 3px; }
-        QProgressBar::chunk { background-color: %1; border-radius: 3px; }
-    )").arg(color));
+    if (m_progressRisk) {
+        m_progressRisk->setValue(probPct);
+        m_progressRisk->setStyleSheet(QString(R"(
+            QProgressBar { background-color: #27272A; border-radius: 3px; }
+            QProgressBar::chunk { background-color: %1; border-radius: 3px; }
+        )").arg(color));
+    }
 
-    m_lblAlertBadge->setText(QString(" %1 ").arg(level));
-    m_lblAlertBadge->setStyleSheet(QString(R"(
-        QLabel {
-            background-color: rgba(255, 255, 255, 0.12);
-            color: %1;
-            border: 1px solid %1;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: bold;
-            padding: 2px 6px;
-        }
-    )").arg(color));
+    if (m_lblAlertBadge) {
+        m_lblAlertBadge->setText(QString(" %1 ").arg(level));
+        m_lblAlertBadge->setStyleSheet(QString(R"(
+            QLabel {
+                background-color: rgba(255, 255, 255, 0.12);
+                color: %1;
+                border: 1px solid %1;
+                border-radius: 6px;
+                font-size: 11px;
+                font-weight: bold;
+                padding: 2px 6px;
+            }
+        )").arg(color));
+    }
 
-    m_lblActionGuide->setText(summary);
-    m_lblInflowSurge->setText(QString("Inflow Surge Q_in: %1 m³/s").arg(int(qIn)));
-    m_lblOriStatus->setText(QString("ORI (Overtopping Risk Index): %1").arg(ori > 0.001 ? "CRITICAL" : (ori > 0 ? "ELEVATED" : "SAFE")));
-    m_lblDbiStatus->setText(QString("DBI (Dam Breach Index): %1 (%2)").arg(dbi, 0, 'f', 2).arg(dbi < 2.75 ? "UNSTABLE" : "STABLE"));
-    m_lblShapSummary->setText(QString("Top Driver: %1").arg(summary));
+    if (m_lblActionGuide) m_lblActionGuide->setText(summary.isEmpty() ? "Dam operating within nominal parameters. Inundation safe." : summary);
+    if (m_lblInflowSurge) m_lblInflowSurge->setText(QString("Inflow Surge Q_in: %1 m³/s").arg(int(qIn)));
+    if (m_lblOriStatus) m_lblOriStatus->setText(QString("ORI (Overtopping Risk Index): %1").arg(ori > 0.001 ? "CRITICAL" : (ori > 0 ? "ELEVATED" : "SAFE")));
+    if (m_lblDbiStatus) m_lblDbiStatus->setText(QString("DBI (Dam Breach Index): %1 (%2)").arg(dbi, 0, 'f', 2).arg(dbi < 2.75 ? "UNSTABLE" : "STABLE"));
+    if (m_lblShapSummary) m_lblShapSummary->setText(QString("Top Driver: %1").arg(summary.isEmpty() ? "Nominal freeboard & balanced inflow." : summary));
+
+    // Update Brief Tab KPIs
+    if (m_lblBriefRain && m_spnRain1h && m_spnRain24h) {
+        m_lblBriefRain->setText(QString("%1 mm/h (1h) · %2 mm (24h)").arg(m_spnRain1h->value(), 0, 'f', 1).arg(m_spnRain24h->value(), 0, 'f', 1));
+    }
+    if (m_lblBriefInflow) {
+        m_lblBriefInflow->setText(QString("%1 m³/s").arg(int(qIn)));
+    }
+    if (m_lblBriefFreeboard && m_spnFreeboard && m_spnStorage) {
+        m_lblBriefFreeboard->setText(QString("%1 m freeboard · %2 MCM").arg(m_spnFreeboard->value(), 0, 'f', 2).arg(int(m_spnStorage->value())));
+    }
+    if (m_lblBriefDisp && m_cboStructType && m_spnCrestDisp) {
+        m_lblBriefDisp->setText(QString("%1 · %2 mm/yr").arg(m_cboStructType->currentText()).arg(m_spnCrestDisp->value(), 0, 'f', 1));
+    }
+    if (m_lblBriefOri) {
+        m_lblBriefOri->setText(QString("%1 (%2)").arg(ori > 0.001 ? "CRITICAL" : (ori > 0 ? "ELEVATED" : "SAFE")).arg(ori, 0, 'f', 4));
+        m_lblBriefOri->setStyleSheet(QString("font-size: 11px; font-weight: bold; color: %1;").arg(ori > 0.001 ? "#EF4444" : (ori > 0 ? "#EAB308" : "#22C55E")));
+    }
+    if (m_lblBriefDbi) {
+        m_lblBriefDbi->setText(QString("%1 (%2)").arg(dbi, 0, 'f', 2).arg(dbi < 2.75 ? "UNSTABLE" : "STABLE"));
+        m_lblBriefDbi->setStyleSheet(QString("font-size: 11px; font-weight: bold; color: %1;").arg(dbi < 2.75 ? "#EF4444" : "#22C55E"));
+    }
+    if (m_lblBriefShap) {
+        m_lblBriefShap->setText(summary.isEmpty() ? "Nominal freeboard and balanced catchment inflow. No immediate hazards detected." : summary);
+    }
 }
 
 void MonitorWidget::onTimelineFrameChanged(int frame) {
