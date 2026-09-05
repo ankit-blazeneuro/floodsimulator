@@ -1,0 +1,35 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="logo.svg">icons/logo.svg</file>
+        <file alias="play.svg">icons/play.svg</file>
+        <file alias="pause.svg">icons/pause.svg</file>
+        <file alias="rewind-forward.svg">icons/rewind-forward.svg</file>
+        <file alias="zoom-in.svg">icons/zoom-in.svg</file>
+        <file alias="zoom-out.svg">icons/zoom-out.svg</file>
+        <file alias="search.svg">icons/search.svg</file>
+        <file alias="ruler.svg">icons/ruler.svg</file>
+        <file alias="map.svg">icons/map.svg</file>
+        <file alias="radar.svg">icons/radar.svg</file>
+        <file alias="graph.svg">icons/graph.svg</file>
+        <file alias="rain.svg">icons/rain.svg</file>
+        <file alias="cloud.svg">icons/cloud.svg</file>
+        <file alias="cloud-snowfall.svg">icons/cloud-snowfall.svg</file>
+        <file alias="fog.svg">icons/fog.svg</file>
+        <file alias="sun-fog.svg">icons/sun-fog.svg</file>
+        <file alias="sun.svg">icons/sun.svg</file>
+        <file alias="moon.svg">icons/moon.svg</file>
+        <file alias="system.svg">icons/system.svg</file>
+        <file alias="temperature.svg">icons/temperature.svg</file>
+        <file alias="check.svg">icons/check.svg</file>
+        <file alias="chevron-down.svg">icons/chevron-down.svg</file>
+        <file alias="chevron-left.svg">icons/chevron-left.svg</file>
+        <file alias="chevron-right.svg">icons/chevron-right.svg</file>
+        <file alias="chevron-up.svg">icons/chevron-up.svg</file>
+        <file alias="compass.svg">icons/compass.svg</file>
+        <file alias="info.svg">icons/info.svg</file>
+        <file alias="danger.svg">icons/danger.svg</file>
+        <file alias="target.svg">icons/target.svg</file>
+        <file alias="loader-circle.svg">icons/loader-circle.svg</file>
+        <file alias="waves.svg">icons/waves.svg</file>
+    </qresource>
+</RCC>

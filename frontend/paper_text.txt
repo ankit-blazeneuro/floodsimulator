@@ -1,0 +1,2893 @@
+International Journal of
+
+Geo-Information
+Article
+
+Dynamic 3D Simulation of Flood Risk Based
+on the Integration of Spatio-Temporal GIS
+and Hydrodynamic Models
+Yongxing Wu 1,† , Fei Peng 1,† , Yang Peng 2 , Xiaoyang Kong 1 , Heming Liang 1 and Qi Li 1, *
+1
+2
+
+*
+†
+
+Institute of Remote Sensing and GIS, Peking University, Beijing 100871, China; yongxing@pku.edu.cn (Y.W.);
+rsfeipeng@gmail.com (F.P.); 1701110577@pku.edu.cn (X.K.); liangheming@pku.edu.cn (H.L.)
+School of Renewable Energy, North China Electric Power University, Beijing 102206, China;
+pengyang@ncepu.edu.cn
+Correspondence: liqi@pku.edu.cn; Tel.: +86-10-6275-5022
+These authors contributed equally to this work.
+
+Received: 26 September 2019; Accepted: 13 November 2019; Published: 18 November 2019
+
+
+
+
+Abstract: Dynamic visual simulation of flood risk is crucial for scientific and intelligent emergency
+management of flood disasters, in which data quality, availability, visualization, and interoperability
+are important. Here, a seamless integration of a spatio-temporal Geographic Information System
+(GIS) with one-dimensional (1D) and two-dimensional (2D) hydrodynamic models is achieved for
+data flow, calculation processes, operation flow, and system functions. Oblique photography-based
+three-dimensional (3D) modeling technology is used to quickly build a 3D model of the study
+area (including the hydraulic engineering facilities). A multisource spatio-temporal data platform
+for dynamically simulating flood risk was built based on the digital earth platform. Using the
+spatio-temporal computation framework, a dynamic visual simulation and decision support system
+for flood risk management was developed for the Xiashan Reservoir. The integration method proposed
+here was verified using flood simulation calculations, dynamic visual simulations, and downstream
+river channel and dam-break flood simulations. The results show that the proposed methods greatly
+improve the efficiency of flood risk simulation and decision support. The methods and system put
+forward in this study can be applied to flood risk simulations and practical management.
+Keywords: spatio-temporal GIS; hydrodynamic model; spatio-temporal computation framework;
+flood risk; 3D simulation
+
+1. Introduction
+Water is important for human survival, but it is also the source of many disasters. According
+to the 2018 disaster report for China, flood disasters are one of the main natural disasters for the
+country [1]. It is crucial for ecologically-based development to understand how to scientifically
+prevent flood disasters and protect and properly use water resources. Hydrodynamic models are
+core quantitative calculations in emergency flood disaster management [2–4] and can accurately
+simulate the instantaneous dynamic evolution and medium- to long-term development of a flood [5].
+Since hydrodynamic models are very complicated, usually only domain experts can understand the
+models. Therefore, three-dimensional (3D) visualization of the computation results is important in
+practice. In recent years, texture mapping technology, animation technology, and simulation technology
+have been used to build 3D virtual environments based on data such as LiDAR point clouds, satellite
+images, contour lines, and topographic maps. By using digital hydrodynamic models to calculate the
+water depth and flow velocity, flood evolution and inundated areas could be simulated and displayed
+in a 3D virtual environment, thus enhancing decision-makers’, the public’s, and other stakeholders’
+ISPRS Int. J. Geo-Inf. 2019, 8, 520; doi:10.3390/ijgi8110520
+
+www.mdpi.com/journal/ijgi
+
+ISPRS Int. J. Geo-Inf. 2019, 8, 520
+
+2 of 21
+
+awareness of floods. It will also promote scientific management of flood disasters [6–9]. Although
+the effect of visualization (such as rainfall and rollback waves) in these studies is reasonably well
+presented [8], most of them use simulation software or animation technology to show the effects of
+floods and inundated areas at different times [9]. The flexibility of 3D presentations and spatial analysis
+functions should be strengthened. For example, queries of water depth at an arbitrary point and
+displays of flowrate and direction are not supported in a 3D virtual environment. On the one hand, 3D
+virtual environments have not been seamlessly integrated with hydrodynamic models, which read
+the computation results of hydrodynamic models (such as text files). On the other hand, terrain
+topology is established by using contours of topographic maps. This method takes longer to process,
+and its precision depends on the scale and production time of the map [7,8]. Along with oblique
+photogrammetry, the seamless integration of spatio-temporal GIS and hydrodynamic models provide
+a way to solve the problem.
+Based on a unified spatio-temporal reference, spatio-temporal datasets comprise geographic
+elements or phenomena related to a location [10]. Spatio-temporal data have a spatial dimension (S),
+an attribute dimension (D), and a time dimension (T) [11]. Space–time data reflect quantitative and
+qualitative characteristics, the spatial structure and the spatial relationships among the geographical
+elements or phenomena, and their changes through time [12,13]. Spatio-temporal data are the basis
+for how humans understand the geographical world. A spatio-temporal Geographic Information
+System (GIS) is able to acquire, store, analyze, and visualize spatio-temporal data. It represents
+the position and spatial form of geographic objects or phenomena, and their changes over time.
+Compared with two-dimensional (2D) GIS and three-dimensional (3D) GIS, spatio-temporal GIS is
+more powerful for visualization and spatial analysis and can more accurately reflect how objects
+change [14–16]. Over time, an increasing amount of meteorological data have become available.
+The costs of high-resolution satellite images and oblique photogrammetric surveys have been reduced,
+and their reliability has improved. The new generation of information technologies (such as the
+Internet of Things (IoT), big data, and cloud computing) have rapidly developed and are increasingly
+applied in the water industry [17]. As a result, the number of data types has increased, and the
+volume of data has grown rapidly. These developments have enabled real-time simulations of flood
+risk and intelligent emergency management. In addition, there is an increased demand for data
+management, visualization, spatial analysis, and business integration. These developments have also
+led to changes from static 3D data to dynamic 3D data and time series data, from static to dynamic and
+continuous visualizations, from spatial analysis to real-time spatio-temporal simulations, and from
+decision support aids to operational running. Spatio-temporal GIS can better satisfy these changes,
+can better manage spatio-temporal data from flood disasters, and can be used to reveal patterns of
+spatio-temporal changes in incidents (i.e., floods) [18–21].
+Hydrodynamic models are very complicated and involve large amounts of data [6–9]. The application
+value of a hydrodynamic model is affected by the following factors: (a) The availability, timeliness,
+and resolution of basic data pertaining to the river channel and its surroundings; (b) the effect of the
+visualization of the computation results; and (c) the extent to which the hydrodynamic models and the
+business system are integrated. The disaster-inducing factors of flood risk include the flood volume,
+the inundated area, the inundated depth, the inundation duration, the flood flow velocity, and the
+flow direction. Changes in the flood flow velocity, the flow, and the water level through time are
+important for decision making in flood disaster emergency management [22]. Spatio-temporal GIS methods
+allow three-dimensional visualizations of the locations and conditions of hydraulic engineering facilities,
+hydrological information, meteorological data, flood factors, and the results of model computations. This type
+of GIS can visually and dynamically show spatio-temporal changes in floods and the spatial distribution of
+affected persons, facilities, and ecological environments [23,24]. It provides dynamic, quantitative, refined,
+and real-time information for decision making by flood evolution simulations, condition evaluation of
+hydraulic engineering facilities, disaster evaluation, and emergency management. Additionally, it can provide
+powerful data and platform support for early disaster warning systems and monitoring and evaluation
+
+ISPRS Int. J. Geo-Inf. 2019, 8, 520
+
+3 of 21
+
+of flood disasters [25–27]. Spatio-temporal GIS uses high-precision and high-resolution spatio-temporal
+data and dynamic visualization effects. It has greatly enhanced flood simulations, flood disaster forecasts,
+and early warning and emergency management of flood disasters. It provides a valid solution to data
+quality and visualization problems in hydrodynamic model computations [24]. The seamless integration of
+spatio-temporal GIS and hydrodynamic models will considerably solve the three problems that affect the
+application value of hydrodynamic models.
+This study presents a technical method for quickly establishing a spatio-temporal GIS framework
+for a reservoir, river, and the surrounding areas using an oblique photogrammetric survey and the
+digital earth platform. This method allows the seamless integration of the spatio-temporal GIS
+framework with the hydrodynamic models. A platform for the dynamic simulation of flood risk was
+established; this platform can integrate data flow, business flow, computation resources, and visual
+decision making. The platform provides basic data, such as riverbed section locations and a regional
+digital elevation model (DEM), which are required for the hydrodynamic model computations.
+The resulting values, including the flow velocity, flow direction, water depth, and inundated range,
+are displayed in an integrated, dynamic, and three-dimensional way. The platform can also show the
+variations in the flood factors in three dimensions, relative to changes in the input parameters such
+as the rainfall and reservoir flood discharge. This platform provides quantitative, scientific, efficient,
+and visual decision support information for flood simulations, early flood disaster warning systems,
+and water resources management. A flood-dispatching dynamic and visual simulation platform for
+the Xiashan Reservoir and the Weihe River was established. The platform provides web-end functions,
+including data management, data query, model computation, flood simulation, and visual decision
+making. The methods described here are of great significance for the emergency management of flood
+disasters and for the intelligent dispatching of water resources in the era of IoT, big data, and cloud
+computing [17].
+2. Materials and Methods
+2.1. Method for Rapidly Building a Spatio-temporal GIS Platform for Flood Risk Simulation
+2.1.1. Data Acquisition Through Oblique Photography
+A multi-lens oblique photography system was used to photograph the ground, based on
+the position of exposure points, to obtain multi-angle ground images with multiple degrees of
+overlap. With its enhanced performance and more convenient operations of graphics processing units
+(GPU), cloud computing, unmanned aerial vehicles, and digital cameras, oblique photography can
+rapidly generate a high-precision and high-resolution three-dimensional model of the physical world.
+This three-dimensional model can be resolved at the centimeter scale, which can truly and objectively
+represent the land surface configuration [28,29] (Table 1).
+Table 1. Key quality requirements for high-definition image data and landform data.
+Parameter
+
+Quality Requirements
+
+Coordinate
+
+WGS-84 longitudinal and latitudinal
+coordinates, Gaussian projection
+
+Elevation
+
+1985 National Elevation Reference
+
+DOM Resolution
+
+No less than 0.2 m
+
+DEM
+
+Scale greater than 1:2000
+
+Abbreviations: DOM, digital orthophoto map; DEM, digital elevation model.
+
+The data from oblique photography were processed using smart3D. Photos captured from different
+angles were used as data sources for smart3D to read the information, such as photo locations and
+control points. Smart3d output 3D models of terrain and buildings with real textures without manual
+
+ISPRS Int. J. Geo-Inf. 2019, 8, 520
+
+4 of 21
+
+intervention, which could accurately show the geometrical morphology and detailed composition
+of ground objects. The processing flow is shown in Figure 1. A triangulation network (TIN) was
+ISPRS Int. J. Geo-Inf. 2019, 8, x FOR PEER REVIEW
+4 of 21
+established using a dense point cloud generated by aerial triangulation and the dense matching of
+images
+[30].
+The TIN
+forms
+an untextured
+model that
+can reflect
+thereflect
+3D spatial
+of form
+objects.
+matching
+of images
+[30].
+The TIN
+forms an untextured
+model
+that can
+the 3Dform
+spatial
+of
+Calculating
+the
+corresponding
+texture
+from
+the
+images
+using
+the
+software
+and
+mapping
+the
+texture
+on
+objects. Calculating the corresponding texture from the images using the software and mapping the
+the
+corresponding
+untextured untextured
+model can form
+a real
+scene
+that3D
+reflects
+relationships
+texture
+on the corresponding
+model
+can 3D
+form
+a real
+scenethe
+thatspatial
+reflects
+the spatial
+and
+surface
+features
+of
+objects.
+Then,
+data,
+such
+as
+digital
+orthophoto
+maps
+(DOMs),
+digital
+relationships and surface features of objects. Then, data, such as digital orthophoto maps elevation
+(DOMs),
+models
+(DEMs), models
+DSMs, 3D
+models
+(3DMs),
+DLG (Digital
+Line
+Graphic)
+object
+digital elevation
+(DEMs),
+DSMs,
+3D models
+(3DMs),
+DLG
+(Digitaland
+Linedigital
+Graphic)
+andmodels
+digital
+(DOBs),
+can
+be
+generated
+as
+needed.
+object models (DOBs), can be generated as needed.
+
+Figure 1.
+1. Schematic diagram of the complete data processing flow for
+for oblique
+oblique photography-based
+photography-based
+three-dimensional (3D) modeling.
+modeling.
+
+2.1.2.
+Construction of
+of 3D
+3D Models
+Models for
+2.1.2. Construction
+for Hydraulic
+Hydraulic Facilities
+Facilities
+In
+In this
+this study,
+study, three-dimensional
+three-dimensional models
+models of
+of hydraulic
+hydraulic facilities
+facilities were
+were constructed
+constructed for
+for separate
+separate
+queries,
+spatial
+analyses,
+connecting
+time
+series
+data
+of
+sensors,
+and
+so
+on.
+The
+model
+queries, spatial analyses, connecting time series data of sensors, and so on. The model precision
+precision
+standards
+standards refer
+refer to
+to those
+those listed
+listed in
+in Table
+Table2.
+2.
+Table 2. Unified accuracy reference for features of a 3D model.
+Table 2. Unified accuracy reference for features of a 3D model.
+Precision
+Index
+
+Precision
+Index
+
+Precision
+requirement
+
+Plane
+Precision
+
+Plane
+Precision
+≤30 cm
+
+Height
+Difference
+Height
+Precision
+
+Difference
+Precision
+≤30 cm
+
+Plane
+Intrinsic
+Precision of the Measured
+Precision
+ofLines,
+the
+Precision of
+Precision
+Spacing between
+Points,
+Plane
+Precision of Features
+Intrinsic and Planes
+Measured
+Spacing
+Other
+Features
+of any Feature
+
+Other
+Precision
+of
+between Points,
+≤50 cmof
+and
+less
+≤30 cm and
+less
+less than
+10%
+of the
+≤50 cm and
+Features
+Lines,
+and
+Planes
+than 10%
+of the
+than 10% Features
+of the
+spacing between
+spacing between
+spacing between
+of
+any
+Feature
+measured objects
+measured
+objects
+measured
+≤50 cm
+and less
+≤30objects
+cm and less
+≤50 cm and less
+
+Precision
+than 10% of the
+than 10% of the
+than 10% of the
+≤30 cm
+≤30 cm
+requirement
+spacing
+betweenlinesspacing
+between engineering
+spacing between
+To create the three-dimensional models,
+the contour
+of the hydraulic
+facilities
+measured objects measured objects
+measured objects
+were imported into the modeling software. The outline structures of the reservoir dam and its
+To create the three-dimensional models, the contour lines of the hydraulic engineering facilities
+appurtenance were obtained through a general survey. Editing of all models was completed in
+were
+imported into the modeling software. The outline structures of the reservoir dam and its
+3ds Max.
+appurtenance were obtained through a general survey. Editing of all models was completed in 3ds
+Max.
+2.1.3. Building of a 3D Scene for Flood Risk Simulation
+Using LOD (level of detail) technology and by integrating spatial data at different scales, the real
+3D scene was built to provide data, a computing platform, and visualization support for the dynamic
+
+ISPRS Int. J. Geo-Inf. 2019, 8, 520
+
+5 of 21
+
+2.1.3. Building of a 3D Scene for Flood Risk Simulation
+Using LOD (level of detail) technology and by integrating spatial data at different scales, the real
+3D scene was built to provide data, a computing platform, and visualization support for the dynamic
+ISPRS Int. J. Geo-Inf. 2019, 8, x FOR PEER REVIEW
+5 of 21
+simulation of flood risk in the spatio-temporal GIS framework [26,27] (the building process is shown in
+Figure
+2). The of
+large-scale
+a 1:10,000GIS
+topographic
+and(the
+a 2.5-m
+resolution
+of the
+simulation
+flood riskdata
+in theinclude
+spatio-temporal
+frameworkmap
+[26,27]
+building
+processimage
+is shown
+study
+area
+and
+the
+surrounding
+areas
+within
+a
+certain
+range.
+The
+medium-scale
+data
+are
+the
+oblique
+in Figure 2). The large-scale data include a 1:10,000 topographic map and a 2.5-m resolution image of
+the study area and
+surrounding
+within
+a certain
+range.
+The medium-scale
+data are
+photography-based
+3Dthe
+modeling
+dataareas
+within
+the study
+area,
+including
+the DEM, DOM,
+andthe
+3DM.
+photography-based
+3D modeling
+data within
+the study
+including
+the DEM, DOM,
+andand
+Theoblique
+small-scale
+data include the
+3D single-body
+models
+of thearea,
+hydraulic
+engineering
+facilities
+The small-scale
+data include
+3D single-body
+models
+of the
+hydraulic
+facilities
+the 3DM.
+3D models
+of the equipment
+andthe
+facilities
+in buildings,
+such
+as the
+pump engineering
+stations. The
+3D scene
+and
+the
+3D
+models
+of
+the
+equipment
+and
+facilities
+in
+buildings,
+such
+as
+the
+pump
+stations.
+The
+generated from oblique photography (osgb format) was directly used in the 3D models of key3D
+areas.
+generated
+from oblique
+photography
+(osgb format) was
+directly
+used
+in the
+models
+of key
+Thescene
+textured
+3D terrains
+were generated
+by superimposing
+the
+satellite
+image
+on3D
+DEM,
+which
+were
+areas. The textured 3D terrains were generated by superimposing the satellite image on DEM, which
+used as the 3D models of the rest areas. These two 3D scenes and single 3D models of water conservancy
+were used as the 3D models of the rest areas. These two 3D scenes and single 3D models of water
+facilities were imported into spatio-temporal GIS. The whole study area could then be displayed in
+conservancy facilities were imported into spatio-temporal GIS. The whole study area could then be
+a three-dimensional way through the spatio-temporal GIS.
+displayed in a three-dimensional way through the spatio-temporal GIS.
+
+Figure
+Processofof3D
+3Dscene
+sceneconstruction
+construction for
+Figure
+2. 2.
+Process
+for flood
+floodrisk
+risksimulation
+simulation.
+
+Hydrodynamic
+Models
+2.2. 2.2.
+Hydrodynamic
+Models
+simulating
+spatio-temporal
+variations
+in the
+river
+channel
+flow
+upstream
+downstream
+For For
+simulating
+spatio-temporal
+variations
+in the
+river
+channel
+flow
+upstream
+andand
+downstream
+of the
+of
+the
+reservoir
+and
+early
+warnings
+of
+flooding
+in
+the
+watershed,
+we
+selected
+the
+1D
+and
+2D
+reservoir and early warnings of flooding in the watershed, we selected the 1D and 2D hydrodynamic models
+hydrodynamic
+models
+to perform
+quantitative
+simulations
+of the flooding
+the on
+to perform
+quantitative
+simulations
+of the
+flooding process
+in the downstream
+river process
+channel,inbased
+downstream
+river
+channel,
+based
+on
+current
+and
+historical
+measured
+hydrological
+variables
+current and historical measured hydrological variables (including rainfall, discharge, and water level) [31,32].
+(including rainfall, discharge, and water level) [31,32]. The data required by the model and the output
+The data required by the model and the output results are provided in Table 3.
+results are provided in Table 3.
+Table 3. Relevant parameters for the hydrodynamic model system.
+Table 3. Relevant parameters for the hydrodynamic model system.
+
+Input Parameters
+
+Output Parameters
+
+Input parameters
+Output parameters
+Topographic
+data
+the river
+channel
+Water
+level,
+flow
+process
+Topographic
+data of
+theofriver
+channel
+Water
+level,
+flow
+process
+Intake and discharge processes of the flood water
+Upstream
+and
+downstream
+discharge
+and
+water
+level
+Upstream and downstream discharge and
+Intake and discharge
+processes
+of thearea
+flood water in
+in the
+flood detention
+water
+the flood
+detention
+area detention area
+Measurement
+datalevel
+of the flood detention area
+Flood routing
+process
+in the flood
+Name, width, and
+sill of
+elevation
+of the
+flood diversion gate
+Inundated processes of the flood detention area
+Measurement
+data
+the flood
+detention
+Flood routing
+process
+detentionarea
+area
+Measured water level
+and discharge of the water channel
+Storage
+processin
+ofthe
+the flood
+flood detention
+area
+Name, width, and sill elevation of the
+Inundated processes of the flood detention area
+2.2.1. One Dimensional
+(1D) Unsteady
+Flow Model of the River Network
+flood diversion
+gate
+Measured water level and discharge of the
+process
+the flood
+area
+One-dimensional unsteady flow movement inStorage
+a single
+riverof
+channel
+isdetention
+often described
+using
+water channel
+
+the Saint-Venant equations [31,33]—namely, the continuity equation of flow (Equation (1)) and the
+dynamic
+equation
+of flow (1D)
+(Equation
+(2))—as
+2.2.1. One
+Dimensional
+Unsteady
+Flow follows:
+Model of the River Network
+
+One-dimensional unsteady flow movement
+in∂Z
+a single river channel is often described using the
+∂Q
++B
+= q1equation of flow (Equation (1)) and the (1)
+Saint-Venant equations [31,33]—namely, ∂x
+the continuity
+∂t
+dynamic equation of flow (Equation (2))—as follows:
+
+ISPRS Int. J. Geo-Inf. 2019, 8, 520
+
+6 of 21
+
+Q2
+n2 Q|Q|
+∂Q
+∂
+∂Z
++ (α1 ) + gA
++g
+= q1 (u1 − V )
+A
+∂t
+∂x
+∂x
+AR4/3
+
+(2)
+
+where t is time (s); x is the flow path (m); Q is the discharge; A is the cross-sectional area of flow; B is
+river width; Z is the water level; R is the hydraulic radius; n is the Manning roughness coefficients; V
+is the average flow velocity of the section; ql and ul are the lateral inflow per unit length of the river
+reach and the
+of the lateral inflow in the x direction; α1 is the momentum correction factor,
+Rcomponent
+
+2
+where α1 = A u dA /(Q2 /A), and g is the gravitational acceleration.
+Flow and energy in single river reaches are exchanged at the bifurcation point. Therefore,
+movement of flow at the bifurcation point must conserve mass and energy. In other words, a balance
+between the net flux at the bifurcation point and the net change of the actual water volume at the
+bifurcation point (Equation (3)) must be maintained, as described in the equation as follows:
+X
+
+Qi =
+
+∂Ω
+∂t
+
+(3)
+
+where Qi is the influx at the bifurcation point after passing through cross-section I and the influx at
+the bifurcation point (node) is positive, while the outflux at the bifurcation point (node) is negative.
+Ω is the water storage capacity of the bifurcation point. Considering the velocity head, resistance loss,
+and other factors at the end point of river reaches at the bifurcation point, the water levels at the end
+points of all river reaches at the bifurcation point shall meet the following requirements (Equation (4)):
+Zi = Z j = . . . . . . = Z
+∆Zi = ∆Z j = . . . . . . = ∆Z
+
+(4)
+
+If the section of the river reaches connected by the bifurcation point is very close to the bifurcation
+point, resistance loss at the bifurcation point will be negligible. Therefore, it can be assumed that the
+water level at the end points of all river reaches at the bifurcation point is the same.
+Equations (1) and (2) can be solved using numerical techniques [34]. The solution to these
+equations comprises estimates of Q and Z for every cross-section at each time step.
+2.2.2. Two-Dimensional (2D) Flow Routing Model of the Downstream River Channel
+Generally, the 2D flow equation for the plane flood routing in the flood detention area can be
+described using the shallow water equation [35,36]. The continuity equation of flow (Equation (5)) is
+as follows:
+∂Z
+1 ∂
+1 ∂
++
+(huCη ) +
+(hvCξ ) = 0
+(5)
+Cξ Cη ∂ξ
+Cξ Cη ∂η
+∂t
+The dynamic equations of flow (Equations (6) and (7)) are as follows:
+∂Cη
+∂C
+∂
+∂
+∂u
++ Cξ1Cη ∂ξ
+(Cη u2 ) + ∂η
+(Cξ vu) + vu ∂ηξ − v2 ∂ξ = −g C1ξ ∂Z
++ fv
+∂t
+∂ξ
+
+
+√
+2
+2 +v2 n
+∂Cη
+∂C
+∂
+∂
+(
+Cη σξξ ) + ∂η
+(
+Cξ σηξ ) + σξη ∂ηξ − σηη ∂ξ
+− u uh4/3
+g + C 1Cη ∂ξ
+ξ
+
+(6)
+
+∂Cη
+∂C
+∂v
+∂
+∂
++ Cξ1Cη ∂ξ
+(Cη vu) + ∂η
+(Cξ v2 ) + uv ∂ξ − u2 ∂ηξ = −g C1η ∂Z
+− fu
+∂t
+∂η
+
+
+√
+2 +v2 n2
+∂Cη
+∂C
+∂
+∂
+(
+Cη σξη ) + ∂η
+(
+Cξ σηη ) + σηξ ∂ξ − σξξ ∂ηξ
+− v uh4/3
+g + C 1Cη ∂ξ
+ξ
+
+(7)
+
+
+
+
+
+
+
+
+
+where ξ and η represent two orthogonal curvilinear coordinates in the orthogonal curvilinear coordinate
+system; u and v represent the flow velocities in the ξ and η directions, respectively; h represents the
+water depth; Z represents the water level; f represents the Coriolis coefficient and can be calculated
+as f = Ωd sin φ where Ωd is the rotational angular velocity of the earth and φ is the latitude; n is
+the roughness coefficient; vt represents the coefficient of turbulent viscosity and is calculated using
+Vt = αU ∗ h, where α is a constant (α = 0.25 ∼ 1.0) and U* is the frictional velocity; Cξ and Cη
+
+ISPRS Int. J. Geo-Inf. 2019, 8, 520
+
+7 of 21
+
+represent the Lamé coefficients in the orthogonal curvilinear coordinate system, expressions of which
+q
+q
+are Cξ = xξ 2 + yξ 2 and Cη = xη 2 + yη 2 , respectively; and σξξ , σξη , σηξ and σηη represent the
+turbulence stresses, which are calculated as follows (Equations (8)–(10)):
+1 ∂u
+v ∂Cξ
+σξξ = 2vt
++
+Cξ ∂ξ Cξ Cη ∂η
+"
+
+#
+
+#
+u ∂Cη
+1 ∂v
++
+σηη = 2vt
+Cη ∂η Cξ Cη ∂ξ
+"
+#
+Cη ∂ v
+Cξ ∂ u
+( )+
+( )
+σξη = σηξ = 2vt
+Cξ ∂ξ Cη
+Cη ∂η Cξ
+
+(8)
+
+"
+
+(9)
+(10)
+
+Depending on numerical discretization strategies, the finite volume methods (FVM) were
+introduced in our study to obtain the numerical solutions [5,9]. To avoid the formation of a jagged
+velocity field and pressure field, the staggered mesh method was introduced. In addition, the SIMPLEC
+algorithm and under-relaxation technology were used to complete the correction of the velocity equation
+and the depth equation and further accelerate the convergence of the correction equation [5,37].
+In this study, a method based on the empirical formulas [38,39] was introduced to estimate the
+Manning roughness coefficients, and the cross-sectional flow resistance was corrected [2,40].
+2.3. Spatio-temporal Computation Framework
+Floods are a common process on the Earth’s surface and have apparent spatio-temporal
+characteristics. Multiple factors are often involved in spatial analyses of river water and dynamic
+simulations of flood risk. Spatio-temporal big data have laid an important foundation for flood
+monitoring, dynamic simulations, and risk assessments [36].
+The spatio-temporal GIS framework is an important aspect of spatial information science.
+Hydrodynamic models are an important component of the study of the hydraulics. The seamless
+integration of spatio-temporal GIS and hydrodynamic models involves a crossover study of the two
+subjects [36]. Due to the complexity of hydrodynamic models, model researchers often emphasize
+studies on model parameters, model applicability, and model accuracy and develop separate software
+tools for model calculations. The preparation of data, the calculation process, and the output results of
+models create their own system, without in-depth docking with application scenarios. Most model
+outputs are 2D tables with poor visualization effects [2]. Spatio-temporal GIS has strong capabilities
+in data acquisition, management, storage, analysis, calculation, and multidimensional visualization.
+Calculations of hydrodynamic models are embedded into the spatio-temporal GIS, and seamless
+integration is performed on the data flow, calculations, outputs and storage, and visualization [15].
+Spatio-temporal GIS provides DEM, rainfall, and other types of data inputs about the river landforms
+and flood detention areas that are used to calculate the hydrodynamic model, as well as calculation
+resources and storage of the model calculation results. Multidimensional dynamic visualizations
+are performed for the model results using the visualization capability of the spatio-temporal GIS,
+thus realizing the seamless integration of the spatio-temporal GIS with the hydrodynamic model, as
+shown in Figure 3.
+
+the river landforms and flood detention areas that are used to calculate the hydrodynamic model, as
+well as calculation resources and storage of the model calculation results. Multidimensional dynamic
+visualizations are performed for the model results using the visualization capability of the spatioISPRS
+Int. J. Geo-Inf.
+8, 520
+8 of 21
+temporal
+GIS, 2019,
+thus
+realizing the seamless integration of the spatio-temporal GIS with
+the
+hydrodynamic model, as shown in Figure 3.
+
+Figure3. 3.Conceptual
+Conceptualmodel
+modelofofthethe
+spatio-temporal
+computation
+framework.GIS,
+GIS,Geographic
+Geographic
+Figure
+spatio-temporal
+computation
+framework.
+Information
+System.
+Information
+System.
+
+The
+Thelogical
+logicalframework
+frameworkfor
+forthe
+theseamless
+seamlessintegration
+integrationofofthe
+thespatio-temporal
+spatio-temporalGIS
+GISwith
+withthe
+the
+hydrodynamic
+in Figure
+Figure4.4.It is
+It based
+is based
+on service-oriented
+architecture
+hydrodynamicmodel
+modelisis shown in
+on service-oriented
+architecture
+(SOA)(SOA)
+and is
+and
+is divided
+the hardware
+layer,
+data
+layer,the
+theplatform
+platformlayer,
+layer, the service
+divided
+into into
+the hardware
+layer,
+thethe
+data
+layer,
+service layer,
+layer,and
+andthe
+the
+application
+The data
+datalayer
+layerincludes
+includesstatic
+static3D3D
+scene
+data,
+sensed
+applicationlayer,
+layer,from
+frombottom
+bottomto
+to top.
+top. The
+scene
+data,
+IoTIoT
+sensed
+and
+and
+socioeconomic
+data,
+spatio-temporal
+The static
+3D data
+scenemainly
+data mainly
+socioeconomic
+data,
+andand
+spatio-temporal
+floodflood
+risk risk
+data.data.
+The static
+3D scene
+include
+DOMsDOMs
+acquired
+by oblique
+photography-based
+3D modeling,
+1:2000
+DEMs,
+3DM3DM
+data,data,
+riverriver
+body
+include
+acquired
+by oblique
+photography-based
+3D modeling,
+1:2000
+DEMs,
+data,data,
+and and
+3D model
+datadata
+of hydraulic
+engineering
+facilities.
+The The
+IoT IoT
+perception
+datadata
+include
+time
+body
+3D model
+of hydraulic
+engineering
+facilities.
+perception
+include
+series
+datadata
+acquired
+by sensing
+equipment
+at theathydrometrical
+station
+and the
+precipitation
+station.
+time
+series
+acquired
+by sensing
+equipment
+the hydrometrical
+station
+and
+the precipitation
+The spatio-temporal
+flood risk
+data
+the flow
+flow direction,
+discharge,
+waterwater
+depth,
+station.
+The spatio-temporal
+flood
+riskinclude
+data include
+thevelocity,
+flow velocity,
+flow direction,
+discharge,
+and inundated
+area area
+at different
+sections,
+locations,
+and
+outputs ofofthe
+the
+depth,
+and inundated
+at different
+sections,
+locations,
+andtimes,
+times,which
+which are
+are the outputs
+hydrodynamicmodel.
+model.The
+Thecore
+coreof
+ofthe
+theplatform
+platform layer
+layer is
+is aa spatio-temporal
+spatio-temporal GIS, which is based on a
+hydrodynamic
+platform developed
+developed by
+bythe
+theauthors.
+authors.The
+Theplatform
+platformlayer
+layerconnects
+connectsthe
+thepreceding
+precedingand
+andthe
+the
+a digital earth platform
+following
+procedures,
+performs
+data
+management
+for
+the
+following
+procedures,
+and
+provides
+service
+following procedures, performs data management for the following procedures, and provides service
+integration,
+calculations,
+data
+the preceding
+The encapsulates
+service layer
+integration,
+calculations,
+and and
+data for
+thefor
+preceding
+proceduresprocedures
+[41,42]. The[41,42].
+service layer
+encapsulates
+modules
+or functions
+forallow
+services,
+which allow
+application
+anddevelopers
+operational
+core
+modules orcore
+functions
+for services,
+which
+the application
+andthe
+operational
+system
+toprocess
+focus and
+on the
+and user
+demands and
+simplifies
+the
+tosystem
+focus ondevelopers
+the business
+userbusiness
+demands process
+and simplifies
+the development
+workload
+in the
+development
+in and
+the application layers
+layer. are
+Theloosely
+service
+and application
+layers are
+loosely
+application
+layer.workload
+The service
+coupled
+to enhance system
+flexibility
+coupled
+to enhance
+system
+flexibility
+scalability
+[43,44].
+Thesimulation
+application
+layer
+performs
+and
+scalability
+[43,44]. The
+application
+layerand
+performs
+a dynamic
+visual
+of the
+flood
+risk for a
+dynamic
+visual
+simulation
+ofREVIEW
+the flood
+riskconversion
+for decision
+support,
+acting asand
+an knowledge.
+interface9 for
+decision
+acting
+as an
+interface
+for the
+of data
+to information
+ISPRS
+Int. J. support,
+Geo-Inf.
+2019,
+8, x FOR
+PEER
+of 21the
+conversion of data to information and knowledge.
+
+Figure
+Figure4.4.Logical
+Logicalframework
+frameworkfor
+forthe
+theintegration
+integrationofofspatio-temporal
+spatio-temporalGIS
+GISwith
+withhydrodynamic
+hydrodynamicmodels.
+models.
+
+3. Case Study
+3.1. The Study Area
+As the largest reservoir in the Shandong Province, the Xiashan Reservoir is in the middle reach
+of the Weihe River（Figure 5）. The total watershed area of the upstream and downstream reaches
+is up to 107.7 km2. It has a total capacity of 1.405 billion m3. The reservoir area is large and includes 4
+
+ISPRS Int. J. Geo-Inf. 2019, 8, 520
+
+9 of 21
+
+3. Case Study
+3.1. The Study Area
+As the largest reservoir in the Shandong Province, the Xiashan Reservoir is in the middle reach of
+the Weihe River (Figure 5). The total watershed area of the upstream and downstream reaches is up to
+107.7 km2 . It has a total capacity of 1.405 billion m3 . The reservoir area is large and includes 4 counties
+and cities, 11 townships, and 97 immigrant villages [45]. The reservoir has been in service since
+September 1960. It is a large water conservancy project that integrates flood control, irrigation, power
+generation, aquaculture, urban and industrial water supply, and other comprehensive utilizations.
+The designed irrigation area of the reservoir is 1020 km2 and the effective irrigation area is 693 km2 .
+The main dam of the Xiashan Reservoir is 2680 m long. The average annual rainfall in the reservoir
+area is 615.3 mm, approximately 80% of which is concentrated in the period from June to September.
+The study area includes the Xiashan Reservoir, 70 km from the upstream and downstream river
+channel of the Weihe River, and the flood detention area downstream of the reservoir, with a total area
+of 175 km2 .
+3.2. Construction of a Spatio-Temporal Database
+Spatio-temporal data include basic spatial data, perception data, socioeconomic data, and spatiotemporal data of flood risk factors. The 3D spatial data of the reservoir area and the 70-km river channel
+upstream and downstream stretch of the Weihe River were acquired by oblique photography-based 3D
+modeling, including a DOM with a resolution of 0.1 m, a 3DM, and a 1:2000 DEM. The perception data are
+mainly the time series data at the precipitation station and the hydrometrical station. The demographic and
+socioeconomic data mainly include data on road traffic, demographic data from administrative regions
+at all levels, the locations of administrative regions, and the spatial positions and associated attributes of
+schools, hospitals, public security organizations, factories, and other institutes. The spatio-temporal data
+contents are shown in Table 4.
+3.3. Dynamic Visual Simulation System for Flood Risk
+By referring to Section 2.3 (“Spatio-temporal Computation Framework”) (Figure 4) and using
+digital earth as the engine, a dynamic visual simulation system for the flood risk at the Xiashan
+Reservoir was established to complete the seamless integration of the spatio-temporal GIS with
+the hydrodynamic model. The system functions, as shown in Figure 6, mainly include such
+modules as data management, data query, model calculation, flood process simulation, and visual
+decision making. The spatio-temporal GIS module provides functions such as spatio-temporal data
+processing, visualization, spatio-temporal analysis, and spatial data management. The “Calculation of
+Hydrodynamic Model” module supports computing environment settings such as model selection,
+parameter input, and flood type selection. The “Simulation and Visualization of Hydrodynamic Model”
+module simulates the evolution process of floods and performs 3D visualization for the inundated
+area, water depth, flow velocity, flow direction, and so on. The “Query and Statistics” module can
+analyze and visualize the perception data from the precipitation and hydrometrical stations by time
+frame. The system can access different types of sensor data and other business system data through the
+Integration Interface. Based on the system, the hydrodynamic data can be input, calculated, and visually
+embedded into the flood process simulation and the flood control and emergency management services
+to improve the timeliness, scientific reliability, and visualization effect of the flood risk simulations [46].
+
+“Query and Statistics” module can analyze and visualize the perception data from the precipitation
+and hydrometrical stations by time frame. The system can access different types of sensor data and
+other business system data through the Integration Interface. Based on the system, the hydrodynamic
+data can be input, calculated, and visually embedded into the flood process simulation and the flood
+control and emergency management services to improve the timeliness, scientific reliability,
+and
+ISPRS Int. J. Geo-Inf. 2019, 8, 520
+10 of 21
+visualization effect of the flood risk simulations [46].
+
+Figure 5. Location of the Xiashan Reservoir: (a) The location of the Xiashan Reservoir in China; (b) the
+Figure 5. Location of the Xiashan Reservoir: (a) The location of the Xiashan Reservoir in China; (b) the
+Xiashan Reservoir Dam; (c) the layout of the Xiashan Reservoir.
+Xiashan Reservoir Dam; (c) the layout of the Xiashan Reservoir.
+
+The system adopts a Brower/Server architecture and releases a GIS service as a Web Service [47].
+The system
+adopts
+a Brower/Server
+architecturesystem,
+and releases
+a GIS service
+as a Web
+Service
+[47].
+It integrates
+the data
+from
+the rainfall monitoring
+hydrologic
+monitoring
+system,
+video
+It integratessystem,
+the data
+from the rainfall
+monitoring
+system,disaster
+hydrologic
+monitoring
+video
+monitoring
+meteorological
+system,
+land geological
+system,
+and othersystem,
+operational
+monitoring
+system,
+meteorological
+system,
+land
+geological
+disaster
+system,
+and
+other
+operational
+systems into a unified spatio-temporal database. Under the unified spatio-temporal calculation
+systems into
+a unified
+spatio-temporal
+database.
+Under
+the unified
+spatio-temporal
+framework,
+flood
+risk simulation,
+hydrological
+data query
+statistics,
+and other
+operations arecalculation
+packaged
+framework,
+flood
+risk
+simulation,
+hydrological
+data
+query
+statistics,
+and
+other
+operations
+are
+to complete the seamless integration of the data flow, operation flow, and system functions. The system
+packaged
+to
+complete
+the
+seamless
+integration
+of
+the
+data
+flow,
+operation
+flow,
+and
+system
+functions.
+architecture is shown in Figure 7.
+The system architecture is shown in Figure 7.
+
+Number
+
+Table 4. Relevant parameters of spatio-temporal data.
+Table 4. Relevant parameters of spatio-temporal data.
+Data Type
+Index
+
+Data Sources
+
+1
+
+Digital elevation model (DEM)
+of the topographic data of the
+river channel
+
+1:2000
+
+2
+
+DEM of the flood detention area
+
+1:2000
+
+3
+
+DEM of the dam area
+
+1:2000
+
+4
+
+Digital orthophoto map
+
+Resolution: 0.1 m
+
+5
+
+3D scene model (3DM)
+
+3DM for the core area
+
+6
+
+Images of the peripheral area
+
+Resolution: 2.5 m
+
+Historical
+satellite images
+
+7
+
+DEM of the peripheral area
+
+1:10,000
+
+Basic scale
+topographic map
+
+Oblique
+photography-based
+3D modeling
+
+1
+
+(DEM) of the topographic
+data of the river channel
+DEM of the flood detention
+2
+area
+3
+DEM
+of
+the
+dam area
+ISPRS Int. J. Geo-Inf. 2019, 8, 520
+4
+Digital orthophoto map
+5
+3D scene model (3DM)
+6
+
+1:2000
+1:2000
+
+1:2000
+Resolution: 0.1 m
+3DM for the core area
+Table 4. Cont.
+Images of the peripheral area
+Resolution: 2.5 m
+
+Number
+Data Type
+Index
+7
+DEM of the peripheral area
+1:10,000
+3D models of the hydraulic
+Hydrometrical station and
+8
+engineering
+facilities
+precipitation
+station,
+etc.
+3D models
+of the hydraulic
+Hydrometrical
+station
+and
+8
+engineering facilities
+precipitation station, etc.
+9
+Road traffic
+1:10,000 roads
+9
+Road traffic
+1:10,000 roads
+Populations in counties,
+Populations
+in counties,
+10
+Population
+prefectures,
+towns,
+10
+Population
+prefectures,
+towns,
+townships, and
+villages
+townships,
+and
+villages
+Positions of counties,
+Positions
+of counties,
+11
+Other social data
+prefectures,
+towns,
+11
+Other social data
+prefectures,
+towns,
+townships, and
+villages
+townships, and villages
+Rainfall, water level,
+12
+Perception series data
+Rainfall,
+water
+level, etc.
+forecasted
+rainfall,
+12
+Perception series data
+forecasted rainfall, etc.
+Flow velocity, flow
+Flow velocity, flow direction,
+13
+Data of flood risk factors
+direction, water depth,
+13
+Data of flood risk factors
+waterand
+depth,
+and inundated
+inundated
+area, etc.
+area, etc.
+
+Oblique
+photography-based
+3D modeling
+11 of 21
+
+Historical satellite
+images
+Data
+Sources
+Basic
+scale
+topographic map
+Basic scale
+Basic scale
+topographic
+map
+topographic map
+Statistical data
+Statistical data
+Basic scale
+Basic scale
+topographic
+map
+topographic map
+Internet of Things
+Internet
+of Things
+(IoT) perception
+(IoT) perception
+Model calculation
+Model calculation
+
+Figure
+6. Functionalmodules
+modules of
+dynamic
+visual
+simulation
+system system
+for the flood
+the Xiashan
+Figure
+6. Functional
+ofthe
+the
+dynamic
+visual
+simulation
+for risk
+the of
+flood
+risk of the
+Reservoir.
+Xiashan
+ISPRS
+Int. J. Reservoir.
+Geo-Inf. 2019, 8, x FOR PEER REVIEW
+12 of 21
+
+Figure 7. System functions and service architecture based on service-oriented architecture (SOA).
+Figure 7. System functions and service architecture based on service-oriented architecture (SOA).
+
+4. Results
+4.1. Three-dimensional Visualization of the Study Area
+According to the methods in Section 2.1, a 3D visual simulation of the watershed, reservoir area,
+
+ISPRS Int. J. Geo-Inf. 2019, 8, 520
+
+12 of 21
+
+Figure 7. System functions and service architecture based on service-oriented architecture (SOA).
+
+4. Results
+4. Results
+
+4.1. Three-Dimensional Visualization of the Study Area
+4.1. Three-dimensional Visualization of the Study Area
+According to the methods in Section 2.1, a 3D visual simulation of the watershed, reservoir area,
+According
+to engineering
+the methods in
+Sectionwas
+2.1, arealized
+3D visual
+ofand
+the watershed,
+area,
+river, and
+hydraulic
+facilities
+bysimulation
+organizing
+visualizingreservoir
+the spatial
+data
+river,
+and
+hydraulic
+engineering
+facilities
+was
+realized
+by
+organizing
+and
+visualizing
+the
+spatial
+data
+in a spatio-temporal GIS framework. The 3D visualization of the study area is shown in Figure
+8.
+in a spatio-temporal GIS framework. The 3D visualization of the study area is shown in Figure 8.
+The system can quickly retrieve information about the ecological environmental system of the
+The system can quickly retrieve information about the ecological environmental system of the
+reservoir, river channel, hydraulic engineering facilities, and the peripheral area. Relying on the strong
+reservoir, river channel, hydraulic engineering facilities, and the peripheral area. Relying on the
+spatial analyses and visualization abilities of spatio-temporal GIS, the integration of the dynamic
+strong spatial analyses and visualization abilities of spatio-temporal GIS, the integration of the
+evaluation, visualization, and decision support for flood risk is greatly improved.
+dynamic evaluation, visualization, and decision support for flood risk is greatly improved.
+
+ISPRS Int. J. Geo-Inf. 2019, 8, x FOR PEER REVIEW
+
+13 of 21
+
+(a)
+
+(b)
+
+(c)
+
+Figure
+8. 8.
+3D
+area: (a)
+(a)AAbird’s-eye
+bird’s-eyeview
+view
+Xiashan
+reservoir
+Weihe
+Figure
+3Dvisualization
+visualizationof
+ofthe
+the study
+study area:
+ofof
+thethe
+Xiashan
+reservoir
+andand
+Weihe
+river;
+(b)
+A
+3D
+view
+of
+the
+indoor
+facilities;
+(c)
+A
+3D
+view
+of
+the
+administration
+agency.
+river; (b) A 3D view of the indoor facilities; (c) A 3D view of the administration agency.
+
+4.2. Visual Simulation of 1D and 2D Flood Routing in the River Channel
+4.2. Visual Simulation of 1D and 2D Flood Routing in the River Channel
+
+ByBy
+using
+the 1D and 2D hydrodynamic models embedded in the system, values for the flooding
+using the 1D and 2D hydrodynamic models embedded in the system, values for the flooding
+in the
+river
+channels
+upstream
+and
+downstream
+in the
+river
+channels
+upstream
+and
+downstreamofofthe
+theXiashan
+XiashanReservoir
+Reservoirwere
+were calculated,
+calculated, and
+and the
+the 3D
+routing
+simulation
+was
+eventually
+realized.
+The
+system
+automatically
+calculated
+the
+flood
+process
+3D routing simulation was eventually realized. The system automatically calculated the flood process in
+theinriver
+upstream
+and downstream
+of theofXiashan
+Reservoir
+according
+to thetouser-supplied
+the channels
+river channels
+upstream
+and downstream
+the Xiashan
+Reservoir
+according
+the userinput
+parameters
+the system
+calculation
+results
+include flood
+hydrographs
+of the
+supplied
+input and
+parameters
+anddata.
+the The
+system
+data. The
+calculation
+resultsflow
+include
+flood flow
+hydrographs of the channel upstream of the reservoir and its statistical flood characteristics
+(including time, water volume, and the highest water level of the river channel) (Figure 9).
+
+4.2. Visual Simulation of 1D and 2D Flood Routing in the River Channel
+By using the 1D and 2D hydrodynamic models embedded in the system, values for the flooding
+in the river channels upstream and downstream of the Xiashan Reservoir were calculated, and the
+3D routing simulation was eventually realized. The system automatically calculated the flood process
+inISPRS
+the Int.
+river
+channels
+upstream
+and downstream of the Xiashan Reservoir according to the userJ. Geo-Inf.
+2019, 8,
+520
+13 of 21
+supplied input parameters and the system data. The calculation results include flood flow
+hydrographs of the channel upstream of the reservoir and its statistical flood characteristics
+channel upstream
+of the
+reservoir
+statistical
+flood
+characteristics
+(including
+time, water
+(including
+time, water
+volume,
+andand
+theits
+highest
+water
+level
+of the river channel)
+(Figure
+9). volume,
+and the highest water level of the river channel) (Figure 9).
+
+Figure9.9.Calculation
+Calculationresults
+resultsofofthe
+the2D
+2Dflow
+flowmathematical
+mathematicalmodel
+modelofofthe
+theriver
+riverchannel
+channeldownstream
+downstreamofof
+Figure
+the
+Xiashan
+Reservoir
+(river
+channel).
+the Xiashan Reservoir (river channel).
+
+We dynamically showed the inundated area based on the flood and water level at any point on
+We dynamically showed the inundated area based on the flood and water level at any point on
+the river channel for a specific time period using time as the axis. A 3D visual simulation analysis
+the river channel for a specific time period using time as the axis. A 3D visual simulation analysis of
+of the evolution of the in-channel water level was produced by using the visualizing function of the
+the evolution of the in-channel water level was produced by using the visualizing function of the
+system
+(Figure
+10).
+ISPRS Int.
+J. Geo-Inf.
+2019, 8, x FOR PEER REVIEW
+14 of 21
+system
+(Figure
+10).
+
+Figure 10.
+(2D)
+flow
+in the
+downstream
+riverriver
+channel.
+(a,b)(a,b)
+The area
+10. 3D simulation
+simulationofoftwo-dimensional
+two-dimensional
+(2D)
+flow
+in the
+downstream
+channel.
+The
+of
+flood
+submergence
+and
+the
+color
+from
+red
+to
+blue
+represents
+the
+water
+depth
+from
+deep
+to
+shallow,
+area of flood submergence and the color from red to blue represents the water depth from deep to
+respectively;
+(c) the dynamic
+monitoring
+display of the
+levelofin the
+frontwater
+of thelevel
+reservoir
+dam during
+shallow, respectively;
+(c) the
+dynamicand
+monitoring
+andwater
+display
+in front
+of the
+flood
+discharge;
+(d) the flood
+dynamic
+visualization
+simulation
+one-dimensional
+(1D) and
+hydrodynamic
+reservoir
+dam during
+discharge;
+(d) the
+dynamicofvisualization
+simulation
+of2D
+one-dimensional
+models
+in2D
+thehydrodynamic
+river channels upstream
+of upstream
+the reservoir,
+the length
+of the
+arrows
+(1D) and
+models inand
+the downstream
+river channels
+andwhere
+downstream
+of the
+reservoir,
+represents
+the
+flow
+velocity,
+the
+color
+of
+the
+arrows
+from
+red
+to
+green
+represents
+the
+water
+depth
+from
+deep
+where the length of the arrows represents the flow velocity, the color of the arrows from red to green
+to
+shallow,
+respectively,
+and
+the
+direction
+of
+the
+arrows
+represents
+the
+flow
+direction.
+represents the water depth from deep to shallow, respectively, and the direction of the arrows
+
+represents the flow direction.
+
+4.3. Visual Flood Control Dispatching for the Xiashan Reservoir
+Based on the high-accuracy 3D scene data in the system and with time as the system axis, the
+model calculation results were dynamically simulated and shown, including the change in the water
+level in front of the reservoir dam over time for a given flood or runoff event. The degree of backwater
+
+shallow, respectively; (c) the dynamic monitoring and display of the water level in front of the
+reservoir dam during flood discharge; (d) the dynamic visualization simulation of one-dimensional
+(1D) and 2D hydrodynamic models in the river channels upstream and downstream of the reservoir,
+where the length of the arrows represents the flow velocity, the color of the arrows from red to green
+ISPRSrepresents
+Int. J. Geo-Inf.
+2019,
+8, 520depth from deep to shallow, respectively, and the direction of the arrows
+14 of 21
+the
+water
+represents the flow direction.
+
+4.3.
+Visual Flood
+Flood Control
+Control Dispatching
+4.3. Visual
+Dispatching for
+for the
+the Xiashan
+Xiashan Reservoir
+Reservoir
+Based
+scene
+data
+in the
+system
+and and
+withwith
+time as
+theas
+system
+axis, the
+model
+Based on
+onthe
+thehigh-accuracy
+high-accuracy3D3D
+scene
+data
+in the
+system
+time
+the system
+axis,
+the
+calculation
+results
+were
+dynamically
+simulated
+and
+shown,
+including
+the
+change
+in
+the
+water
+level
+in
+model calculation results were dynamically simulated and shown, including the change in the water
+front
+of front
+the reservoir
+dam over
+time
+fortime
+a given
+runoff
+The degree
+of backwater
+in the
+level in
+of the reservoir
+dam
+over
+for aflood
+givenorflood
+or event.
+runoff event.
+The degree
+of backwater
+reservoir
+area
+and
+the
+inundation
+level
+and
+its
+dynamic
+routing
+were
+simulated
+under
+the
+designated
+in the reservoir area and the inundation level and its dynamic routing were simulated under the
+dispatching
+scheme (Figure
+11). (Figure 11).
+designated dispatching
+scheme
+
+Figure 11. 3D
+of of
+thethe
+flood
+control
+dispatching
+process
+of the
+Reservoir.
+(The
+3Ddemonstration
+demonstration
+flood
+control
+dispatching
+process
+ofXiashan
+the Xiashan
+Reservoir.
+arrow
+direction
+indicates
+the flow
+direction.
+TheThe
+longer
+the the
+arrow,
+thethe
+higher
+thethe
+flowrate.
+Color
+is
+(The
+arrow
+direction
+indicates
+the flow
+direction.
+longer
+arrow,
+higher
+flowrate.
+Color
+is used to show the depth of the water. From green, blue, yellow to red, the darker the color, the greater
+the water depth.)
+
+This function module can perform reservoir flood control calculations based on a given (or forecasted)
+flood or runoff event and presents the changes in the reservoir water levels and discharged volumes.
+It also calculates the amount of backwater in the reservoir area, the inundation level, the discharged flow,
+the flow velocity, and the water level change under the dispatching scheme, in combination with the 1D
+hydrodynamic calculation model and the discharge calculation model of the spillway structure of the dam.
+The integrated calculation and dynamic visual simulation processes can improve the decision-making
+efficiency of flood control dispatching consultations and flood dispatching levels and minimize the impacts
+of flood risk [48].
+4.4. Visual Simulation of Dam Break
+Once the reservoir dam breaks, a destructive flood will form, causing severe casualties and loss of
+social properties on the downstream side, which would significantly influence social and economic
+development in the downstream area of the reservoir [32]. The dam-break flood analysis mainly
+involves calculating the flood process at the dam site and in the downstream area, including the flow
+and water-level hydrographs at the dam site and the discharge, water level, flow velocity, and peak
+arrival time in the downstream flood routing.
+In addition, we also calculated the downstream flood fields at the moment of main dam break at
+T = 10 s, T = 0.5 h, T = 1.0 h, and T = 1.5 h (Figure 12). The figure shows that because the lateral length
+of the main dam is much greater than the width of the spillway, the flow velocity at the moment of
+main dam breakage (t = 10 s) is lower than it is at the moment of spillway breakage, with a maximum
+
+involves calculating the flood process at the dam site and in the downstream area, including the flow
+and water-level hydrographs at the dam site and the discharge, water level, flow velocity, and peak
+arrival time in the downstream flood routing.
+In addition, we also calculated the downstream flood fields at the moment of main dam break
+at
+T
+=
+10 s, T = 0.5 h, T = 1.0 h, and T = 1.5 h (Figure 12). The figure shows that because the 15
+lateral
+ISPRS Int. J. Geo-Inf. 2019, 8, 520
+of 21
+length of the main dam is much greater than the width of the spillway, the flow velocity at the
+moment of main dam breakage (t = 10 s) is lower than it is at the moment of spillway breakage, with
+flow
+velocityflow
+of 16.77
+m/s. of
+The
+flood
+at the
+dam of
+breakage
+covers
+a wider
+downstream
+a maximum
+velocity
+16.77
+m/s.
+Themoment
+flood at of
+themain
+moment
+main dam
+breakage
+covers
+a wider
+inundated
+area
+compared
+with
+that
+at
+the
+moment
+of
+spillway
+breakage.
+downstream inundated area compared with that at the moment of spillway breakage.
+
+Figure
+Figure 12.
+12. Calculation results of the main
+main dam
+dam break.
+break.
+
+Based
+the DEM
+DEM data
+datafrom
+fromthe
+themiddle
+middleand
+andlower
+lowerreaches
+reaches
+system
+and
+Based on
+on the
+ofof
+thethe
+system
+and
+on on
+thethe
+1D 1D
+andand
+2D
+2D
+river
+channel
+hydrodynamic
+models
+embedded
+in
+the
+system,
+we
+dynamically
+simulated
+the
+river channel hydrodynamic models embedded in the system, we dynamically simulated the
+downstream
+downstream flood
+flood process
+process of
+of the
+the reservoir
+reservoir after
+after aa dam
+dam break
+break (Figure
+(Figure 13),
+13), including
+including calculating
+calculating the
+the
+inundated
+times
+andand
+other
+floodflood
+characteristics,
+such as
+the water
+velocity,
+inundatedarea
+areaatatdifferent
+different
+times
+other
+characteristics,
+such
+as thedepth,
+waterflow
+depth,
+flow
+and
+flow
+direction
+at 8,any
+point.
+velocity,
+flow
+direction
+at any
+point.
+ISPRS
+Int. J.and
+Geo-Inf.
+2019,
+x FOR PEER
+REVIEW
+16 of 21
+
+Figure 13. 3D simulation
+simulation of dam-break
+dam-break flow. (There are two rivers in this figure. After
+After the
+the dam
+dam broke,
+broke,
+rivers was
+was also
+also inundated.)
+inundated.)
+the area between the two rivers
+
+4.5. Verification of Hydrodynamic Model and Sensitivity Analysis
+According to the water level and discharge data of seven typical available sections, we verified
+the 1D and 2D hydrodynamic models. Figure 14 shows a comparison between the calculated values
+of the water levels during floods at different design frequencies and the measured data from seven
+typical sections.
+
+13. 3D2019,
+simulation
+ISPRSFigure
+Int. J. Geo-Inf.
+8, 520 of dam-break flow. (There are two rivers in this figure. After the dam broke,
+16 of 21
+the area between the two rivers was also inundated.)
+
+4.5. Verification
+Verification of
+of Hydrodynamic
+Hydrodynamic Model
+4.5.
+Model and
+and Sensitivity
+Sensitivity Analysis
+Analysis
+
+According to the water level and discharge data of seven typical available sections, we verified
+the 1D and 2D hydrodynamic models. Figure 14 shows a comparison between the calculated values
+of the water levels during floods at different design frequencies and the measured data from seven
+typical sections.
+
+Figure 14.
+verification
+of the
+model of
+flow in
+riverinchannel
+downstream
+Figure
+14.Preliminary
+Preliminary
+verification
+of mathematical
+the mathematical
+model
+ofthe
+flow
+the river
+channel
+of
+the
+Xiashan
+Reservoir.
+downstream of the Xiashan Reservoir.
+
+As seen in Figure 14, under the designed discharge, the calculated value of the model is consistent
+with the measured data, indicating that the established mathematical model can largely simulate the
+dynamic pattern of water flow of the river channel downstream of the Xiashan Reservoir.
+5. Discussion
+Hydrodynamic models are fundamental to flood quantitative simulations. The accuracy and
+reliability of these computations are closely related to the availability, timeliness, and scale or resolution
+of data [5]. Hydrodynamic models are highly specialized; therefore, visualization and intuitive
+representations of their results are very important for scientific decision making. The integration of
+hydrodynamic model computations and emergency management is one of the important factors for
+improving the efficiency of flood emergency administration [4]. This paper offers methods for quickly
+establishing a spatio-temporal GIS framework for flood risk simulations and seamlessly integrating
+spatio-temporal GIS and hydrodynamic models. These methods can effectively solve the problems of
+data availability, visualization, and integration of hydrodynamic models, which will improve flood
+risk simulations and emergency administration.
+The method proposed in this paper is used to quickly construct flood risk simulation spatio-temporal
+GIS, which provides up-to-date data for hydrodynamic model computations. Basic geo-information data,
+such as topography, are the basis of hydrodynamic model computations [5]. In practice, hydrodynamic
+model computations are often affected by the poor availability of basic data, poor timeliness, and low
+
+ISPRS Int. J. Geo-Inf. 2019, 8, 520
+
+17 of 21
+
+resolution of data. The following factors will lead to the failure of hydrodynamic model computations or the
+poor reliability and accuracy of computation results: (a) Difficulty in obtaining basic data for various reasons;
+(b) poor timeliness of basic data; and (c) low-resolution basic data. In this paper, tilt photogrammetry,
+three-dimensional modeling, and a digital earth platform are used to rapidly construct a spatio-temporal
+GIS framework, which provides up-to-date and high-resolution basic data for hydrodynamic model
+computations. This framework also includes increased storage and multi-dimension visualization.
+The integrated framework realizes seamless integration of data, business information, and system
+functions contained within spatio-temporal GIS and the hydrodynamic model. It promotes the
+application of flood risk simulation results in emergency administration, which will improve
+the efficiency of decision making. In most realistic applications, the data acquisition system,
+the hydrodynamic model computation system, the visualization system, and the business management
+system are individual systems [18]. Therefore, interoperability among these systems is usually not
+very good, which affects the efficiency of emergency administration of flood disasters. The integration
+framework described in this paper integrates data collection, model computation, dynamic visualization,
+and emergency administration, which enables data flow and business processes to flow through
+a unified platform. In practice, this will shorten decision-making time in emergency management.
+Based on this framework, a dynamic visual simulation platform for the flood risk at Xiashan Reservoir
+was established, which could be used to conduct three-dimensional dynamic simulations of flood
+evolution The platform intuitively displays the variations in the inundation range over time and
+the changes in the flood velocity, flow direction, and flow discharge over time three-dimensionally,
+thus providing an easier way to understand flood evolution. The platform offers more scientific
+decision-support information for flood emergency management. Furthermore, the platform provides
+rich interfaces for the integration of monitoring systems, such as rainfall stations, hydrological stations,
+and so on. As a result, time series monitoring data can be connected to the platform in real time and
+can serve as input parameters for hydrodynamic models. In several cases, the static flood risk map will
+be created for specific rainfall and flood flow scenarios, such as a 100 mm rainfall event or a 50-year
+flood recurrence [49]. The map shows the inundation range, flood depth, etc. The methods proposed
+in this paper can be used to simulate flood processes under any rainfall or flow conditions, which can
+reflect changes in the flood inundation range as rainfall varies. Meanwhile, the simulation will be
+dynamically visualized in a three-dimensional way.
+Flood risk simulations and emergency administration are complex systems, and their effectiveness
+and accuracy in realistic applications are influenced by many factors. Four research goals remain:
+First, in common modeling practices, a physical model will be preferably constructed to assure
+the validity of the model outcomes [6]. This study focused on the construction of spatio-temporal GIS
+by using oblique photography and the seamless integration of spatio-temporal GIS and hydrodynamic
+models. Therefore, the physical models of Xiashan Reservoir and river channels were not constructed.
+The historical observation data from seven typical sections were used to verify the model (Section 4.5).
+Second, the traditional hydrodynamic equations were used in the study. There are simplified
+equations in terms of the development of the hydrodynamic model [5]. The integration framework
+proposed in this study can integrate multiple hydrodynamic models. Therefore, hydrodynamic models
+themselves will not influence the integrated method proposed in this study. This paper focuses on
+the integration of three kinds of hydrodynamic models with spatio-temporal GIS. In the future, more
+hydrodynamic models will be integrated into the system and experiments will be conducted in other
+watersheds to improve the applicability of the method and the dynamic simulation system.
+Third, from the view of model processes, the uncertainties include choice of model structures,
+model parameters, model inputs (e.g., channel geometry, floodplain), validation data, and land use
+change [5]. For this study, the main uncertainties were model structures, model inputs, and validation
+data. However, since the aim of the study was to propose a method for quickly establishing
+spatio-temporal GIS and put forward an integration framework, we did not quantify the uncertainties.
+The uncertainties will be identified, quantified, and represented in the future.
+
+ISPRS Int. J. Geo-Inf. 2019, 8, 520
+
+18 of 21
+
+In addition, the platform’s current infrastructure does not employ a big data architecture. Using the
+dynamic simulation of flood risk, population, economy, and society data will be added, so that the quantitative
+assessment of the affected population, structures, and economy under different flood scenarios can be
+analyzed [23,50]. Different emergency plans will be provided to promote the intelligent development of
+emergency management of flood risk. MongDB and Spark will be used to reconstruct the underlying data,
+and then the operation efficiency of the whole system will be further improved [51].
+6. Conclusions
+In this study, a spatio-temporal computing framework for flood risk simulation is proposed. A seamless
+integration of spatio-temporal GIS and hydrodynamic models is realized for the data flow process,
+computing process, business process, and system functions. This framework can perform dynamic and
+visual simulations of flood evolution and can identify flood risk in three dimensions, greatly improving
+the efficiency of flood risk simulations and decision making. The method described in this paper can
+quickly establish a flood simulation in a spatio-temporal GIS framework, which can provide up-to-date and
+high-resolution basic data to compute hydrodynamic models. Taking Xiashan Reservoir as an example,
+a visual decision support platform for the flood risk of the Xiashan Reservoir was established; this platform
+seamlessly integrated spatio-temporal GIS with one-dimensional and two-dimensional hydrodynamic
+models. Using the hydrodynamic models, the platform can simulate and display the dynamic flood
+evolution in three dimensions. The results show changes in the flood factors, such as the inundation
+range, the cross-section velocity and flow, the water depth, etc., over time. The platform can provide
+three-dimensional flood simulations of various scenarios for flood emergency administration. In addition,
+it provides more intuitive and scientific decision support information than the individual hydrodynamic
+model system provides.
+A three-dimensional representation of the study area was quickly established using tilt photogrammetry.
+A spatio-temporal database was established and included spatial data (DEM, three-dimensional model
+of water conservancy facilities, submerged areas, towns, villages, etc.) and temporal data (temporal data
+of flood factors, meteorological temporal data, temporal data of sensing networks such as hydrological
+stations, etc.). Based on the digital earth platform, a spatio-temporal GIS of the study area was constructed
+to support model computation, spatial analysis and multi-dimensional visualization. A three-dimensional
+representation was conducted of the water conservancy engineering facilities in the research area, such as
+the reservoirs, river bodies, dams, pump rooms, etc.
+Flood risk was simulated dynamically and in three dimensions. Through a seamless integration
+of spatio-temporal GIS and hydrodynamic models, a flood risk dynamic simulation platform was
+established. The platform integrated parameters input, computation processes, visualization of
+the computation results and emergency management decision making. In the three-dimensional
+representation, the temporal evolution of the key flood factors, such as the flood inundation range,
+the inundation depth, the flow velocity and the flow direction, was displayed. A dynamic and visual
+assessment of flood risk was conducted and the spatio-temporal characteristics of human factors,
+geographical objects, events, and flood processes were comprehensively displayed.
+With the advent of the Internet of Things, big data, cloud computing, artificial intelligence, and 5G
+technology, the frequency, varieties, and volume of flood risk monitoring data will increase. Accurate flood
+risk simulations and intelligent emergency management will be the focus of future research. The integrated
+framework and methods proposed in this paper have laid a foundation for these types of future studies.
+Author Contributions: Conceptualization, Q.L.; methodology, Y.W. and Y.P.; software, Y.W. and F.P.; validation,
+Y.W.; formal analysis, Y.W. and F.P.; resources, Y.P. and Y.W.; data curation, H.L.; writing—original draft preparation,
+F.P.; writing—review and editing, Q.L., Y.W. and X.K.; visualization, Y.W. and F.P.; supervision, Y.P. and Q.L.;
+project administration, Y.P. and Y. W.
+Funding: This research received no external funding.
+Acknowledgments: The authors would like to express their gratitude to the project team.
+
+ISPRS Int. J. Geo-Inf. 2019, 8, 520
+
+19 of 21
+
+Conflicts of Interest: Yongxing Wu and Fei Peng contributed to the work equally and should be regarded as
+co-first authors. All authors declare no conflicts of interest.
+
+References
+1.
+2.
+3.
+
+4.
+
+5.
+6.
+
+7.
+8.
+
+9.
+10.
+11.
+12.
+13.
+
+14.
+
+15.
+16.
+17.
+18.
+
+19.
+
+20.
+21.
+
+Liu, N.; Fei, W. Analysis on the Basic Situation of Natural Disasters in 2018. Disaster Reduct. China 2019, 5,
+14–17. (In Chinese)
+Mignot, E.; Li, X.; Dewals, B. Experimental modelling of urban flooding: A review. J. Hydrol. 2019, 568,
+334–342. [CrossRef]
+Teng, J.; Vaze, J.; Kim, S.; Dutta, D.; Jakeman, A.J.; Croke, B.F.W. Enhancing the Capability of a Simple,
+Computationally Efficient, Conceptual Flood Inundation Model in Hydrologically Complex Terrain.
+Water Resour. Manag. 2019, 33, 831–845. [CrossRef]
+Dang, A.T.N.; Kumar, L. Application of remote sensing and GIS-based hydrological modelling for flood risk
+analysis: A case study of District 8, Ho Chi Minh city, Vietnam. Geomat. Nat. Hazards Risk 2017, 8, 1792–1811.
+[CrossRef]
+Teng, J.; Jakeman, A.; Vaze, J.; Croke, B.; Dutta, D.; Kim, S. Flood inundation modelling: A review of methods,
+recent advances and uncertainty analysis. Environ. Model. Softw. 2017, 90, 201–216. [CrossRef]
+Lai, J.-S.; Chang, W.-Y.; Chan, Y.-C.; Kang, S.-C.; Tan, Y.-C. Development of a 3D virtual environment for
+improving public participation: Case study–The Yuansantze Flood Diversion Works Project. Adv. Eng. Inform.
+2011, 25, 208–223. [CrossRef]
+Liu, X.J.; Zhong, D.H.; Tong, D.W.; Zhou, Z.Y.; Ao, X.F.; Li, W.Q. Dynamic visualisation of storm surge flood
+routing based on three-dimensional numerical simulation. J. Flood Risk Manag. 2018, 11, 729–749. [CrossRef]
+Leskens, J.G.; Kehl, C.; Tutenel, T.; Kol, T.; De Haan, G.; Stelling, G.; Eisemann, E. An interactive simulation
+and visualization tool for flood analysis usable for practitioners. Mitig. Adapt. Strateg. Glob. Chang. 2017, 22,
+307–324. [CrossRef]
+Macchione, F.; Costabile, P.; Costanzo, C.; De Santis, R. Moving to 3-D flood hazard maps for enhancing risk
+communication. Environ. Model. Softw. 2019, 111, 510–522. [CrossRef]
+Wang, J. Spatio-temporal big data and its application in smart city. Satell. Appl. 2017, 3, 10–17.
+Wang, J.; Wu, F.; Guo, J.; Cheng, Y.; Chen, K. Challenges and opportunities of spatio-temporal big data.
+Sci. Surv. Mapp. 2017, 42, 1–7.
+Lin, H.; You, L.; Hu, C.; Chen, M. Prospect of Geo-Knowledge Engineering in the Era of Spatio-Temporal Big
+Data. Geomat. Inf. Sci. Wuhan Univ. 2018, 43, 2205–2211.
+Li, S.; Dragicevic, S.; Castro, F.A.; Sester, M.; Winter, S.; Coltekin, A.; Pettit, C.; Jiang, B.; Haworth, J.;
+Stein, A.; et al. Geospatial big data handling theory and methods: A review and research challenges.
+ISPRS J. Photogramm. Remote Sens. 2016, 115, 119–133. [CrossRef]
+Hu, K.; Gui, Z.; Cheng, X.; Wu, H.; McClure, S.C. The Concept and Technologies of Quality of Geographic
+Information Service: Improving User Experience of GIServices in a Distributed Computing Environment.
+ISPRS Int. J. Geo Inf. 2019, 8, 118. [CrossRef]
+Wang, S.; Zhong, Y.; Wang, E. An integrated GIS platform architecture for spatiotemporal big data.
+Future Gener. Comput. Syst. 2019, 94, 160–172. [CrossRef]
+Lienert, C.; Weingartner, R.; Hurni, L. Real-Time Visualization in Operational Hydrology through Web-based
+Cartography. Cartogr. Geogr. Inf. Sci. 2009, 36, 45–58. [CrossRef]
+Lee, J.; Kang, M. Geospatial Big Data: Challenges and Opportunities. Big Data Res. 2015, 2, 74–81. [CrossRef]
+Ventura, B.; Vianello, A.; Frisinghelli, D.; Rossi, M.; Monsorno, R.; Costa, A. A Methodology for
+Heterogeneous Sensor Data Organization and Near Real-Time Data Sharing by Adopting OGC SWE
+Standards. ISPRS Int. J. Geo Inf. 2019, 8, 167. [CrossRef]
+Söderholm, K.; Pihlajamäki, M.; Dubrovin, T.; Veijalainen, N.; Vehviläinen, B.; Marttunen, M. Collaborative
+Planning in Adaptive Flood Risk Management under Climate Change. Water Resour. Manag. 2018, 32,
+1383–1397. [CrossRef]
+Schumann, A. Flood Safety versus Remaining Risks - Options and Limitations of Probabilistic Concepts in
+Flood Management. Water Resour. Manag. 2017, 31, 3131–3145. [CrossRef]
+Kourgialas, N.N.; Karatzas, G.P. Flood management and a GIS modelling method to assess flood-hazard
+areas-a case study. Hydrol. Sci. J. 2011, 56, 212–225. [CrossRef]
+
+ISPRS Int. J. Geo-Inf. 2019, 8, 520
+
+22.
+
+23.
+24.
+25.
+
+26.
+27.
+
+28.
+29.
+
+30.
+31.
+32.
+33.
+34.
+35.
+
+36.
+37.
+
+38.
+39.
+40.
+41.
+42.
+43.
+44.
+
+20 of 21
+
+Wang, Y.; Chen, A.S.; Fu, G.; Djordjević, S.; Zhang, C.; Savić, D.A. An integrated framework for high-resolution
+urban flood modelling considering multiple information sources and urban features. Environ. Model. Softw.
+2018, 107, 85–95. [CrossRef]
+Fang, Y.; Jawitz, J.W. The evolution of human population distance to water in the USA from 1790 to 2010.
+Nat. Commun. 2019, 10, 430. [CrossRef] [PubMed]
+Di Salvo, C.; Pennica, F.; Ciotoli, G.; Cavinato, G.P. A GIS-based procedure for preliminary mapping of
+pluvial flood risk at metropolitan scale. Environ. Model. Softw. 2018, 107, 64–84. [CrossRef]
+Soriano-Redondo, A.; Bearhop, S.; Cleasby, I.R.; Lock, L.; Votier, S.C.; Hilton, G.M. Ecological Responses
+to Extreme Flooding Events: A Case Study with a Reintroduced Bird. Sci. Rep. 2016, 6, 28595. [CrossRef]
+[PubMed]
+Huang, K.; Yu, K. Research on key technology for 3D GIS platform of flood prevention and mitigation.
+J. Nat. Disasters. 2013, 22, 239–244.
+Diakakis, M.; Pallikarakis, A.; Katsetsiadou, K. Using a Spatio-Temporal GIS Database to Monitor the
+Spatial Evolution of Urban Flooding Phenomena. The Case of Athens Metropolitan Area in Greece.
+ISPRS Int. J. Geo Inf. 2014, 3, 96–109. [CrossRef]
+Berne, A.; Krajewski, W.F. Radar for hydrology: Unfulfilled promise or unrecognized potential? Adv. Water Resour.
+2013, 51, 357–366. [CrossRef]
+Fewtrell, T.J.; Duncan, A.; Sampson, C.C.; Neal, J.C.; Bates, P.D. Benchmarking urban flood models of varying
+complexity and scale using high resolution terrestrial LiDAR data. Phys. Chem. Earth Parts A/B/C 2011, 36,
+281–291. [CrossRef]
+Kulawiak, M.; Kulawiak, M.; Lubniewski, Z. Integration, Processing and Dissemination of LiDAR Data in
+a 3D Web-GIS. ISPRS Int. J. Geo Inf. 2019, 8, 144. [CrossRef]
+Adeogun, A.G.; Daramola, M.O.; Pathirana, A. Coupled 1D-2D hydrodynamic inundation model for sewer
+overflow: Influence of modeling parameters. Water Sci. 2019, 29, 146–155. [CrossRef]
+Gallegos, H.A.; Schubert, J.E.; Sanders, B.F. Two-dimensional, high-resolution modeling of urban dam-break
+flooding: A case study of Baldwin Hills, California. Adv. Water Resour. 2009, 32, 1323–1335. [CrossRef]
+Saadi, Y. One-Dimensional Hydrodynamic Modelling for River Flood Forecasting. Civ. Eng. Dimens. 2008,
+10, 51–58.
+Cea, L.; Garrido, M.; Puertas, J. Experimental validation of two-dimensional depth-averaged models for
+forecasting rainfall–runoff from precipitation data in urban areas. J. Hydrol. 2010, 382, 88–102. [CrossRef]
+Vozinaki, A.K.; Morianou, G.G.; Alexakis, D.D.; Tsanis, I.K. Comparing 1D and combined 1D/2D hydraulic
+simulations using high-resolution topographic data: A case29 study of the Koiliaris basin, Greece.
+Hydrol. Sci. J. 2017, 62, 642–656. [CrossRef]
+Tamang, S.L.; Saikhom, V.; Bhutia, Z.T. 3D Flood Simulation System using RS&GIS. Int. J. Eng. Res. Technol.
+2014, 3, 2218–2222.
+Costabile, P.; Costanzo, C.; De Bartolo, S.; Gangi, F.; Macchione, F.; Tomasicchio, G.R. Hydraulic Characterization
+of River Networks Based on Flow Patterns Simulated by 2-D Shallow Water Modeling: Scaling Properties,
+Multifractal Interpretation, and Perspectives for Channel Heads Detection. Water Resour. Res. 2019, 55, 7717–7752.
+[CrossRef]
+Guide for Selecting Manning’s Roughness Coefficients for Natural Channels and Flood Plains. Available online:
+https://www.wcc.nrcs.usda.gov/ftpref/wntsc/H&H/roughness/wsp2339.pdf (accessed on 17 October 2019).
+Costabile, P.; Macchione, F.; Natale, L.; Petaccia, G. Flood mapping using LIDAR DEM. Limitations of the
+1-D modeling highlighted by the 2-D approach. Nat. Hazards 2015, 77, 181–204. [CrossRef]
+Akan, A.O. Open Channel Hydraulics; Elsevier Press: Amsterdam, The Netherlands, 2006.
+Julin, A.; Jaalama, K.; Virtanen, J.-P.; Maksimainen, M.; Kurkela, M.; Hyyppä, J.; Hyyppä, H. Automated
+Multi-Sensor 3D Reconstruction for the Web. ISPRS Int. J. Geo-Inf. 2019, 8, 221. [CrossRef]
+Yang, C.R.; Tsai, C.T. Development of a GIS-Based Flood Information System for Floodplain Modeling and
+Damage Calculation. J. Am. Water Resour. Assoc. 2000, 36, 567–577. [CrossRef]
+Singh, H.; Garg, R.D. Web 3D GIS Application for Flood Simulation and Querying Through Open Source
+Technology. J. Indian Soc. Remote Sens. 2016, 44, 485–494. [CrossRef]
+Seenirajan, M.; Natarajan, M.; Thangaraj, R.; Bagyaraj, M. Study and Analysis of Chennai Flood 2015 Using
+GIS and Multicriteria Technique. J. Geogr. Inf. Syst. 2017, 9, 126–140. [CrossRef]
+
+ISPRS Int. J. Geo-Inf. 2019, 8, 520
+
+45.
+46.
+47.
+48.
+49.
+50.
+51.
+
+21 of 21
+
+Zhang, X.; He, M. Application of UAV aerial Photography Technology in Xiashan Reservoir Survey.
+Shandong Water Resour. 2015, 06, 11–12.
+Petty, T.R.; Noman, N.; Ding, D.; Gongwer, J.B. Flood Forecasting GIS Water-Flow Visualization Enhancement
+(WaVE): A Case Study. J. Geogr. Inf. Syst. 2016, 08, 692–728. [CrossRef]
+Adelfio, M.; Kain, J.H.; Stenberg, J.; Thuvander, L. GISualization: Visualized integration of multiple types of
+data for knowledge co-production. Geogr. Tidsskr. Dan. J. Geogr. 2019, 119, 1–22. [CrossRef]
+Semmo, A.; Trapp, M.; Jobst, M.; Döllner, J. Cartography-Oriented Design of 3D Geospatial Information
+Visualization-Overview and Techniques. Cartogr. J. 2015, 52, 95–106. [CrossRef]
+Chen, A.S.; Evans, B.; Djordjević, S.; Savić, D.A. A coarse-grid approach to representing building blockage
+effects in 2D urban flood modelling. J. Hydrol. 2012, 426, 1–16. [CrossRef]
+Schirmer, M.; Leschik, K.; Musolff, A. Current research in urban hydrogeology–A review. Adv. Water Resour.
+2013, 51, 280–291. [CrossRef]
+Chen, Z.; Chen, N. A Real-Time and Open Geographic Information System and Its Application for Smart
+Rivers: A Case Study of the Yangtze River. ISPRS Int. J. Geo Inf. 2019, 8, 114. [CrossRef]
+© 2019 by the authors. Licensee MDPI, Basel, Switzerland. This article is an open access
+article distributed under the terms and conditions of the Creative Commons Attribution
+(CC BY) license (http://creativecommons.org/licenses/by/4.0/).
+
+

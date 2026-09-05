@@ -1,0 +1,241 @@
+#pragma once
+
+#include <QWidget>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QPixmap>
+#include <QTimer>
+#include <QPoint>
+#include <QPointF>
+#include <QHash>
+#include <QCache>
+#include <QString>
+#include <vector>
+#include <cmath>
+#include "../core/DamManager.h"
+#include "../core/DamFloodSimulation.h"
+#include "../core/WeatherForecastManager.h"
+#include "../core/HelicopterTrackerManager.h"
+#include "../core/TileCacheManager.h"
+#include "MapTool.h"
+
+namespace MapUI {
+
+using MapCore::TileKey;
+using MapCore::OnlineTileProvider;
+
+struct DangerDamMarker {
+    MapCore::DamPoint dam;
+    QString alertLevel;
+    QString alertColor;
+    double failureProbability = 0.0;
+};
+
+class OnlineTileWidget : public QWidget {
+    Q_OBJECT
+
+private:
+    // Camera state in geo coordinates (WGS84) - Default: Full India View
+    double centerLat = 22.0;
+    double centerLon = 79.0;
+    int zoomLevel = 5;
+
+    // Mouse dragging state
+    bool isDragging = false;
+    bool isMiddleDragging = false;
+    QPoint lastMousePos;
+
+    OnlineTileProvider currentProvider = OnlineTileProvider::OpenStreetMap_Standard;
+
+    // Zoom Sensitivity & Accumulator for smooth two-finger touchpad / mouse zoom
+    double zoomSensitivity = 0.5;
+    double wheelAccumulator = 0.0;
+    bool anchorZoomToCursor = true;
+    bool invertScroll = false;
+
+    // Dams Layer
+    const MapCore::DamManager* damManager = nullptr;
+    bool showDams = true;
+    std::vector<DangerDamMarker> dangerDams;
+
+    // Active Tool & Mode
+    MapTool currentTool = MapTool::Move;
+
+    // Measurement Tool (Ruler)
+    bool measureMode = false;
+    std::vector<QPointF> measurePoints; // stored as (lat, lon)
+    QPoint liveMousePos;
+    bool hasLiveMouse = false;
+    QPoint pressMousePos;
+
+    // Box Selection (Select Tool)
+    bool isBoxSelecting = false;
+    QPoint boxSelectStart;
+    QPoint boxSelectCurrent;
+    std::vector<const MapCore::DamPoint*> selectedDams;
+
+    // 360° Map Rotation (Rotate Tool)
+    double rotationAngle = 0.0;
+    bool isRotating = false;
+    double lastRotationMouseAngle = 0.0;
+
+    // 60-Minute Hydrodynamic Dam Flood Simulation & River Flow Animation
+    MapCore::FloodSimulationState floodSimulation;
+    bool hydroFlowMode = false;
+    std::vector<MapCore::FloodSimulationState> hydroFlowSimulations;
+    int currentSimulationMinute = 0;
+    QTimer* flowAnimTimer = nullptr;
+    int flowAnimPhase = 0;
+
+    // Weather Forecast Layer
+    bool weatherMode = false;
+    MapCore::WeatherForecastData weatherForecast;
+    int weatherHourIndex = 0;
+
+    // Helicopter SAR Live Tracking Layer
+    bool showHelicopters = false;
+    std::vector<MapCore::HelicopterTrack> liveHelicopters;
+    QString selectedHelicopterHex;
+
+    // Viewport Active Render Guard
+    bool renderingActive = true;
+
+    static constexpr int TILE_SIZE = 256;
+
+public:
+    explicit OnlineTileWidget(QWidget* parent = nullptr);
+
+    void setDamManager(const MapCore::DamManager* mgr) { damManager = mgr; update(); }
+    void setShowDams(bool show) { showDams = show; update(); }
+    bool getShowDams() const { return showDams; }
+    void setDangerDams(const std::vector<DangerDamMarker>& dams) { dangerDams = dams; update(); }
+    void clearDangerDams() { dangerDams.clear(); update(); }
+    const std::vector<DangerDamMarker>& getDangerDams() const { return dangerDams; }
+
+    void setTool(MapTool tool);
+    MapTool getTool() const { return currentTool; }
+
+    void setMeasureMode(bool active);
+    bool isMeasureMode() const { return measureMode; }
+    void clearMeasure();
+    void clearBoxSelection();
+    const std::vector<const MapCore::DamPoint*>& getSelectedDams() const { return selectedDams; }
+
+    void setFloodSimulation(const MapCore::FloodSimulationState& sim);
+    void updateFloodSimulationMinute(int minute);
+    void clearFloodSimulation();
+    const MapCore::FloodSimulationState& getFloodSimulation() const { return floodSimulation; }
+
+    void setHydroFlowMode(bool active);
+    bool isHydroFlowMode() const { return hydroFlowMode; }
+    size_t getHydroFlowDamCount() const { return hydroFlowSimulations.size(); }
+
+    void setWeatherMode(bool active) { weatherMode = active; update(); }
+    bool isWeatherMode() const { return weatherMode; }
+    void setWeatherForecast(const MapCore::WeatherForecastData& forecast, int hourIndex = 0) {
+        weatherForecast = forecast;
+        weatherHourIndex = hourIndex;
+        update();
+    }
+    void setWeatherHourIndex(int hourIndex) {
+        weatherHourIndex = hourIndex;
+        update();
+    }
+
+    void setHelicopters(const std::vector<MapCore::HelicopterTrack>& helis) {
+        liveHelicopters = helis;
+        if (renderingActive) update();
+    }
+    void setSelectedHelicopterHex(const QString& hex) {
+        selectedHelicopterHex = hex;
+        if (renderingActive) update();
+    }
+    void setShowHelicopters(bool show) {
+        showHelicopters = show;
+        if (renderingActive) update();
+    }
+    bool getShowHelicopters() const { return showHelicopters; }
+    const std::vector<MapCore::HelicopterTrack>& getHelicopters() const { return liveHelicopters; }
+    const MapCore::WeatherForecastData& getWeatherForecast() const { return weatherForecast; }
+
+    void setRenderingActive(bool active);
+    bool isRenderingActive() const { return renderingActive; }
+
+    void setRotation(double degrees);
+    double getRotation() const { return rotationAngle; }
+    void resetRotation();
+
+    QPointF unrotatePoint(const QPointF& pt) const;
+    QPointF rotatePoint(const QPointF& pt) const;
+
+    double screenToLon(double screenX, double screenY) const;
+    double screenToLat(double screenX, double screenY) const;
+    double screenToLon(double screenX) const { return screenToLon(screenX, height() / 2.0); }
+    double screenToLat(double screenY) const { return screenToLat(width() / 2.0, screenY); }
+    QPointF geoToScreen(double lat, double lon) const;
+    static double haversineDistanceM(double lat1, double lon1, double lat2, double lon2);
+
+    void setCenter(double lat, double lon);
+    void setZoom(int z);
+    void zoomIn();
+    void zoomOut();
+    void fitIndia();
+    void fitAssam();
+
+    void setTileProvider(OnlineTileProvider provider);
+    OnlineTileProvider getTileProvider() const { return currentProvider; }
+
+    void setDarkMode(bool isDark) {
+        setTileProvider(isDark ? OnlineTileProvider::OpenStreetMap_Dark : OnlineTileProvider::OpenStreetMap_Standard);
+    }
+    bool isDarkMode() const {
+        return currentProvider == OnlineTileProvider::OpenStreetMap_Dark;
+    }
+
+    void setZoomSensitivity(double s) { zoomSensitivity = std::clamp(s, 0.05, 3.0); }
+    double getZoomSensitivity() const { return zoomSensitivity; }
+
+    void setAnchorZoomToCursor(bool a) { anchorZoomToCursor = a; }
+    bool getAnchorZoomToCursor() const { return anchorZoomToCursor; }
+
+    void setInvertScroll(bool inv) { invertScroll = inv; }
+    bool getInvertScroll() const { return invertScroll; }
+
+    void setCacheCapacity(int maxTiles) { MapCore::TileCacheManager::instance().setCacheMaxCost(maxTiles); }
+
+    double getCenterLat() const { return centerLat; }
+    double getCenterLon() const { return centerLon; }
+    int getZoom() const { return zoomLevel; }
+
+signals:
+    void viewportChanged(double lat, double lon, int zoom);
+    void damClicked(const MapCore::DamPoint& dam);
+    void measureModeChanged(bool active);
+    void contextMenuRequested(const QPoint& globalPos);
+    void boxSelectionCompleted(double minLat, double minLon, double maxLat, double maxLon, int count);
+    void rotationChanged(double degrees);
+    void weatherLocationRequested(double lat, double lon);
+    void helicopterClicked(const MapCore::HelicopterTrack& heli);
+
+protected:
+    void paintEvent(QPaintEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
+    void wheelEvent(QWheelEvent* event) override;
+    void resizeEvent(QResizeEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
+    void leaveEvent(QEvent* event) override;
+
+private:
+    static double lonToTileX(double lon, int zoom);
+    static double latToTileY(double lat, int zoom);
+    static double tileXToLon(double x, int zoom);
+    static double tileYToLat(double y, int zoom);
+
+    QPixmap* getTile(int zoom, int x, int y);
+    void emitViewportChanged();
+};
+
+} // namespace MapUI

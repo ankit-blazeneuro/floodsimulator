@@ -1,0 +1,3209 @@
+{
+  "last_scan_time": "2026-09-05T11:04:54.738802+00:00",
+  "total_dams_in_registry": 6645,
+  "surveillance_count": 143,
+  "counts": {
+    "IMMINENT": 0,
+    "WARNING": 0,
+    "WATCH": 0,
+    "NORMAL": 143
+  },
+  "weather_provider": "Open-Meteo (ECMWF IFS / GFS / ICON High-Resolution Ensemble)",
+  "compute_engine": "Modal.com Serverless GPU (NVIDIA A10G)",
+  "dams": [
+    {
+      "pic": "MP08MH0167",
+      "dam_name": "Dumduma",
+      "state": "Madhya Pradesh",
+      "lat": 25.24583,
+      "lon": 78.7725,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.08,
+      "breach_probability": 0.08,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (8%). Dam operating safely within structural design tolerances and ample freeboard (0.9m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.9m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736639+00:00"
+    },
+    {
+      "pic": "UP13LH0002",
+      "dam_name": "Magar Pur",
+      "state": "Uttar Pradesh",
+      "lat": 25.28778,
+      "lon": 78.86083,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.08,
+      "breach_probability": 0.08,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (8%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736783+00:00"
+    },
+    {
+      "pic": "MP366MH1703",
+      "dam_name": "Beldhana Dam",
+      "state": "Madhya Pradesh",
+      "lat": 23.46583,
+      "lon": 79.50806,
+      "rain_1h_mm": 1.6,
+      "rain_24h_mm": 15.9,
+      "trigger_reason": "Slow Rain (3h: 14.3 mm)",
+      "failure_probability": 0.02857142857142857,
+      "breach_probability": 0.02857142857142857,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (2%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736103+00:00"
+    },
+    {
+      "pic": "MP08MH0191",
+      "dam_name": "Veer Sagar",
+      "state": "Madhya Pradesh",
+      "lat": 25.18639,
+      "lon": 78.69444,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.02857142857142857,
+      "breach_probability": 0.02857142857142857,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (2%). Dam operating safely within structural design tolerances and ample freeboard (1.8m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.8m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736654+00:00"
+    },
+    {
+      "pic": "BR02MH0002",
+      "dam_name": "Nagi",
+      "state": "Bihar",
+      "lat": 24.81778,
+      "lon": 86.39917,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 20.3,
+      "trigger_reason": "Moderate Rain (2h: 17.0 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.5m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.735697+00:00"
+    },
+    {
+      "pic": "BR02MH0004",
+      "dam_name": "Amrity",
+      "state": "Bihar",
+      "lat": 24.88944,
+      "lon": 86.10278,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 20.3,
+      "trigger_reason": "Moderate Rain (2h: 17.0 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.735775+00:00"
+    },
+    {
+      "pic": "BR02MH0006",
+      "dam_name": "Srikhandi",
+      "state": "Bihar",
+      "lat": 24.89222,
+      "lon": 86.09083,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 20.3,
+      "trigger_reason": "Moderate Rain (2h: 17.0 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.735803+00:00"
+    },
+    {
+      "pic": "BR02HH0013",
+      "dam_name": "Kailash Ghati",
+      "state": "Bihar",
+      "lat": 24.89417,
+      "lon": 85.92583,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 20.3,
+      "trigger_reason": "Moderate Rain (2h: 17.0 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.6m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.6m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.735826+00:00"
+    },
+    {
+      "pic": "BR02MH0015",
+      "dam_name": "Taracol",
+      "state": "Bihar",
+      "lat": 24.83639,
+      "lon": 85.96139,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 20.3,
+      "trigger_reason": "Moderate Rain (2h: 17.0 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.735844+00:00"
+    },
+    {
+      "pic": "MP366LH1702",
+      "dam_name": "Lalpani",
+      "state": "Madhya Pradesh",
+      "lat": 23.46889,
+      "lon": 79.57139,
+      "rain_1h_mm": 1.6,
+      "rain_24h_mm": 15.9,
+      "trigger_reason": "Slow Rain (3h: 14.3 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736083+00:00"
+    },
+    {
+      "pic": "MP368LH1704",
+      "dam_name": "Chirchitta Dam",
+      "state": "Madhya Pradesh",
+      "lat": 22.99583,
+      "lon": 79.54694,
+      "rain_1h_mm": 1.6,
+      "rain_24h_mm": 15.9,
+      "trigger_reason": "Slow Rain (3h: 14.3 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.2m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.2m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736121+00:00"
+    },
+    {
+      "pic": "MP08MH0115",
+      "dam_name": "Jabera",
+      "state": "Madhya Pradesh",
+      "lat": 23.55833,
+      "lon": 79.71611,
+      "rain_1h_mm": 1.6,
+      "rain_24h_mm": 15.9,
+      "trigger_reason": "Slow Rain (3h: 14.3 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.1m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.1m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736140+00:00"
+    },
+    {
+      "pic": "MP08HH0126",
+      "dam_name": "Tejgarh",
+      "state": "Madhya Pradesh",
+      "lat": 23.60694,
+      "lon": 79.40583,
+      "rain_1h_mm": 1.6,
+      "rain_24h_mm": 15.9,
+      "trigger_reason": "Slow Rain (3h: 14.3 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736161+00:00"
+    },
+    {
+      "pic": "MP08MH0132",
+      "dam_name": "Daroli",
+      "state": "Madhya Pradesh",
+      "lat": 23.35222,
+      "lon": 79.41139,
+      "rain_1h_mm": 1.6,
+      "rain_24h_mm": 15.9,
+      "trigger_reason": "Slow Rain (3h: 14.3 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736178+00:00"
+    },
+    {
+      "pic": "MP08MH0705",
+      "dam_name": "Bansichikhli",
+      "state": "Madhya Pradesh",
+      "lat": 23.32611,
+      "lon": 79.31806,
+      "rain_1h_mm": 1.6,
+      "rain_24h_mm": 15.9,
+      "trigger_reason": "Slow Rain (3h: 14.3 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736196+00:00"
+    },
+    {
+      "pic": "MP08MH0293",
+      "dam_name": "Nadia",
+      "state": "Madhya Pradesh",
+      "lat": 22.92944,
+      "lon": 79.45667,
+      "rain_1h_mm": 1.6,
+      "rain_24h_mm": 15.9,
+      "trigger_reason": "Slow Rain (3h: 14.3 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.9m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.9m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736213+00:00"
+    },
+    {
+      "pic": "MP08MH0303",
+      "dam_name": "Bandha",
+      "state": "Madhya Pradesh",
+      "lat": 22.9425,
+      "lon": 79.47639,
+      "rain_1h_mm": 1.6,
+      "rain_24h_mm": 15.9,
+      "trigger_reason": "Slow Rain (3h: 14.3 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.9m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.9m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736230+00:00"
+    },
+    {
+      "pic": "MP64LH1090",
+      "dam_name": "Pondi Jaitgarh Tank",
+      "state": "Madhya Pradesh",
+      "lat": 23.26833,
+      "lon": 79.38083,
+      "rain_1h_mm": 1.6,
+      "rain_24h_mm": 15.9,
+      "trigger_reason": "Slow Rain (3h: 14.3 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736282+00:00"
+    },
+    {
+      "pic": "MP64LH1091",
+      "dam_name": "Amwahi Tank",
+      "state": "Madhya Pradesh",
+      "lat": 23.39111,
+      "lon": 79.47639,
+      "rain_1h_mm": 1.6,
+      "rain_24h_mm": 15.9,
+      "trigger_reason": "Slow Rain (3h: 14.3 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736294+00:00"
+    },
+    {
+      "pic": "MP64LH1111",
+      "dam_name": "Kalapani Tank",
+      "state": "Madhya Pradesh",
+      "lat": 23.61194,
+      "lon": 79.40667,
+      "rain_1h_mm": 1.6,
+      "rain_24h_mm": 15.9,
+      "trigger_reason": "Slow Rain (3h: 14.3 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736321+00:00"
+    },
+    {
+      "pic": "MP364LH1771",
+      "dam_name": "Tulsi Sarovar",
+      "state": "Madhya Pradesh",
+      "lat": 24.58333,
+      "lon": 77.74194,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 30.0,
+      "trigger_reason": "Slow Rain (3h: 18.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.9m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.9m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736372+00:00"
+    },
+    {
+      "pic": "MP08LH0025",
+      "dam_name": "Jhaloni",
+      "state": "Madhya Pradesh",
+      "lat": 24.95722,
+      "lon": 78.1375,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 30.0,
+      "trigger_reason": "Slow Rain (3h: 18.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.2m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.2m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736384+00:00"
+    },
+    {
+      "pic": "MP08LH0026",
+      "dam_name": "Dhapora",
+      "state": "Madhya Pradesh",
+      "lat": 25.0725,
+      "lon": 77.96389,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 30.0,
+      "trigger_reason": "Slow Rain (3h: 18.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.9m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.9m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736397+00:00"
+    },
+    {
+      "pic": "MP08LH0033",
+      "dam_name": "Jamakheri",
+      "state": "Madhya Pradesh",
+      "lat": 24.785,
+      "lon": 77.78639,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 30.0,
+      "trigger_reason": "Slow Rain (3h: 18.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.1m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.1m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736409+00:00"
+    },
+    {
+      "pic": "MP08LH0039",
+      "dam_name": "Bharoli",
+      "state": "Madhya Pradesh",
+      "lat": 24.83583,
+      "lon": 77.8075,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 30.0,
+      "trigger_reason": "Slow Rain (3h: 18.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736423+00:00"
+    },
+    {
+      "pic": "MP08LH0049",
+      "dam_name": "Amahi",
+      "state": "Madhya Pradesh",
+      "lat": 24.52639,
+      "lon": 77.68389,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 30.0,
+      "trigger_reason": "Slow Rain (3h: 18.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.9m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.9m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736439+00:00"
+    },
+    {
+      "pic": "MP08MH0863",
+      "dam_name": "Madhar",
+      "state": "Madhya Pradesh",
+      "lat": 25.08389,
+      "lon": 77.81833,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 30.0,
+      "trigger_reason": "Slow Rain (3h: 18.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.1m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736478+00:00"
+    },
+    {
+      "pic": "MP08MH0209",
+      "dam_name": "Akhajhiri",
+      "state": "Madhya Pradesh",
+      "lat": 25.03444,
+      "lon": 77.89111,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 30.0,
+      "trigger_reason": "Slow Rain (3h: 18.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.4m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.4m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736499+00:00"
+    },
+    {
+      "pic": "MP64LH0975",
+      "dam_name": "Indaur Tank New",
+      "state": "Madhya Pradesh",
+      "lat": 24.97333,
+      "lon": 77.86194,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 30.0,
+      "trigger_reason": "Slow Rain (3h: 18.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.9m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.9m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736533+00:00"
+    },
+    {
+      "pic": "MP64LH1042",
+      "dam_name": "Banet",
+      "state": "Madhya Pradesh",
+      "lat": 24.84694,
+      "lon": 77.79083,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 30.0,
+      "trigger_reason": "Slow Rain (3h: 18.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736567+00:00"
+    },
+    {
+      "pic": "MP08LH0146",
+      "dam_name": "Tehraka",
+      "state": "Madhya Pradesh",
+      "lat": 25.28889,
+      "lon": 78.90528,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.2m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.2m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736610+00:00"
+    },
+    {
+      "pic": "MP08LH0628",
+      "dam_name": "Sidhkhad",
+      "state": "Madhya Pradesh",
+      "lat": 25.72194,
+      "lon": 78.73444,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.7m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.7m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736625+00:00"
+    },
+    {
+      "pic": "MP64LH1231",
+      "dam_name": "Ramsagar (Distt. Datia)",
+      "state": "Madhya Pradesh",
+      "lat": 25.67472,
+      "lon": 78.39917,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.4m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.4m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736761+00:00"
+    },
+    {
+      "pic": "UP13MH0001",
+      "dam_name": "Barwa Sagar",
+      "state": "Uttar Pradesh",
+      "lat": 25.37778,
+      "lon": 78.74444,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736772+00:00"
+    },
+    {
+      "pic": "UP13LH0003",
+      "dam_name": "Pachwara Lake",
+      "state": "Uttar Pradesh",
+      "lat": 25.36694,
+      "lon": 79.04528,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.9m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.9m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736795+00:00"
+    },
+    {
+      "pic": "UP13LH0006",
+      "dam_name": "Pahuj",
+      "state": "Uttar Pradesh",
+      "lat": 25.50333,
+      "lon": 78.535,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.9m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.9m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736832+00:00"
+    },
+    {
+      "pic": "UP13LH0009",
+      "dam_name": "Siori Lake",
+      "state": "Uttar Pradesh",
+      "lat": 25.315,
+      "lon": 79.09139,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.9m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.9m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736850+00:00"
+    },
+    {
+      "pic": "UP13MH0031",
+      "dam_name": "Saprar",
+      "state": "Uttar Pradesh",
+      "lat": 25.21333,
+      "lon": 79.08944,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.5m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736869+00:00"
+    },
+    {
+      "pic": "UP13LH0094",
+      "dam_name": "Khaprar",
+      "state": "Uttar Pradesh",
+      "lat": 25.43722,
+      "lon": 78.45306,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.5m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736882+00:00"
+    },
+    {
+      "pic": "UP13LH0095",
+      "dam_name": "Dongari",
+      "state": "Uttar Pradesh",
+      "lat": 25.38639,
+      "lon": 78.46194,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.4m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.4m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736895+00:00"
+    },
+    {
+      "pic": "UP13MH0122",
+      "dam_name": "Pathrai",
+      "state": "Uttar Pradesh",
+      "lat": 25.42361,
+      "lon": 79.02806,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.7m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.7m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736934+00:00"
+    },
+    {
+      "pic": "UP377MH0202",
+      "dam_name": "Dhukwan Weir",
+      "state": "Uttar Pradesh",
+      "lat": 25.19,
+      "lon": 78.5425,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.4m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.4m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736950+00:00"
+    },
+    {
+      "pic": "MH09HH1564",
+      "dam_name": "Bholawali",
+      "state": "Maharashtra",
+      "lat": 17.9,
+      "lon": 73.35667,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736966+00:00"
+    },
+    {
+      "pic": "MH09MH1565",
+      "dam_name": "Panhalghar",
+      "state": "Maharashtra",
+      "lat": 18.18056,
+      "lon": 73.36889,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736982+00:00"
+    },
+    {
+      "pic": "MH09MH0975",
+      "dam_name": "Khindwadi",
+      "state": "Maharashtra",
+      "lat": 17.94694,
+      "lon": 73.40972,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.0m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737061+00:00"
+    },
+    {
+      "pic": "MH09MH1040",
+      "dam_name": "Varandh",
+      "state": "Maharashtra",
+      "lat": 18.14667,
+      "lon": 73.58472,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737085+00:00"
+    },
+    {
+      "pic": "MH09HH1058",
+      "dam_name": "Natuwadi",
+      "state": "Maharashtra",
+      "lat": 17.83278,
+      "lon": 73.39972,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737101+00:00"
+    },
+    {
+      "pic": "MH09HH0048",
+      "dam_name": "Bhatghar",
+      "state": "Maharashtra",
+      "lat": 18.17361,
+      "lon": 73.86972,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22C55E",
+      "explanation": {
+        "summary": "Low failure risk (0%). Ample freeboard (7.0m remaining) under light precipitation.",
+        "top_factors": [
+          "sufficient freeboard margin",
+          "nominal catchment runoff"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737124+00:00"
+    },
+    {
+      "pic": "MH09MH0524",
+      "dam_name": "Kothurde",
+      "state": "Maharashtra",
+      "lat": 18.19417,
+      "lon": 73.39639,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.0m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737202+00:00"
+    },
+    {
+      "pic": "MH09MH1275",
+      "dam_name": "Khaire",
+      "state": "Maharashtra",
+      "lat": 18.04556,
+      "lon": 73.34111,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.0m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737274+00:00"
+    },
+    {
+      "pic": "MH09MH1460",
+      "dam_name": "Wawa",
+      "state": "Maharashtra",
+      "lat": 18.28611,
+      "lon": 73.16139,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737316+00:00"
+    },
+    {
+      "pic": "MH09HH1503",
+      "dam_name": "Awashi",
+      "state": "Maharashtra",
+      "lat": 17.89139,
+      "lon": 73.28722,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.1m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737373+00:00"
+    },
+    {
+      "pic": "MH09HH1554",
+      "dam_name": "Niradevghar",
+      "state": "Maharashtra",
+      "lat": 18.10056,
+      "lon": 73.72361,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.4m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.4m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737414+00:00"
+    },
+    {
+      "pic": "MH295MH3537",
+      "dam_name": "Nandvipurar",
+      "state": "Maharashtra",
+      "lat": 18.10694,
+      "lon": 73.28306,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.5m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737434+00:00"
+    },
+    {
+      "pic": "MH289LH2994",
+      "dam_name": "Sanderi",
+      "state": "Maharashtra",
+      "lat": 18.08389,
+      "lon": 73.23694,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.0m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737549+00:00"
+    },
+    {
+      "pic": "MH289LH3031",
+      "dam_name": "Shirsadi",
+      "state": "Maharashtra",
+      "lat": 17.89389,
+      "lon": 73.33139,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737574+00:00"
+    },
+    {
+      "pic": "MH293MH3113",
+      "dam_name": "Sheldi",
+      "state": "Maharashtra",
+      "lat": 17.63806,
+      "lon": 73.53,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737614+00:00"
+    },
+    {
+      "pic": "MH293MH3114",
+      "dam_name": "Tulshi",
+      "state": "Maharashtra",
+      "lat": 18.35,
+      "lon": 73.21667,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737626+00:00"
+    },
+    {
+      "pic": "MH293LH3140",
+      "dam_name": "Goregaon  (P.T.)",
+      "state": "Maharashtra",
+      "lat": 18.16333,
+      "lon": 73.28611,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737693+00:00"
+    },
+    {
+      "pic": "MH287LH2929",
+      "dam_name": "Dhom Dam",
+      "state": "Maharashtra",
+      "lat": 17.97528,
+      "lon": 73.81917,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.6m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.6m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737718+00:00"
+    },
+    {
+      "pic": "MH293HH3183",
+      "dam_name": "Soveli Pazar Talav",
+      "state": "Maharashtra",
+      "lat": 17.8525,
+      "lon": 73.19,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.5m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737782+00:00"
+    },
+    {
+      "pic": "MH293MH3214",
+      "dam_name": "Bhale",
+      "state": "Maharashtra",
+      "lat": 18.215,
+      "lon": 73.15306,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22C55E",
+      "explanation": {
+        "summary": "Low failure risk (0%). Ample freeboard (4.8m remaining) under light precipitation.",
+        "top_factors": [
+          "sufficient freeboard margin",
+          "nominal catchment runoff"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737811+00:00"
+    },
+    {
+      "pic": "RA11LH0013",
+      "dam_name": "Chaparwara",
+      "state": "Rajasthan",
+      "lat": 26.62139,
+      "lon": 75.2575,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 12.9,
+      "trigger_reason": "Slow Rain (3h: 12.7 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.6m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.6m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737825+00:00"
+    },
+    {
+      "pic": "RA11LH0032",
+      "dam_name": "Paibala Pura",
+      "state": "Rajasthan",
+      "lat": 25.6975,
+      "lon": 75.87889,
+      "rain_1h_mm": 0.1,
+      "rain_24h_mm": 28.9,
+      "trigger_reason": "Moderate Rain (2h: 16.8 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.9m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.9m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737836+00:00"
+    },
+    {
+      "pic": "RA11MH0035",
+      "dam_name": "Bundika Gothra",
+      "state": "Rajasthan",
+      "lat": 25.69056,
+      "lon": 75.64639,
+      "rain_1h_mm": 0.1,
+      "rain_24h_mm": 28.9,
+      "trigger_reason": "Moderate Rain (2h: 16.8 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.6m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.6m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737848+00:00"
+    },
+    {
+      "pic": "RA11MH0042",
+      "dam_name": "Bhimlat",
+      "state": "Rajasthan",
+      "lat": 25.29778,
+      "lon": 75.40222,
+      "rain_1h_mm": 0.1,
+      "rain_24h_mm": 28.9,
+      "trigger_reason": "Moderate Rain (2h: 16.8 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.8m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.8m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737883+00:00"
+    },
+    {
+      "pic": "RA67LH0224",
+      "dam_name": "Bardha Dam",
+      "state": "Rajasthan",
+      "lat": 25.24361,
+      "lon": 75.69444,
+      "rain_1h_mm": 0.1,
+      "rain_24h_mm": 28.9,
+      "trigger_reason": "Moderate Rain (2h: 16.8 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.2m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.2m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737933+00:00"
+    },
+    {
+      "pic": "RA67LH0225",
+      "dam_name": "Motipura",
+      "state": "Rajasthan",
+      "lat": 25.55528,
+      "lon": 75.95556,
+      "rain_1h_mm": 0.1,
+      "rain_24h_mm": 28.9,
+      "trigger_reason": "Moderate Rain (2h: 16.8 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.3m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.3m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737950+00:00"
+    },
+    {
+      "pic": "RA67LH0227",
+      "dam_name": "Roonija",
+      "state": "Rajasthan",
+      "lat": 25.70917,
+      "lon": 75.67278,
+      "rain_1h_mm": 0.1,
+      "rain_24h_mm": 28.9,
+      "trigger_reason": "Moderate Rain (2h: 16.8 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.8m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.8m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737964+00:00"
+    },
+    {
+      "pic": "RA67LH0228",
+      "dam_name": "Chanda Ka Talab",
+      "state": "Rajasthan",
+      "lat": 25.24861,
+      "lon": 75.58472,
+      "rain_1h_mm": 0.1,
+      "rain_24h_mm": 28.9,
+      "trigger_reason": "Moderate Rain (2h: 16.8 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.6m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.6m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737980+00:00"
+    },
+    {
+      "pic": "RA11MH0066",
+      "dam_name": "Parbati Dam",
+      "state": "Rajasthan",
+      "lat": 26.63278,
+      "lon": 77.44806,
+      "rain_1h_mm": 2.3,
+      "rain_24h_mm": 16.2,
+      "trigger_reason": "Slow Rain (3h: 12.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.6m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.6m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.738052+00:00"
+    },
+    {
+      "pic": "RA11MH0199",
+      "dam_name": "Baretha Bund",
+      "state": "Rajasthan",
+      "lat": 26.89472,
+      "lon": 77.3775,
+      "rain_1h_mm": 2.3,
+      "rain_24h_mm": 16.2,
+      "trigger_reason": "Slow Rain (3h: 12.1 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.9m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.9m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.738064+00:00"
+    },
+    {
+      "pic": "UP385MH0177",
+      "dam_name": "Hindon Barrage",
+      "state": "Uttar Pradesh",
+      "lat": 28.66417,
+      "lon": 77.39972,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 14.5,
+      "trigger_reason": "Slow Rain (3h: 11.7 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.1m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.1m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.738102+00:00"
+    },
+    {
+      "pic": "UP384MH0176",
+      "dam_name": "Bewar Barrage",
+      "state": "Uttar Pradesh",
+      "lat": 27.65306,
+      "lon": 78.73417,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 9.799999999999999,
+      "trigger_reason": "Slow Rain (3h: 9.2 mm)",
+      "failure_probability": 0.009900990099009901,
+      "breach_probability": 0.009900990099009901,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.4m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.4m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.738181+00:00"
+    },
+    {
+      "pic": "BR02MH0016",
+      "dam_name": "Baskund",
+      "state": "Bihar",
+      "lat": 25.06833,
+      "lon": 86.21639,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 20.3,
+      "trigger_reason": "Moderate Rain (2h: 17.0 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.1m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.735865+00:00"
+    },
+    {
+      "pic": "BR02HH0018",
+      "dam_name": "Belharna",
+      "state": "Bihar",
+      "lat": 24.85389,
+      "lon": 86.56,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 20.3,
+      "trigger_reason": "Moderate Rain (2h: 17.0 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22C55E",
+      "explanation": {
+        "summary": "Low failure risk (0%). Ample freeboard (3.0m remaining) under light precipitation.",
+        "top_factors": [
+          "sufficient freeboard margin",
+          "nominal catchment runoff"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.735940+00:00"
+    },
+    {
+      "pic": "BR02HH0020",
+      "dam_name": "Anjan",
+      "state": "Bihar",
+      "lat": 25.03111,
+      "lon": 86.29611,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 20.3,
+      "trigger_reason": "Moderate Rain (2h: 17.0 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22C55E",
+      "explanation": {
+        "summary": "Low failure risk (0%). Ample freeboard (3.2m remaining) under light precipitation.",
+        "top_factors": [
+          "sufficient freeboard margin",
+          "nominal catchment runoff"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.735970+00:00"
+    },
+    {
+      "pic": "BR02HH0024",
+      "dam_name": "Upper Kiul",
+      "state": "Bihar",
+      "lat": 24.78528,
+      "lon": 86.07722,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 20.3,
+      "trigger_reason": "Moderate Rain (2h: 17.0 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22C55E",
+      "explanation": {
+        "summary": "Low failure risk (0%). Ample freeboard (4.2m remaining) under light precipitation.",
+        "top_factors": [
+          "sufficient freeboard margin",
+          "nominal catchment runoff"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.735999+00:00"
+    },
+    {
+      "pic": "BR58MH0034",
+      "dam_name": "Nakti",
+      "state": "Bihar",
+      "lat": 24.85056,
+      "lon": 86.44139,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 20.3,
+      "trigger_reason": "Moderate Rain (2h: 17.0 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.4m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736022+00:00"
+    },
+    {
+      "pic": "BR58HH0030",
+      "dam_name": "Kundghat",
+      "state": "Bihar",
+      "lat": 24.87194,
+      "lon": 86.0125,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 20.3,
+      "trigger_reason": "Moderate Rain (2h: 17.0 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22C55E",
+      "explanation": {
+        "summary": "Low failure risk (0%). Ample freeboard (5.5m remaining) under light precipitation.",
+        "top_factors": [
+          "sufficient freeboard margin",
+          "nominal catchment runoff"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736046+00:00"
+    },
+    {
+      "pic": "JH05MH0065",
+      "dam_name": "Punasi",
+      "state": "Jharkhand",
+      "lat": 24.47861,
+      "lon": 86.53528,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 20.3,
+      "trigger_reason": "Moderate Rain (2h: 17.0 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.2m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.2m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736064+00:00"
+    },
+    {
+      "pic": "MP64LH1088",
+      "dam_name": "Bhineni",
+      "state": "Madhya Pradesh",
+      "lat": 23.54278,
+      "lon": 79.7075,
+      "rain_1h_mm": 1.6,
+      "rain_24h_mm": 15.9,
+      "trigger_reason": "Slow Rain (3h: 14.3 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736268+00:00"
+    },
+    {
+      "pic": "MP64MH1109",
+      "dam_name": "Narguwan Tank",
+      "state": "Madhya Pradesh",
+      "lat": 23.3725,
+      "lon": 79.54306,
+      "rain_1h_mm": 1.6,
+      "rain_24h_mm": 15.9,
+      "trigger_reason": "Slow Rain (3h: 14.3 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736308+00:00"
+    },
+    {
+      "pic": "MP64MH1251",
+      "dam_name": "Ghugra Nalla Hirapur",
+      "state": "Madhya Pradesh",
+      "lat": 23.03167,
+      "lon": 79.71778,
+      "rain_1h_mm": 1.6,
+      "rain_24h_mm": 15.9,
+      "trigger_reason": "Slow Rain (3h: 14.3 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736336+00:00"
+    },
+    {
+      "pic": "MP64MH1252",
+      "dam_name": "Richhai Tank",
+      "state": "Madhya Pradesh",
+      "lat": 23.14111,
+      "lon": 79.12722,
+      "rain_1h_mm": 1.6,
+      "rain_24h_mm": 15.9,
+      "trigger_reason": "Slow Rain (3h: 14.3 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.9m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.9m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736346+00:00"
+    },
+    {
+      "pic": "MP64LH1255",
+      "dam_name": "Kunda",
+      "state": "Madhya Pradesh",
+      "lat": 22.96139,
+      "lon": 79.61222,
+      "rain_1h_mm": 1.6,
+      "rain_24h_mm": 15.9,
+      "trigger_reason": "Slow Rain (3h: 14.3 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736358+00:00"
+    },
+    {
+      "pic": "MP08HH0777",
+      "dam_name": "Budhna Nalla",
+      "state": "Madhya Pradesh",
+      "lat": 25.01306,
+      "lon": 78.05556,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 30.0,
+      "trigger_reason": "Slow Rain (3h: 18.2 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.3m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.3m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736457+00:00"
+    },
+    {
+      "pic": "MP64LH0973",
+      "dam_name": "Barkheda Chajju Tank",
+      "state": "Madhya Pradesh",
+      "lat": 24.45972,
+      "lon": 77.69028,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 30.0,
+      "trigger_reason": "Slow Rain (3h: 18.2 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.9m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.9m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736515+00:00"
+    },
+    {
+      "pic": "MP64LH0976",
+      "dam_name": "Shahpur",
+      "state": "Madhya Pradesh",
+      "lat": 24.72806,
+      "lon": 77.85028,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 30.0,
+      "trigger_reason": "Slow Rain (3h: 18.2 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.5m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736550+00:00"
+    },
+    {
+      "pic": "UP13HH0059",
+      "dam_name": "Matatila",
+      "state": "Uttar Pradesh",
+      "lat": 25.09639,
+      "lon": 78.37361,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 30.0,
+      "trigger_reason": "Slow Rain (3h: 18.2 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.6m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.6m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736582+00:00"
+    },
+    {
+      "pic": "UP13HH0124",
+      "dam_name": "Rajghat",
+      "state": "Uttar Pradesh",
+      "lat": 24.76278,
+      "lon": 78.23417,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 30.0,
+      "trigger_reason": "Slow Rain (3h: 18.2 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.1m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736594+00:00"
+    },
+    {
+      "pic": "MP64LH1180",
+      "dam_name": "Kariya Patha",
+      "state": "Madhya Pradesh",
+      "lat": 25.1625,
+      "lon": 78.9125,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736670+00:00"
+    },
+    {
+      "pic": "MP64LH1182",
+      "dam_name": "Banjari",
+      "state": "Madhya Pradesh",
+      "lat": 25.21833,
+      "lon": 78.8675,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736685+00:00"
+    },
+    {
+      "pic": "MP64LH1183",
+      "dam_name": "Madwaghat",
+      "state": "Madhya Pradesh",
+      "lat": 25.22028,
+      "lon": 78.68611,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736701+00:00"
+    },
+    {
+      "pic": "MP64LH1184",
+      "dam_name": "Tikonaghat Dam",
+      "state": "Madhya Pradesh",
+      "lat": 25.21444,
+      "lon": 78.85194,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736713+00:00"
+    },
+    {
+      "pic": "MP64LH1185",
+      "dam_name": "Kawaghat",
+      "state": "Madhya Pradesh",
+      "lat": 25.14417,
+      "lon": 78.87778,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736725+00:00"
+    },
+    {
+      "pic": "MP64LH1186",
+      "dam_name": "Satighat",
+      "state": "Madhya Pradesh",
+      "lat": 25.2,
+      "lon": 78.7775,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.9m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.9m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736738+00:00"
+    },
+    {
+      "pic": "MP64MH1187",
+      "dam_name": "Bruwa Nalla",
+      "state": "Madhya Pradesh",
+      "lat": 25.28278,
+      "lon": 78.77194,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736749+00:00"
+    },
+    {
+      "pic": "UP13MH0004",
+      "dam_name": "Parichha",
+      "state": "Uttar Pradesh",
+      "lat": 25.51639,
+      "lon": 78.78111,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22C55E",
+      "explanation": {
+        "summary": "Low failure risk (0%). Ample freeboard (3.7m remaining) under light precipitation.",
+        "top_factors": [
+          "sufficient freeboard margin",
+          "nominal catchment runoff"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736818+00:00"
+    },
+    {
+      "pic": "UP69HH0156",
+      "dam_name": "Erach Dam",
+      "state": "Uttar Pradesh",
+      "lat": 25.73667,
+      "lon": 79.05389,
+      "rain_1h_mm": 2.5,
+      "rain_24h_mm": 19.9,
+      "trigger_reason": "Slow Rain (3h: 14.2 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22C55E",
+      "explanation": {
+        "summary": "Low failure risk (0%). Ample freeboard (4.7m remaining) under light precipitation.",
+        "top_factors": [
+          "sufficient freeboard margin",
+          "nominal catchment runoff"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.736920+00:00"
+    },
+    {
+      "pic": "MH09HH1635",
+      "dam_name": "Pimpalwadi",
+      "state": "Maharashtra",
+      "lat": 17.67528,
+      "lon": 73.56694,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22C55E",
+      "explanation": {
+        "summary": "Low failure risk (0%). Ample freeboard (7.1m remaining) under light precipitation.",
+        "top_factors": [
+          "sufficient freeboard margin",
+          "nominal catchment runoff"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737005+00:00"
+    },
+    {
+      "pic": "MH09HH1857",
+      "dam_name": "Shelarwadi",
+      "state": "Maharashtra",
+      "lat": 17.65444,
+      "lon": 73.48861,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.0m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737018+00:00"
+    },
+    {
+      "pic": "MH09HH1878",
+      "dam_name": "Tide",
+      "state": "Maharashtra",
+      "lat": 17.96056,
+      "lon": 73.31583,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.5m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737032+00:00"
+    },
+    {
+      "pic": "MH09MH1895",
+      "dam_name": "Talwat",
+      "state": "Maharashtra",
+      "lat": 17.645,
+      "lon": 73.615,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.9m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.9m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737046+00:00"
+    },
+    {
+      "pic": "MH09MH0997",
+      "dam_name": "Panchanadi",
+      "state": "Maharashtra",
+      "lat": 17.6375,
+      "lon": 73.15667,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.9m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737075+00:00"
+    },
+    {
+      "pic": "MH09MH0257",
+      "dam_name": "Shirawali",
+      "state": "Maharashtra",
+      "lat": 17.75333,
+      "lon": 73.42944,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.0m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737141+00:00"
+    },
+    {
+      "pic": "MH09MH0292",
+      "dam_name": "Phanaswadi",
+      "state": "Maharashtra",
+      "lat": 17.65,
+      "lon": 73.17917,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.1m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737160+00:00"
+    },
+    {
+      "pic": "MH09MH0827",
+      "dam_name": "Sondheghar",
+      "state": "Maharashtra",
+      "lat": 17.82,
+      "lon": 73.29111,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22C55E",
+      "explanation": {
+        "summary": "Low failure risk (0%). Ample freeboard (3.0m remaining) under light precipitation.",
+        "top_factors": [
+          "sufficient freeboard margin",
+          "nominal catchment runoff"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737186+00:00"
+    },
+    {
+      "pic": "MH09HH1360",
+      "dam_name": "Kondivali",
+      "state": "Maharashtra",
+      "lat": 17.65,
+      "lon": 73.38333,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737288+00:00"
+    },
+    {
+      "pic": "MH09MH1361",
+      "dam_name": "Tangar",
+      "state": "Maharashtra",
+      "lat": 17.87472,
+      "lon": 73.27778,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.8m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.8m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737303+00:00"
+    },
+    {
+      "pic": "MH09MH1474",
+      "dam_name": "Mahakoshi",
+      "state": "Maharashtra",
+      "lat": 18.05806,
+      "lon": 73.79083,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.5m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737332+00:00"
+    },
+    {
+      "pic": "MH09MH1485",
+      "dam_name": "Panderi",
+      "state": "Maharashtra",
+      "lat": 18.02222,
+      "lon": 73.21444,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22C55E",
+      "explanation": {
+        "summary": "Low failure risk (0%). Ample freeboard (4.5m remaining) under light precipitation.",
+        "top_factors": [
+          "sufficient freeboard margin",
+          "nominal catchment runoff"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737356+00:00"
+    },
+    {
+      "pic": "MH09HH1518",
+      "dam_name": "Nagewadi",
+      "state": "Maharashtra",
+      "lat": 17.92444,
+      "lon": 73.85944,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.5m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737388+00:00"
+    },
+    {
+      "pic": "MH09HH1552",
+      "dam_name": "Gunjwani",
+      "state": "Maharashtra",
+      "lat": 18.30194,
+      "lon": 73.62472,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.6m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.6m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737399+00:00"
+    },
+    {
+      "pic": "MH295MH3541",
+      "dam_name": "Savitri",
+      "state": "Maharashtra",
+      "lat": 17.97972,
+      "lon": 73.48083,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.7m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.7m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737449+00:00"
+    },
+    {
+      "pic": "MH295LH3560",
+      "dam_name": "Tulsi",
+      "state": "Maharashtra",
+      "lat": 17.96667,
+      "lon": 73.22278,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.5m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737463+00:00"
+    },
+    {
+      "pic": "MH295HH3565",
+      "dam_name": "Nargol",
+      "state": "Maharashtra",
+      "lat": 17.75778,
+      "lon": 73.24028,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.5m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737477+00:00"
+    },
+    {
+      "pic": "MH295MH3578",
+      "dam_name": "Ambawane",
+      "state": "Maharashtra",
+      "lat": 18.175,
+      "lon": 73.87,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.5m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737491+00:00"
+    },
+    {
+      "pic": "MH295HH3580",
+      "dam_name": "Kolavli",
+      "state": "Maharashtra",
+      "lat": 17.9675,
+      "lon": 73.22333,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22C55E",
+      "explanation": {
+        "summary": "Low failure risk (0%). Ample freeboard (5.2m remaining) under light precipitation.",
+        "top_factors": [
+          "sufficient freeboard margin",
+          "nominal catchment runoff"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737513+00:00"
+    },
+    {
+      "pic": "MH293LH3738",
+      "dam_name": "Mit Pasure",
+      "state": "Maharashtra",
+      "lat": 18.18472,
+      "lon": 73.76833,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737524+00:00"
+    },
+    {
+      "pic": "MH287LH2944",
+      "dam_name": "Dhom Balakavdi Dam",
+      "state": "Maharashtra",
+      "lat": 17.95111,
+      "lon": 73.71111,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.6m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.6m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737537+00:00"
+    },
+    {
+      "pic": "MH293HH3001",
+      "dam_name": "Palsawade",
+      "state": "Maharashtra",
+      "lat": 17.62722,
+      "lon": 73.86194,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.3m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.3m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737562+00:00"
+    },
+    {
+      "pic": "MH293MH3107",
+      "dam_name": "Naniwade (Wadekarwadi)",
+      "state": "Maharashtra",
+      "lat": 17.97167,
+      "lon": 73.55889,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.0m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.0m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737587+00:00"
+    },
+    {
+      "pic": "MH293MH3112",
+      "dam_name": "Sukondi-Waghine",
+      "state": "Maharashtra",
+      "lat": 17.79167,
+      "lon": 73.34167,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.5m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737603+00:00"
+    },
+    {
+      "pic": "MH293MH3136",
+      "dam_name": "Devale",
+      "state": "Maharashtra",
+      "lat": 17.97167,
+      "lon": 73.56139,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22C55E",
+      "explanation": {
+        "summary": "Low failure risk (0%). Ample freeboard (3.0m remaining) under light precipitation.",
+        "top_factors": [
+          "sufficient freeboard margin",
+          "nominal catchment runoff"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737648+00:00"
+    },
+    {
+      "pic": "MH293LH3137",
+      "dam_name": "Vinhere",
+      "state": "Maharashtra",
+      "lat": 17.91056,
+      "lon": 73.3975,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737660+00:00"
+    },
+    {
+      "pic": "MH293LH3138",
+      "dam_name": "Tala Talegaon",
+      "state": "Maharashtra",
+      "lat": 18.125,
+      "lon": 73.34167,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (3.0m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737671+00:00"
+    },
+    {
+      "pic": "MH293LH3139",
+      "dam_name": "Sai Storage Tank",
+      "state": "Maharashtra",
+      "lat": 18.18667,
+      "lon": 73.19139,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737682+00:00"
+    },
+    {
+      "pic": "MH286MH2536",
+      "dam_name": "Mahu (Kudali)",
+      "state": "Maharashtra",
+      "lat": 17.88111,
+      "lon": 73.8075,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22C55E",
+      "explanation": {
+        "summary": "Low failure risk (0%). Ample freeboard (3.1m remaining) under light precipitation.",
+        "top_factors": [
+          "sufficient freeboard margin",
+          "nominal catchment runoff"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737739+00:00"
+    },
+    {
+      "pic": "MH286MH2537",
+      "dam_name": "Hateghar(Kudali)",
+      "state": "Maharashtra",
+      "lat": 17.86556,
+      "lon": 73.81556,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.0m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737755+00:00"
+    },
+    {
+      "pic": "MH286MH2541",
+      "dam_name": "Jambhali",
+      "state": "Maharashtra",
+      "lat": 18.245,
+      "lon": 73.85611,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.5m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737769+00:00"
+    },
+    {
+      "pic": "MH293MH3184",
+      "dam_name": "Karanjali Pazar Talav",
+      "state": "Maharashtra",
+      "lat": 17.85,
+      "lon": 73.31972,
+      "rain_1h_mm": 0.4,
+      "rain_24h_mm": 11.4,
+      "trigger_reason": "Slow Rain (3h: 8.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.5m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737793+00:00"
+    },
+    {
+      "pic": "RA11MH0048",
+      "dam_name": "Gudha",
+      "state": "Rajasthan",
+      "lat": 25.48972,
+      "lon": 75.46694,
+      "rain_1h_mm": 0.1,
+      "rain_24h_mm": 28.9,
+      "trigger_reason": "Moderate Rain (2h: 16.8 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737901+00:00"
+    },
+    {
+      "pic": "RA11HH0057",
+      "dam_name": "Kota Barrage",
+      "state": "Rajasthan",
+      "lat": 25.17667,
+      "lon": 75.82583,
+      "rain_1h_mm": 0.1,
+      "rain_24h_mm": 28.9,
+      "trigger_reason": "Moderate Rain (2h: 16.8 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.1m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.1m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737917+00:00"
+    },
+    {
+      "pic": "RA67LH0229",
+      "dam_name": "Bada Naya Gaon",
+      "state": "Rajasthan",
+      "lat": 25.59528,
+      "lon": 75.69056,
+      "rain_1h_mm": 0.1,
+      "rain_24h_mm": 28.9,
+      "trigger_reason": "Moderate Rain (2h: 16.8 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.5m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.5m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.737994+00:00"
+    },
+    {
+      "pic": "RA11MH0096",
+      "dam_name": "Abhaya Pura",
+      "state": "Rajasthan",
+      "lat": 25.3,
+      "lon": 75.45,
+      "rain_1h_mm": 0.1,
+      "rain_24h_mm": 28.9,
+      "trigger_reason": "Moderate Rain (2h: 16.8 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.6m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.6m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.738008+00:00"
+    },
+    {
+      "pic": "RA11HH0189",
+      "dam_name": "Gararda",
+      "state": "Rajasthan",
+      "lat": 25.28389,
+      "lon": 75.51361,
+      "rain_1h_mm": 0.1,
+      "rain_24h_mm": 28.9,
+      "trigger_reason": "Moderate Rain (2h: 16.8 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (1.9m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (1.9m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.738022+00:00"
+    },
+    {
+      "pic": "RA11MH0033",
+      "dam_name": "Juggar",
+      "state": "Rajasthan",
+      "lat": 26.72028,
+      "lon": 77.09556,
+      "rain_1h_mm": 2.3,
+      "rain_24h_mm": 16.2,
+      "trigger_reason": "Slow Rain (3h: 12.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.5m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.738037+00:00"
+    },
+    {
+      "pic": "UP69LH0158",
+      "dam_name": "Narora Barrage",
+      "state": "Uttar Pradesh",
+      "lat": 28.19111,
+      "lon": 78.39889,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 19.5,
+      "trigger_reason": "Moderate Rain (2h: 17.8 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.9m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.9m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.738077+00:00"
+    },
+    {
+      "pic": "UP69MH0161",
+      "dam_name": "Okhla  Barrage",
+      "state": "Uttar Pradesh",
+      "lat": 28.54833,
+      "lon": 77.31472,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 14.5,
+      "trigger_reason": "Slow Rain (3h: 11.7 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (0.8m remaining).",
+        "top_factors": [
+          "critical freeboard depletion (0.8m remaining)"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.738091+00:00"
+    },
+    {
+      "pic": "UP69LH0163",
+      "dam_name": "Gokul Barrage",
+      "state": "Uttar Pradesh",
+      "lat": 27.44306,
+      "lon": 77.71611,
+      "rain_1h_mm": 0.1,
+      "rain_24h_mm": 11.799999999999999,
+      "trigger_reason": "Slow Rain (3h: 11.1 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22C55E",
+      "explanation": {
+        "summary": "Low failure risk (0%). Ample freeboard (3.5m remaining) under light precipitation.",
+        "top_factors": [
+          "sufficient freeboard margin",
+          "nominal catchment runoff"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.738128+00:00"
+    },
+    {
+      "pic": "UP381VH0172",
+      "dam_name": "Suheli Barrage",
+      "state": "Uttar Pradesh",
+      "lat": 28.34194,
+      "lon": 80.77222,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 16.1,
+      "trigger_reason": "Slow Rain (3h: 12.5 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.5m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.738142+00:00"
+    },
+    {
+      "pic": "UP381MH0170",
+      "dam_name": "Girja Barrage",
+      "state": "Uttar Pradesh",
+      "lat": 28.27306,
+      "lon": 81.08306,
+      "rain_1h_mm": 0.0,
+      "rain_24h_mm": 16.1,
+      "trigger_reason": "Slow Rain (3h: 12.5 mm)",
+      "failure_probability": 0.0,
+      "breach_probability": 0.0,
+      "alert_level": "NORMAL",
+      "alert_color": "#22c55e",
+      "explanation": {
+        "summary": "Low failure risk (0%). Dam operating safely within structural design tolerances and ample freeboard (2.5m remaining).",
+        "top_factors": [
+          "nominal catchment runoff",
+          "sufficient freeboard margin"
+        ]
+      },
+      "source": "modal_serverless_gpu_batch",
+      "detected_at": "2026-09-05T11:04:54.738159+00:00"
+    }
+  ]
+}

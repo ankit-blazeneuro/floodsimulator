@@ -1,10 +1,8 @@
-# Data & Binary OSM Files
-data/
-*.pbf
-*.bin
-*.mbtiles
+# ==============================================================================
+#  RedR Git Ignore Configuration
+# ==============================================================================
 
-# Build artifacts
+# C++ Build artifacts
 build/
 bin/
 *.o
@@ -15,22 +13,54 @@ CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 *_autogen/
+frontend/build/
+frontend/CMakeFiles/
+frontend/CMakeCache.txt
+frontend/*_autogen/
 
-# Python virtual environment & server logs
-server/venv/
+# Large Spatial Datasets & Map Binaries
+frontend/data/
+*.pbf
+*.bin
+*.mbtiles
+
+# Python virtual environments & packages
 venv/
+.venv/
+backend/venv/
+backend/.venv/
 __pycache__/
+backend/**/__pycache__/
 *.py[cod]
 *$py.class
-server/server.log
+*.egg-info/
+backend/*.egg-info/
+backend/**/*.egg-info/
+
+# Logs & Temporary Files
+server.log
+backend/server.log
 *.log
+
+# Heavy Model Weights & Synthetic Data
+backend/models/*.pkl
+backend/models/*.joblib
+!backend/models/.gitkeep
+!backend/models/active_surveillance.json
+!backend/models/training_metrics.json
+backend/data/synthetic/*.csv
+backend/data/synthetic/*.parquet
+!backend/data/synthetic/.gitkeep
 
 # IDE & OS files
 .vscode/
 .idea/
 .DS_Store
+Thumbs.db
 *.swp
+*.swo
 *.user
 .env
 *.env
-server/.env
+.streamlit/secrets.toml
+frontend/.vite/

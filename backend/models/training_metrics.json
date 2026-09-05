@@ -1,0 +1,65 @@
+{
+  "ensemble_auc_roc": 0.9732222222222223,
+  "ensemble_brier_score": 0.0318536141628945,
+  "xgb_auc_roc": 0.9786777777777778,
+  "lgbm_auc_roc": 0.9786111111111111,
+  "xgb_best_params": {
+    "max_depth": 9,
+    "learning_rate": 0.013793554634387093,
+    "n_estimators": 704,
+    "min_child_weight": 2,
+    "subsample": 0.7342454988983947,
+    "colsample_bytree": 0.7944110264105453,
+    "reg_alpha": 0.06614428920781638,
+    "reg_lambda": 0.5089820496474168,
+    "gamma": 5.54443315519558e-05,
+    "tree_method": "hist",
+    "device": "cuda",
+    "eval_metric": "logloss",
+    "random_state": 42
+  },
+  "lgbm_best_params": {
+    "max_depth": 4,
+    "learning_rate": 0.05493122268493322,
+    "n_estimators": 353,
+    "num_leaves": 58,
+    "min_child_samples": 49,
+    "subsample": 0.8430985055486349,
+    "colsample_bytree": 0.8018086601027581,
+    "reg_alpha": 1.838190480681093e-08,
+    "reg_lambda": 0.5014535827644533,
+    "device": "cpu",
+    "verbose": -1,
+    "random_state": 42
+  },
+  "train_samples": 5600,
+  "val_samples": 750,
+  "test_samples": 750,
+  "confusion_matrix": [
+    [
+      594,
+      6
+    ],
+    [
+      24,
+      126
+    ]
+  ],
+  "feature_columns": [
+    "dam_height_m",
+    "crest_length_m",
+    "catchment_area_sqkm",
+    "current_storage_mcm",
+    "freeboard_remaining_m",
+    "spillway_capacity_cumec",
+    "rain_1h_mm",
+    "rain_24h_mm",
+    "inflow_surge_cumec",
+    "crest_displacement_mm_yr",
+    "structural_type_code",
+    "is_natural",
+    "dam_age_years",
+    "overtopping_risk_index",
+    "dam_breach_index"
+  ]
+}

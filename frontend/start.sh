@@ -38,25 +38,25 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 # ------------------------------------------------------------------------------
-# 1. Setup Python Virtual Environment for FastAPI Gateway & ML Model
+# 1. Setup Python Virtual Environment for FastAPI Tile Server
 # ------------------------------------------------------------------------------
-echo -e "${BLUE}[1/3] Checking HydroGuard-AI Backend Environment...${NC}"
-if [ ! -d "backend/venv" ]; then
-    echo -e "      Creating Python virtual environment in backend/venv..."
-    python3 -m venv backend/venv
+echo -e "${BLUE}[1/3] Checking FastAPI Backend Environment...${NC}"
+if [ ! -d "server/venv" ]; then
+    echo -e "      Creating Python virtual environment in server/venv..."
+    python3 -m venv server/venv
 fi
 
-if ! backend/venv/bin/python -c "import fastapi, uvicorn, modal" 2>/dev/null; then
+if ! server/venv/bin/python -c "import fastapi, aiosqlite, uvicorn" 2>/dev/null; then
     echo -e "      Installing backend dependencies..."
-    backend/venv/bin/pip install -r backend/requirements.txt
+    server/venv/bin/pip install -r server/requirements.txt
 fi
 echo -e "${GREEN}[✓] Backend environment ready.${NC}"
 
 # ------------------------------------------------------------------------------
-# 2. Start FastAPI Server & Modal Gateway in Background
+# 2. Start FastAPI Tile Server in Background
 # ------------------------------------------------------------------------------
-echo -e "${BLUE}[2/3] Starting FastAPI Risk Server & Modal Gateway on http://localhost:8000...${NC}"
-backend/venv/bin/python -m uvicorn src.api:app --app-dir backend --host 0.0.0.0 --port 8000 > backend/server.log 2>&1 &
+echo -e "${BLUE}[2/3] Starting FastAPI Vector Tile Server on http://localhost:8000...${NC}"
+server/venv/bin/python -m uvicorn server.main:app --host 0.0.0.0 --port 8000 > server/server.log 2>&1 &
 SERVER_PID=$!
 
 # Wait for server health endpoint to be available
@@ -74,14 +74,12 @@ while [ $COUNTER -lt $MAX_RETRIES ]; do
 done
 
 if [ "$SERVER_READY" = true ]; then
-    echo -e "${GREEN}[✓] FastAPI Risk Server online at http://localhost:8000 (PID: $SERVER_PID)${NC}"
+    echo -e "${GREEN}[✓] FastAPI Vector Tile Server online at http://localhost:8000 (PID: $SERVER_PID)${NC}"
     echo -e "    - Health Check : http://localhost:8000/health"
-    echo -e "    - ML Predict   : http://localhost:8000/api/predict_bg_model"
-    echo -e "    - Surveillance : http://localhost:8000/api/surveillance/dams"
-    echo -e "    - Modal Cloud  : https://work-ankit-mail--hydroguard-training-predict-breach-web.modal.run"
-    echo -e "    - Weather NWP  : Open-Meteo ECMWF/GFS Gridded Satellite Surveillance (24/7)"
+    echo -e "    - TileJSON 3.0 : http://localhost:8000/tilejson.json"
+    echo -e "    - Dark Style   : http://localhost:8000/style.json"
 else
-    echo -e "${YELLOW}[!] Server starting in background (log: backend/server.log)${NC}"
+    echo -e "${YELLOW}[!] Tile server starting in background (log: server/server.log)${NC}"
 fi
 
 # ------------------------------------------------------------------------------
@@ -89,10 +87,13 @@ fi
 # ------------------------------------------------------------------------------
 echo -e "${BLUE}[3/3] Preparing RedR Desktop Application...${NC}"
 
-if [ ! -f "frontend/build/RedR" ] && [ ! -f "frontend/build/assam_map" ]; then
+if [ ! -f "build/RedR" ] && [ ! -f "build/assam_map" ]; then
     echo -e "      Building application with CMake..."
-    cmake -B frontend/build -DCMAKE_BUILD_TYPE=Release frontend
-    cmake --build frontend/build -j"$(nproc)"
+    mkdir -p build
+    cd build
+    cmake -DCMAKE_BUILD_TYPE=Release ..
+    make -j"$(nproc)"
+    cd "$PROJECT_DIR"
 fi
 
 echo -e "${GREEN}${BOLD}[✓] Launching RedR Desktop Application (Full Dark Theme)...${NC}"
@@ -101,16 +102,13 @@ echo -e "    - Pan            : Left Click + Drag / Arrow keys / W, A, S, D"
 echo -e "    - Zoom           : Mouse Wheel / Double Click / + / -"
 echo -e "    - Inspect Feature: Click on any dam, road, city, river, or POI"
 echo -e "    - Search         : Floating search bar at top-left"
-echo -e "    - Monitor Tab    : Real-time ML Dam Danger Surveillance & Modal GPU Predictions"
+echo -e "    - Measurement    : Click 📏 button"
 echo -e "=================================================================="
 
-# Execute Desktop App from frontend directory to preserve relative asset paths
-cd frontend
-export QT_PLUGIN_PATH="/usr/lib/x86_64-linux-gnu/qt6/plugins:${QT_PLUGIN_PATH}"
+# Execute Desktop App
 if [ -f "./build/RedR" ]; then
     ./build/RedR
 else
     ./build/assam_map
 fi
-cd "$PROJECT_DIR"
 

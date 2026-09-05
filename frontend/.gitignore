@@ -1,0 +1,39 @@
+# BG_model is an external package installed via pip -e, not vendored
+server/BG_model/
+
+# Data & Binary OSM Files
+data/
+*.pbf
+*.bin
+*.mbtiles
+
+# Build artifacts
+build/
+bin/
+*.o
+*.a
+*.so
+Makefile
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+*_autogen/
+
+# Python virtual environment & server logs
+server/venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+server/server.log
+*.log
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.user
+.env
+*.env
+server/.env
